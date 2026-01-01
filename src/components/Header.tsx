@@ -5,7 +5,12 @@ import { useContent } from "@/hooks/useContent";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { content } = useContent();
+  const { content, loading } = useContent();
+
+  const headerContent = !loading ? content.header : null;
+  const logoImage = headerContent?.logoImage;
+  const logoText = headerContent?.logoText;
+  const tagline = headerContent?.tagline;
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -23,27 +28,25 @@ const Header = () => {
           {/* Logo */}
           <div className="relative flex items-center gap-3">
             <div className="pointer-events-none absolute -inset-4 bg-[radial-gradient(circle_at_left_center,rgba(255,215,0,0.26),transparent_65%)] blur-xl" aria-hidden />
-            {content.header?.logoImage ? (
+            {logoImage ? (
               <img
-                src={content.header.logoImage}
-                alt={content.header.logoText || "logo"}
+                src={logoImage}
+                alt={logoText || "logo"}
                 className="h-14 w-14 rounded-sm object-contain drop-shadow-[0_0_18px_rgba(255,215,0,0.45)]"
               />
             ) : (
-              <div className="w-14 h-14 bg-primary rounded-sm flex items-center justify-center drop-shadow-[0_0_18px_rgba(255,215,0,0.45)]">
-                <span className="font-display text-3xl text-primary-foreground">P</span>
-              </div>
+              <div className="w-14 h-14 rounded-sm bg-[#1a140f] border border-[#2d2516] shadow-inner" aria-hidden />
             )}
-            <div className="leading-[1.05] relative">
+            <div className={`leading-[1.05] relative min-w-[150px] ${headerContent ? "opacity-100" : "opacity-0"}`}>
               <span className="font-display text-3xl tracking-wider text-foreground block drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]">
-                {content.header?.logoText || "PITBULLELITE"}
+                {logoText || ""}
               </span>
-              {content.header?.tagline && (
+              {tagline && (
                 <span
                   className="mt-[-2px] block text-xs font-semibold uppercase tracking-[0.18em] text-[#f1c94a] drop-shadow-[0_0_14px_rgba(255,215,0,0.45)]"
                   style={{ letterSpacing: "0.18em" }}
                 >
-                  {content.header.tagline}
+                  {tagline}
                 </span>
               )}
             </div>
