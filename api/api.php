@@ -93,13 +93,34 @@ if ($action === 'save') {
 
 // Обработка заявки с контактной формы
 if ($action === 'contact') {
-    $input = is_array($jsonInput) ? $jsonInput : json_decode($rawInput, true);
-    $name = trim($input['name'] ?? '');
-    $phone = trim($input['phone'] ?? '');
-    $message = trim($input['message'] ?? '');
+    // Пытаемся достать данные из JSON, form-data или raw querystring тела
+    $input = [];
+    if (is_array($jsonInput)) {
+        $input = $jsonInput;
+    } else {
+        $decoded = json_decode($rawInput, true);
+        if (is_array($decoded)) {
+            $input = $decoded;
+        }
+    }
+    // Если JSON не раскодировался, пробуем form-urlencoded/POST
+    if (empty($input) && !empty($_POST)) {
+        $input = $_POST;
+    }
+    // Если всё ещё пусто, пробуем парсить raw тело как querystring
+    if (empty($input) && !empty($rawInput)) {
+        parse_str($rawInput, $parsed);
+        if (is_array($parsed)) {
+            $input = $parsed;
+        }
+    }
+
+    $name = isset($input['name']) ? trim((string)$input['name']) : '';
+    $phone = isset($input['phone']) ? trim((string)$input['phone']) : '';
+    $message = isset($input['message']) ? trim((string)$input['message']) : '';
 
     if ($name === '' || $phone === '' || $message === '') {
-        http_response_code(400);
+        http_response_code(200);
         echo json_encode(['success' => false, 'message' => 'Заполните все поля']);
         exit();
     }
