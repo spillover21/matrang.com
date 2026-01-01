@@ -47,31 +47,31 @@ const HeroSection = () => {
               }}
             />
           </div>
-
-          {/* Градиентные края (кроме нижнего) примерно на 1/7 ширины/высоты */}
-          <div className="pointer-events-none absolute inset-0" aria-hidden>
-            <div
-              className="absolute top-0 left-0 right-0 h-[14%]"
-              style={{
-                background: `linear-gradient(to bottom, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.8}), transparent)`
-              }}
-            />
-            <div
-              className="absolute top-0 left-0 bottom-0 w-[14%]"
-              style={{
-                background: `linear-gradient(to right, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.8}), transparent)`
-              }}
-            />
-            <div
-              className="absolute top-0 right-0 bottom-0 w-[14%]"
-              style={{
-                background: `linear-gradient(to left, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.8}), transparent)`
-              }}
-            />
-          </div>
         </div>
       </div>
       <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/30" />
+
+      {/* Поверх затемнения — градиентные края (видимы над оверлеем) */}
+      <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden>
+        <div
+          className="absolute top-0 left-0 right-0 h-[16%]"
+          style={{
+            background: `linear-gradient(to bottom, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.85}), transparent)`
+          }}
+        />
+        <div
+          className="absolute top-0 left-0 bottom-0 w-[16%]"
+          style={{
+            background: `linear-gradient(to right, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.85}), transparent)`
+          }}
+        />
+        <div
+          className="absolute top-0 right-0 bottom-0 w-[16%]"
+          style={{
+            background: `linear-gradient(to left, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.85}), transparent)`
+          }}
+        />
+      </div>
 
       <div className="relative z-10 container mx-auto px-4 py-16 lg:py-24">
         <div className="max-w-4xl">
