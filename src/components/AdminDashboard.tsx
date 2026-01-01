@@ -863,6 +863,19 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                             </div>
                             <div>
                               <label className="text-xs text-muted-foreground mb-2 block">
+                                Прозрачность краёв: {sectionData.edgeFadeOpacity ?? 85}%
+                              </label>
+                              <Slider
+                                value={[sectionData.edgeFadeOpacity ?? 85]}
+                                onValueChange={(value) => handleTextChange(activeSection, 'edgeFadeOpacity', value[0])}
+                                min={0}
+                                max={100}
+                                step={5}
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground mb-2 block">
                                 Позиция по горизонтали: {sectionData.imagePositionX || 50}%
                               </label>
                               <Slider

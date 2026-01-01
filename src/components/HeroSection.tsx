@@ -24,6 +24,7 @@ const HeroSection = () => {
   }
 
   const hero = content.hero;
+  const edgeFade = ((hero.edgeFadeOpacity ?? 85) as number) / 100;
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
@@ -49,9 +50,24 @@ const HeroSection = () => {
 
           {/* Градиентные края (кроме нижнего) примерно на 1/7 ширины/высоты */}
           <div className="pointer-events-none absolute inset-0" aria-hidden>
-            <div className="absolute top-0 left-0 right-0 h-[14%] bg-gradient-to-b from-background via-background/85 to-transparent" />
-            <div className="absolute top-0 left-0 bottom-0 w-[14%] bg-gradient-to-r from-background via-background/85 to-transparent" />
-            <div className="absolute top-0 right-0 bottom-0 w-[14%] bg-gradient-to-l from-background via-background/85 to-transparent" />
+            <div
+              className="absolute top-0 left-0 right-0 h-[14%]"
+              style={{
+                background: `linear-gradient(to bottom, rgba(0,0,0,${0.9 * edgeFade}), rgba(0,0,0,${0.7 * edgeFade}), rgba(0,0,0,0))`,
+              }}
+            />
+            <div
+              className="absolute top-0 left-0 bottom-0 w-[14%]"
+              style={{
+                background: `linear-gradient(to right, rgba(0,0,0,${0.9 * edgeFade}), rgba(0,0,0,${0.7 * edgeFade}), rgba(0,0,0,0))`,
+              }}
+            />
+            <div
+              className="absolute top-0 right-0 bottom-0 w-[14%]"
+              style={{
+                background: `linear-gradient(to left, rgba(0,0,0,${0.9 * edgeFade}), rgba(0,0,0,${0.7 * edgeFade}), rgba(0,0,0,0))`,
+              }}
+            />
           </div>
         </div>
       </div>
