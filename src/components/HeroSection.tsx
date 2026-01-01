@@ -27,50 +27,41 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-background/70" />
+      {/* Фон — фотография на весь экран с градиентом слева для читаемости текста */}
+      <img
+        src={hero.image}
+        alt={hero.title}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/20" />
 
       <div className="relative z-10 container mx-auto px-4 py-16 lg:py-24">
-        <div className="grid lg:grid-cols-[1.05fr_0.95fr] items-center gap-12">
-          <div className="max-w-3xl">
-            <div className="animate-slide-up">
-              {hero.tag && (
-                <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
-                  {hero.tag}
-                </span>
-              )}
-              <h1
-                className="font-display text-5xl md:text-7xl lg:text-8xl leading-none mb-6"
-                style={{ whiteSpace: "pre-line" }}
-              >
-                {hero.title}
-              </h1>
-              {hero.subtitle && (
-                <p className="font-body text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
-                  {hero.subtitle}
-                </p>
-              )}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="hero" size="xl" onClick={scrollToGallery}>
-                  Смотреть щенков
-                </Button>
-                <Button variant="outline" size="xl" onClick={scrollToContact}>
-                  Связаться с нами
-                </Button>
-              </div>
+        <div className="max-w-4xl">
+          <div className="animate-slide-up">
+            {hero.tag && (
+              <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
+                {hero.tag}
+              </span>
+            )}
+            <h1
+              className="font-display text-5xl md:text-7xl lg:text-8xl leading-none mb-6"
+              style={{ whiteSpace: "pre-line" }}
+            >
+              {hero.title}
+            </h1>
+            {hero.subtitle && (
+              <p className="font-body text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
+                {hero.subtitle}
+              </p>
+            )}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button variant="hero" size="xl" onClick={scrollToGallery}>
+                Смотреть щенков
+              </Button>
+              <Button variant="outline" size="xl" onClick={scrollToContact}>
+                Связаться с нами
+              </Button>
             </div>
-          </div>
-
-          {/* Изображение как в галерее, без обрезки */}
-          <div className="relative w-full h-full">
-            <div className="relative aspect-[4/5] sm:aspect-[5/6] lg:aspect-[4/5] overflow-hidden flex items-center justify-center bg-background border border-border">
-              <img
-                src={hero.image}
-                alt={hero.title}
-                className="max-h-full max-w-full object-contain drop-shadow-2xl"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-70" />
-            </div>
-            <div className="absolute -z-10 inset-6 bg-primary/5 blur-3xl rounded-full" />
           </div>
         </div>
       </div>
