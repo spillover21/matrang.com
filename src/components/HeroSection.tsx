@@ -27,13 +27,23 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
-      {/* Фон — размещаем фото без обрезки, с отступами по краям */}
-      <div className="absolute inset-0 p-6 md:p-10 lg:p-16">
-        <img
-          src={hero.image}
-          alt={hero.title}
-          className="w-full h-full object-contain drop-shadow-2xl"
-        />
+      {/* Фон с лёгким клипом низа, уменьшенными отступами и мягким затемнением по краям */}
+      <div className="absolute inset-0 p-4 md:p-6 lg:p-10">
+        <div className="relative w-full h-full overflow-hidden rounded-xl">
+          <img
+            src={hero.image}
+            alt={hero.title}
+            className="w-full h-full object-cover object-center drop-shadow-2xl"
+            style={{ clipPath: "inset(0 0 25% 0)" }}
+          />
+
+          {/* Градиентные края (кроме нижнего) примерно на 1/7 ширины/высоты */}
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            <div className="absolute top-0 left-0 right-0 h-[14%] bg-gradient-to-b from-background via-background/85 to-transparent" />
+            <div className="absolute top-0 left-0 bottom-0 w-[14%] bg-gradient-to-r from-background via-background/85 to-transparent" />
+            <div className="absolute top-0 right-0 bottom-0 w-[14%] bg-gradient-to-l from-background via-background/85 to-transparent" />
+          </div>
+        </div>
       </div>
       <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/30" />
 
