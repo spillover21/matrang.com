@@ -27,14 +27,16 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
-      {/* Фон с лёгким клипом низа, уменьшенными отступами и мягким затемнением по краям */}
+      {/* Фон с контролируемым позиционированием как в галерее (object-position) */}
       <div className="absolute inset-0 p-4 md:p-6 lg:p-10">
-        <div className="relative w-full h-full overflow-hidden rounded-xl pt-4 md:pt-6 lg:pt-8">
+        <div className="relative w-full h-full overflow-hidden rounded-xl bg-background/40">
           <img
             src={hero.image}
             alt={hero.title}
-            className="w-full h-full object-cover object-center drop-shadow-2xl"
-            style={{ clipPath: "inset(0 0 25% 0)", transform: "translateY(12.5%)" }}
+            className="w-full h-full object-contain drop-shadow-2xl"
+            style={{
+              objectPosition: `${hero.imagePositionX ?? 50}% ${hero.imagePositionY ?? 50}%`,
+            }}
           />
 
           {/* Градиентные края (кроме нижнего) примерно на 1/7 ширины/высоты */}
