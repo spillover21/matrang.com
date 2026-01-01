@@ -40,6 +40,7 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }} # ftp или sftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/
-          # Кладём в основной public_html (без вложенности)
+          # Рабочий docroot: основной public_html (без вложенности)
           server-dir: public_html/
-          dangerous-clean-slate: true
+          # Не трогаем api/data/uploads, чтобы не потерять контент из админки
+          dangerous-clean-slate: false
