@@ -104,6 +104,24 @@
   }
 }
 
+/* Section dividers for visual depth */
+main > section {
+  position: relative;
+}
+
+main > section:not(:first-of-type)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,215,128,0.1) 20%, rgba(255,215,64,0.5) 50%, rgba(255,215,128,0.1) 80%, transparent 100%);
+  box-shadow: 0 16px 28px rgba(0,0,0,0.5);
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Animations */
 @keyframes pulse-gold {
   0%, 100% {
