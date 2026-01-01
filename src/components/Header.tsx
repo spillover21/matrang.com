@@ -25,19 +25,22 @@ const Header = () => {
               <img
                 src={content.header.logoImage}
                 alt={content.header.logoText || "logo"}
-                className="h-10 w-10 rounded-sm object-contain"
+                className="h-12 w-12 rounded-sm object-contain drop-shadow-[0_0_14px_rgba(255,215,0,0.35)]"
               />
             ) : (
-              <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
-                <span className="font-display text-xl text-primary-foreground">P</span>
+              <div className="w-12 h-12 bg-primary rounded-sm flex items-center justify-center drop-shadow-[0_0_14px_rgba(255,215,0,0.35)]">
+                <span className="font-display text-2xl text-primary-foreground">P</span>
               </div>
             )}
             <div className="leading-tight">
-              <span className="font-display text-2xl tracking-wider text-foreground block">
+              <span className="font-display text-2xl tracking-wider text-foreground block drop-shadow-[0_0_12px_rgba(255,215,0,0.35)]">
                 {content.header?.logoText || "PITBULLELITE"}
               </span>
               {content.header?.tagline && (
-                <span className="text-xs text-muted-foreground uppercase tracking-[0.2em]">
+                <span
+                  className="block text-sm font-semibold uppercase tracking-[0.18em] text-amber-400 drop-shadow-[0_0_12px_rgba(255,215,0,0.35)]"
+                  style={{ letterSpacing: "0.18em" }}
+                >
                   {content.header.tagline}
                 </span>
               )}
