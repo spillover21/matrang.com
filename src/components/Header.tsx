@@ -38,7 +38,10 @@ const Header = () => {
                 {content.header?.logoText || "PITBULLELITE"}
               </span>
               {content.header?.tagline && (
-                <span className="mt-[-2px] block text-sm font-semibold uppercase tracking-[0.24em] text-amber-400 drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]">
+                <span
+                  className="mt-[-2px] block text-xs font-semibold uppercase tracking-[0.14em] text-amber-400 drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]"
+                  style={{ letterSpacing: "0.14em" }}
+                >
                   {content.header.tagline}
                 </span>
               )}
