@@ -802,6 +802,27 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         </Button>
                       </div>
 
+                    /* FAVICON */
+                    ) : field === 'favicon' ? (
+                      <div className="space-y-3 max-w-sm">
+                        <div className="text-xs text-muted-foreground">Рекомендуем 64x64 или 32x32 PNG/WebP. Будет обновлять фавикон сайта.</div>
+                        {value && (
+                          <div className="w-16 h-16 rounded bg-card border border-border flex items-center justify-center overflow-hidden">
+                            <img src={value} alt="Favicon" className="w-full h-full object-contain" />
+                          </div>
+                        )}
+                        <label className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors">
+                          <Upload className="w-4 h-4" />
+                          <span className="text-sm">{value ? 'Заменить фавикон' : 'Загрузить фавикон'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, activeSection, field)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
                     /* Изображения */
                     ) : field.toLowerCase().includes("image") ||
                     field.toLowerCase().includes("photo") ? (

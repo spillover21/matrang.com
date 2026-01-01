@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
@@ -11,6 +11,15 @@ const Header = () => {
   const logoImage = headerContent?.logoImage;
   const logoText = headerContent?.logoText;
   const tagline = headerContent?.tagline;
+  const favicon = headerContent?.favicon;
+
+  useEffect(() => {
+    if (!favicon) return;
+    const existing = document.querySelector<HTMLLinkElement>('link[rel="icon"]') || document.createElement('link');
+    existing.rel = 'icon';
+    existing.href = favicon;
+    document.head.appendChild(existing);
+  }, [favicon]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);

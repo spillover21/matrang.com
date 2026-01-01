@@ -146,6 +146,7 @@ echo json_encode(['success' => false, 'message' => 'Invalid action']);
 function getDefaultContent() {
     return [
         'header' => [
+            'favicon' => '/favicon.ico',
             'logo' => 'PITBULL ELITE',
             'links' => ['О породе', 'Галерея', 'Контакты']
         ],
