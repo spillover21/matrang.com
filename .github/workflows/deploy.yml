@@ -37,5 +37,6 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }} # ftp или sftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}/
+          # Хостинг ожидает загрузку именно в /files/public_html/
+          server-dir: /files/public_html/
           dangerous-clean-slate: true
