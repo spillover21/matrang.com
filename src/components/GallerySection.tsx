@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useContent } from "@/hooks/useContent";
 
@@ -30,7 +30,7 @@ const GallerySection = () => {
             <span className="text-gradient-gold">ГАЛЕРЕЯ</span>
           </h2>
           <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
-            Познакомьтесь с нашими питомцами. Каждый из них — результат 
+            Познакомьтесь с нашими питомцами. Каждый из них  результат 
             тщательной селекции и заботливого воспитания.
           </p>
         </div>
@@ -44,24 +44,15 @@ const GallerySection = () => {
               onMouseLeave={() => setSelectedDog(null)}
             >
               {/* Image */}
-              <div className="relative aspect-square overflow-hidden">
-                <div 
-                  className="w-full h-full"
+              <div className="relative aspect-square overflow-hidden flex items-center justify-center bg-background">
+                <img
+                  src={dog.image}
+                  alt={dog.name}
+                  className="max-h-full max-w-full object-contain transition-transform duration-700 group-hover:scale-105"
                   style={{
-                    transform: `scale(${(dog.imageZoom || 100) / 100}, ${(dog.imageHeight || 100) / 100})`,
-                    transformOrigin: `${dog.imagePositionX || 50}% ${dog.imagePositionY || 50}%`,
-                    transition: 'transform 0.7s ease'
+                    objectPosition: `${dog.imagePositionX || 50}% ${dog.imagePositionY || 50}%`
                   }}
-                >
-                  <img
-                    src={dog.image}
-                    alt={dog.name}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700"
-                    style={{
-                      objectPosition: `${dog.imagePositionX || 50}% ${dog.imagePositionY || 50}%`
-                    }}
-                  />
-                </div>
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
                 
                 {/* Status Badge */}
