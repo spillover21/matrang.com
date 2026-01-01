@@ -23,6 +23,13 @@ if ($action === '' && is_array($jsonInput) && isset($jsonInput['action'])) {
     $action = strtolower($jsonInput['action']);
 }
 
+// Фолбэк: если POST без action, но пришли поля формы, считаем это заявкой contact
+if ($action === '' && $_SERVER['REQUEST_METHOD'] === 'POST' && is_array($jsonInput)) {
+    if (isset($jsonInput['name']) || isset($jsonInput['phone']) || isset($jsonInput['message'])) {
+        $action = 'contact';
+    }
+}
+
 // Проверка аутентификации
 function checkAuth() {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
