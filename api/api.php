@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $action = $_GET['action'] ?? '';
 $dataFile = __DIR__ . '/../data/content.json';
 $uploadDir = __DIR__ . '/../uploads/';
+$requestsLog = __DIR__ . '/../data/requests.log';
 
 // Проверка аутентификации
 function checkAuth() {
@@ -73,6 +74,48 @@ if ($action === 'save') {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Failed to save content']);
     }
+    exit();
+}
+
+// Обработка заявки с контактной формы
+if ($action === 'contact') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $name = trim($input['name'] ?? '');
+    $phone = trim($input['phone'] ?? '');
+    $message = trim($input['message'] ?? '');
+
+    if ($name === '' || $phone === '' || $message === '') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Заполните все поля']);
+        exit();
+    }
+
+    // Определяем email получателя из контента
+    $recipient = 'info@example.com';
+    if (file_exists($dataFile)) {
+        $contentData = json_decode(file_get_contents($dataFile), true);
+        if (!empty($contentData['contact']['email'])) {
+            $recipient = $contentData['contact']['email'];
+        }
+    }
+
+    $subject = 'Новая заявка с сайта MATRANG';
+    $body = "Имя: {$name}\nТелефон: {$phone}\nСообщение: {$message}\nВремя: " . date('Y-m-d H:i:s');
+    $headers = "Content-Type: text/plain; charset=utf-8" . "\r\n";
+
+    // Пишем лог вне зависимости от mail()
+    if (!is_dir(dirname($requestsLog))) {
+        mkdir(dirname($requestsLog), 0755, true);
+    }
+    file_put_contents($requestsLog, "[" . date('Y-m-d H:i:s') . "] {$name} | {$phone} | {$message}\n", FILE_APPEND);
+
+    $sent = @mail($recipient, $subject, $body, $headers);
+
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => $sent ? 'Отправлено' : 'Сохранено. Отправка письма может быть отключена на сервере.'
+    ]);
     exit();
 }
 

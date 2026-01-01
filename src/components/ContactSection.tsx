@@ -1,15 +1,47 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useContent } from "@/hooks/useContent";
 
 const ContactSection = () => {
   const { content, loading } = useContent();
+  const { toast } = useToast();
+  const [form, setForm] = useState({ name: "", phone: "", message: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   if (loading || !content.contact) {
     return null;
   }
 
   const { tag, title, description, phone, email, address } = content.contact;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.phone.trim() || !form.message.trim()) {
+      toast({ title: "Заполните все поля", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/api.php?action=contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast({ title: "Заявка отправлена", description: "Мы свяжемся с вами в ближайшее время" });
+        setForm({ name: "", phone: "", message: "" });
+      } else {
+        toast({ title: "Не удалось отправить", description: data.message || "Попробуйте позже", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Ошибка сети", description: "Проверьте подключение и попробуйте снова", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <section id="contact" className="py-24 bg-card">
@@ -95,7 +127,7 @@ const ContactSection = () => {
             <h3 className="font-display text-3xl mb-8">
               ОСТАВИТЬ ЗАЯВКУ
             </h3>
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="font-heading text-sm uppercase tracking-wider text-muted-foreground block mb-2">
                   Ваше имя
@@ -104,6 +136,8 @@ const ContactSection = () => {
                   type="text"
                   className="w-full bg-background border border-border px-4 py-3 font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
                   placeholder="Введите имя"
+                  value={form.name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                 />
               </div>
               <div>
@@ -114,6 +148,8 @@ const ContactSection = () => {
                   type="tel"
                   className="w-full bg-background border border-border px-4 py-3 font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
                   placeholder="+7 (___) ___-__-__"
+                  value={form.phone}
+                  onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
                 />
               </div>
               <div>
@@ -123,11 +159,13 @@ const ContactSection = () => {
                 <textarea
                   className="w-full bg-background border border-border px-4 py-3 font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors h-32 resize-none"
                   placeholder="Расскажите, какой щенок вас интересует..."
+                  value={form.message}
+                  onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
                 />
               </div>
-              <Button variant="hero" size="xl" className="w-full">
+              <Button type="submit" variant="hero" size="xl" className="w-full" disabled={submitting}>
                 <MessageCircle className="w-5 h-5" />
-                Отправить заявку
+                {submitting ? "Отправляем..." : "Отправить заявку"}
               </Button>
             </form>
           </div>
