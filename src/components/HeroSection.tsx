@@ -27,13 +27,15 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
-      {/* Фон — фотография на весь экран с градиентом слева для читаемости текста */}
-      <img
-        src={hero.image}
-        alt={hero.title}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/20" />
+      {/* Фон — размещаем фото без обрезки, с отступами по краям */}
+      <div className="absolute inset-0 p-6 md:p-10 lg:p-16">
+        <img
+          src={hero.image}
+          alt={hero.title}
+          className="w-full h-full object-contain drop-shadow-2xl"
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/30" />
 
       <div className="relative z-10 container mx-auto px-4 py-16 lg:py-24">
         <div className="max-w-4xl">
