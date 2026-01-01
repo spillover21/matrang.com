@@ -40,6 +40,6 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }} # ftp или sftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/
-          # Кладём в корень FTP-аккаунта, без вложенного public_html
-          server-dir: ./
+          # Загружаем в public_html как указано в аккаунте
+          server-dir: public_html/
           dangerous-clean-slate: true
