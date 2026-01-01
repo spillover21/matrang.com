@@ -53,19 +53,19 @@ const HeroSection = () => {
             <div
               className="absolute top-0 left-0 right-0 h-[14%]"
               style={{
-                background: `linear-gradient(to bottom, rgba(0,0,0,${0.9 * edgeFade}), rgba(0,0,0,${0.7 * edgeFade}), rgba(0,0,0,0))`,
+                background: `linear-gradient(to bottom, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.8}), transparent)`
               }}
             />
             <div
               className="absolute top-0 left-0 bottom-0 w-[14%]"
               style={{
-                background: `linear-gradient(to right, rgba(0,0,0,${0.9 * edgeFade}), rgba(0,0,0,${0.7 * edgeFade}), rgba(0,0,0,0))`,
+                background: `linear-gradient(to right, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.8}), transparent)`
               }}
             />
             <div
               className="absolute top-0 right-0 bottom-0 w-[14%]"
               style={{
-                background: `linear-gradient(to left, rgba(0,0,0,${0.9 * edgeFade}), rgba(0,0,0,${0.7 * edgeFade}), rgba(0,0,0,0))`,
+                background: `linear-gradient(to left, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.8}), transparent)`
               }}
             />
           </div>
