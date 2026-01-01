@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useContent } from "@/hooks/useContent";
 
@@ -30,7 +30,7 @@ const GallerySection = () => {
             <span className="text-gradient-gold">ГАЛЕРЕЯ</span>
           </h2>
           <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
-            Познакомьтесь с нашими питомцами. Каждый из них  результат 
+            Познакомьтесь с нашими питомцами. Каждый из них — результат 
             тщательной селекции и заботливого воспитания.
           </p>
         </div>
