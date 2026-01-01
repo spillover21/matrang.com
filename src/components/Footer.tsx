@@ -1,4 +1,14 @@
+import { useContent } from "@/hooks/useContent";
+
 const Footer = () => {
+  const { content, loading } = useContent();
+
+  if (loading || !content.footer) {
+    return null;
+  }
+
+  const { copyright, social = [] } = content.footer;
+
   return (
     <footer className="py-8 bg-background border-t border-border">
       <div className="container mx-auto px-4">
@@ -12,29 +22,24 @@ const Footer = () => {
             </span>
           </div>
           
-          <p className="font-body text-sm text-muted-foreground text-center">
-            © 2024 PitbullElite. Все права защищены.
-          </p>
+          {copyright && (
+            <p className="font-body text-sm text-muted-foreground text-center">
+              {copyright}
+            </p>
+          )}
           
           <div className="flex items-center gap-6">
-            <a
-              href="#"
-              className="font-heading text-xs uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
-            >
-              Instagram
-            </a>
-            <a
-              href="#"
-              className="font-heading text-xs uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
-            >
-              Telegram
-            </a>
-            <a
-              href="#"
-              className="font-heading text-xs uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
-            >
-              WhatsApp
-            </a>
+            {social.map((item: any, idx: number) => (
+              <a
+                key={idx}
+                href={item.url || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="font-heading text-xs uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
+              >
+                {item.name}
+              </a>
+            ))}
           </div>
         </div>
       </div>

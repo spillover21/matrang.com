@@ -1,72 +1,92 @@
 import { Button } from "@/components/ui/button";
 import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { useContent } from "@/hooks/useContent";
 
 const ContactSection = () => {
+  const { content, loading } = useContent();
+
+  if (loading || !content.contact) {
+    return null;
+  }
+
+  const { tag, title, description, phone, email, address } = content.contact;
+
   return (
     <section id="contact" className="py-24 bg-card">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-16">
           {/* Left Column */}
           <div>
-            <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
-              Свяжитесь с нами
-            </span>
-            <h2 className="font-display text-5xl md:text-7xl mb-6">
-              ГОТОВЫ <span className="text-gradient-gold">НАЧАТЬ?</span>
-            </h2>
-            <p className="font-body text-lg text-muted-foreground mb-12">
-              Ответим на все вопросы о породе, поможем выбрать щенка и 
-              организуем доставку в любой город России.
-            </p>
+            {tag && (
+              <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
+                {tag}
+              </span>
+            )}
+            {title && (
+              <h2 className="font-display text-5xl md:text-7xl mb-6">
+                {title.split(" ").map((word, idx) => (
+                  idx === 1 ? (
+                    <span key={idx} className="text-gradient-gold">{` ${word} `}</span>
+                  ) : (
+                    <span key={idx}>{`${idx === 0 ? "" : " "}${word}`}</span>
+                  )
+                ))}
+              </h2>
+            )}
+            {description && (
+              <p className="font-body text-lg text-muted-foreground mb-12">
+                {description}
+              </p>
+            )}
 
             <div className="space-y-6">
-              <a
-                href="tel:+79001234567"
-                className="flex items-center gap-4 group"
-              >
-                <div className="w-14 h-14 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Phone className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
-                    Телефон
+              {phone && (
+                <a href={`tel:${phone.replace(/\s+/g, "")}`} className="flex items-center gap-4 group">
+                  <div className="w-14 h-14 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Phone className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="font-display text-2xl group-hover:text-primary transition-colors">
-                    +7 (900) 123-45-67
+                  <div>
+                    <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
+                      Телефон
+                    </div>
+                    <div className="font-display text-2xl group-hover:text-primary transition-colors">
+                      {phone}
+                    </div>
                   </div>
-                </div>
-              </a>
+                </a>
+              )}
 
-              <a
-                href="mailto:info@pitbullelite.ru"
-                className="flex items-center gap-4 group"
-              >
-                <div className="w-14 h-14 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Mail className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
-                    Email
+              {email && (
+                <a href={`mailto:${email}`} className="flex items-center gap-4 group">
+                  <div className="w-14 h-14 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Mail className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="font-display text-2xl group-hover:text-primary transition-colors">
-                    info@pitbullelite.ru
+                  <div>
+                    <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
+                      Email
+                    </div>
+                    <div className="font-display text-2xl group-hover:text-primary transition-colors">
+                      {email}
+                    </div>
                   </div>
-                </div>
-              </a>
+                </a>
+              )}
 
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-primary/10 flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
-                    Адрес
+              {address && (
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-primary/10 flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="font-display text-2xl">
-                    Москва, Россия
+                  <div>
+                    <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
+                      Адрес
+                    </div>
+                    <div className="font-display text-2xl">
+                      {address}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
