@@ -40,6 +40,6 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }} # ftp или sftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/
-          # FTP root уже попадает в public_html, а рабочий docroot внутри
-          server-dir: public_html/public_html/
+          # Кладём в основной public_html (без вложенности)
+          server-dir: public_html/
           dangerous-clean-slate: true
