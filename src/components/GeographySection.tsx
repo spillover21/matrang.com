@@ -8,13 +8,6 @@ const GeographySection = () => {
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [mapError, setMapError] = useState(false);
 
-  if (loading || !content.geography) {
-    return null;
-  }
-
-  const { tag, title, description, locations } = content.geography;
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
   const mapCenter = useMemo(
     () => ({ lat: 54.526, lng: 37.6173 }),
     []
@@ -36,6 +29,13 @@ const GeographySection = () => {
     }),
     []
   );
+
+  if (loading || !content.geography) {
+    return null;
+  }
+
+  const { tag, title, description, locations } = content.geography;
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   return (
     <section id="geography" className="py-20 bg-muted/30">
