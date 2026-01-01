@@ -825,11 +825,6 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                   }}
                                 />
                               </div>
-                              <div className="pointer-events-none absolute inset-0" aria-hidden>
-                                <div className="absolute top-0 left-0 right-0 h-[14%] bg-gradient-to-b from-background via-background/85 to-transparent" />
-                                <div className="absolute top-0 left-0 bottom-0 w-[14%] bg-gradient-to-r from-background via-background/85 to-transparent" />
-                                <div className="absolute top-0 right-0 bottom-0 w-[14%] bg-gradient-to-l from-background via-background/85 to-transparent" />
-                              </div>
                             </div>
                           )}
 
@@ -857,19 +852,6 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                 onValueChange={(value) => handleTextChange(activeSection, 'imageHeight', value[0])}
                                 min={50}
                                 max={200}
-                                step={5}
-                                className="w-full"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground mb-2 block">
-                                Прозрачность краёв: {sectionData.edgeFadeOpacity ?? 85}%
-                              </label>
-                              <Slider
-                                value={[sectionData.edgeFadeOpacity ?? 85]}
-                                onValueChange={(value) => handleTextChange(activeSection, 'edgeFadeOpacity', value[0])}
-                                min={0}
-                                max={100}
                                 step={5}
                                 className="w-full"
                               />
