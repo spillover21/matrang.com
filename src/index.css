@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 45 20% 95%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 45 20% 95%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 20% 95%;
+
+    --primary: 43 100% 50%;
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 45 20% 95%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 43 100% 50%;
+    --accent-foreground: 0 0% 4%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 45 20% 95%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 43 100% 50%;
+
+    --radius: 0.25rem;
+
+    /* Custom colors */
+    --gold: 43 100% 50%;
+    --gold-dark: 43 80% 35%;
+    --blood: 0 70% 40%;
+    --steel: 0 0% 30%;
+
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(43 100% 50%) 0%, hsl(35 100% 40%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 4%) 100%);
+    --gradient-steel: linear-gradient(135deg, hsl(0 0% 20%) 0%, hsl(0 0% 10%) 100%);
+
+    /* Shadows */
+    --shadow-gold: 0 0 40px hsl(43 100% 50% / 0.3);
+    --shadow-dark: 0 20px 60px hsl(0 0% 0% / 0.5);
+
+    /* Fonts */
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-heading: 'Oswald', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 45 20% 95%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-gold {
+    background: var(--gradient-gold);
+  }
+
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+}
+
+/* Animations */
+@keyframes pulse-gold {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(43 100% 50% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(43 100% 50% / 0.6);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
