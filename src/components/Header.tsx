@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone } from "lucide-react";
+import { useContent } from "@/hooks/useContent";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { content } = useContent();
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -18,13 +20,28 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
-              <span className="font-display text-xl text-primary-foreground">P</span>
+          <div className="flex items-center gap-3">
+            {content.header?.logoImage ? (
+              <img
+                src={content.header.logoImage}
+                alt={content.header.logoText || "logo"}
+                className="h-10 w-10 rounded-sm object-contain"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
+                <span className="font-display text-xl text-primary-foreground">P</span>
+              </div>
+            )}
+            <div className="leading-tight">
+              <span className="font-display text-2xl tracking-wider text-foreground block">
+                {content.header?.logoText || "PITBULLELITE"}
+              </span>
+              {content.header?.tagline && (
+                <span className="text-xs text-muted-foreground uppercase tracking-[0.2em]">
+                  {content.header.tagline}
+                </span>
+              )}
             </div>
-            <span className="font-display text-2xl tracking-wider text-foreground">
-              PITBULL<span className="text-primary">ELITE</span>
-            </span>
           </div>
 
           {/* Desktop Navigation */}
