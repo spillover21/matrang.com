@@ -24,7 +24,8 @@ const HeroSection = () => {
   }
 
   const hero = content.hero;
-  const edgeFade = ((hero.edgeFadeOpacity ?? 85) as number) / 100;
+  const edgeFadeRaw = ((hero.edgeFadeOpacity ?? 85) as number) / 100;
+  const edgeFade = Math.min(Math.max(edgeFadeRaw, 0), 1);
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
@@ -52,23 +53,23 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/30" />
 
       {/* Поверх затемнения — градиентные края (видимы над оверлеем) */}
-      <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden>
+      <div className="pointer-events-none absolute inset-0 z-[6]" aria-hidden>
         <div
-          className="absolute top-0 left-0 right-0 h-[16%]"
+          className="absolute top-0 left-0 right-0 h-[20%]"
           style={{
-            background: `linear-gradient(to bottom, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.85}), transparent)`
+            background: `linear-gradient(to bottom, rgba(0,0,0,${0.8 * edgeFade}), rgba(0,0,0,${0.6 * edgeFade}), rgba(0,0,0,0))`
           }}
         />
         <div
-          className="absolute top-0 left-0 bottom-0 w-[16%]"
+          className="absolute top-0 left-0 bottom-0 w-[20%]"
           style={{
-            background: `linear-gradient(to right, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.85}), transparent)`
+            background: `linear-gradient(to right, rgba(0,0,0,${0.8 * edgeFade}), rgba(0,0,0,${0.6 * edgeFade}), rgba(0,0,0,0))`
           }}
         />
         <div
-          className="absolute top-0 right-0 bottom-0 w-[16%]"
+          className="absolute top-0 right-0 bottom-0 w-[20%]"
           style={{
-            background: `linear-gradient(to left, hsl(var(--background) / ${edgeFade}), hsl(var(--background) / ${edgeFade * 0.85}), transparent)`
+            background: `linear-gradient(to left, rgba(0,0,0,${0.8 * edgeFade}), rgba(0,0,0,${0.6 * edgeFade}), rgba(0,0,0,0))`
           }}
         />
       </div>
