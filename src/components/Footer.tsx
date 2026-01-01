@@ -8,18 +8,34 @@ const Footer = () => {
   }
 
   const { copyright, social = [] } = content.footer;
+  const header = content.header || {};
 
   return (
     <footer className="py-8 bg-background border-t border-border">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
-              <span className="font-display text-sm text-primary-foreground">P</span>
+          <div className="flex items-center gap-3">
+            {header.logoImage ? (
+              <img
+                src={header.logoImage}
+                alt={header.logoText || "logo"}
+                className="h-10 w-10 rounded-sm object-contain drop-shadow-[0_0_14px_rgba(255,215,0,0.35)]"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center drop-shadow-[0_0_14px_rgba(255,215,0,0.35)]">
+                <span className="font-display text-xl text-primary-foreground">P</span>
+              </div>
+            )}
+            <div className="leading-tight">
+              <span className="font-display text-2xl tracking-wider text-foreground block drop-shadow-[0_0_12px_rgba(255,215,0,0.35)]">
+                {header.logoText || "PITBULLELITE"}
+              </span>
+              {header.tagline && (
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400 drop-shadow-[0_0_12px_rgba(255,215,0,0.35)]">
+                  {header.tagline}
+                </span>
+              )}
             </div>
-            <span className="font-display text-xl tracking-wider text-foreground">
-              PITBULL<span className="text-primary">ELITE</span>
-            </span>
           </div>
           
           {copyright && (
