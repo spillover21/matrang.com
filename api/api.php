@@ -11,10 +11,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$action = $_GET['action'] ?? '';
+$action = strtolower($_GET['action'] ?? '');
 $dataFile = __DIR__ . '/../data/content.json';
 $uploadDir = __DIR__ . '/../uploads/';
 $requestsLog = __DIR__ . '/../data/requests.log';
+$rawInput = file_get_contents('php://input');
+$jsonInput = json_decode($rawInput, true);
+
+// Если action не пришёл в query, пробуем достать из JSON
+if ($action === '' && is_array($jsonInput) && isset($jsonInput['action'])) {
+    $action = strtolower($jsonInput['action']);
+}
 
 // Проверка аутентификации
 function checkAuth() {
@@ -79,7 +86,7 @@ if ($action === 'save') {
 
 // Обработка заявки с контактной формы
 if ($action === 'contact') {
-    $input = json_decode(file_get_contents('php://input'), true);
+    $input = is_array($jsonInput) ? $jsonInput : json_decode($rawInput, true);
     $name = trim($input['name'] ?? '');
     $phone = trim($input['phone'] ?? '');
     $message = trim($input['message'] ?? '');
