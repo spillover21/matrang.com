@@ -16,7 +16,8 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[linear-gradient(120deg,#191410_0%,#0f0c0a_60%,#0b0b0b_100%)] border-b border-[#2d2516] shadow-[0_10px_35px_rgba(0,0,0,0.55)]">
+      <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400/70 to-transparent" aria-hidden />
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
@@ -39,8 +40,8 @@ const Header = () => {
               </span>
               {content.header?.tagline && (
                 <span
-                  className="mt-[-2px] block text-xs font-semibold uppercase tracking-[0.14em] text-amber-400 drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]"
-                  style={{ letterSpacing: "0.14em" }}
+                  className="mt-[-2px] block text-xs font-semibold uppercase tracking-[0.18em] text-[#f1c94a] drop-shadow-[0_0_14px_rgba(255,215,0,0.45)]"
+                  style={{ letterSpacing: "0.18em" }}
                 >
                   {content.header.tagline}
                 </span>
