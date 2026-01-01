@@ -20,27 +20,25 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <div className="relative flex items-center gap-3">
+            <div className="pointer-events-none absolute -inset-4 bg-[radial-gradient(circle_at_left_center,rgba(255,215,0,0.26),transparent_65%)] blur-xl" aria-hidden />
             {content.header?.logoImage ? (
               <img
                 src={content.header.logoImage}
                 alt={content.header.logoText || "logo"}
-                className="h-12 w-12 rounded-sm object-contain drop-shadow-[0_0_14px_rgba(255,215,0,0.35)]"
+                className="h-14 w-14 rounded-sm object-contain drop-shadow-[0_0_18px_rgba(255,215,0,0.45)]"
               />
             ) : (
-              <div className="w-12 h-12 bg-primary rounded-sm flex items-center justify-center drop-shadow-[0_0_14px_rgba(255,215,0,0.35)]">
-                <span className="font-display text-2xl text-primary-foreground">P</span>
+              <div className="w-14 h-14 bg-primary rounded-sm flex items-center justify-center drop-shadow-[0_0_18px_rgba(255,215,0,0.45)]">
+                <span className="font-display text-3xl text-primary-foreground">P</span>
               </div>
             )}
-            <div className="leading-tight">
-              <span className="font-display text-2xl tracking-wider text-foreground block drop-shadow-[0_0_12px_rgba(255,215,0,0.35)]">
+            <div className="leading-[1.05] relative">
+              <span className="font-display text-3xl tracking-wider text-foreground block drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]">
                 {content.header?.logoText || "PITBULLELITE"}
               </span>
               {content.header?.tagline && (
-                <span
-                  className="block text-sm font-semibold uppercase tracking-[0.18em] text-amber-400 drop-shadow-[0_0_12px_rgba(255,215,0,0.35)]"
-                  style={{ letterSpacing: "0.18em" }}
-                >
+                <span className="mt-[-2px] block text-sm font-semibold uppercase tracking-[0.24em] text-amber-400 drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]">
                   {content.header.tagline}
                 </span>
               )}
