@@ -30,14 +30,22 @@ const HeroSection = () => {
       {/* Фон с контролируемым позиционированием как в галерее (object-position) */}
       <div className="absolute inset-0 p-4 md:p-6 lg:p-10">
         <div className="relative w-full h-full overflow-hidden rounded-xl bg-background/40">
-          <img
-            src={hero.image}
-            alt={hero.title}
-            className="w-full h-full object-contain drop-shadow-2xl"
+          <div
+            className="w-full h-full"
             style={{
-              objectPosition: `${hero.imagePositionX ?? 50}% ${hero.imagePositionY ?? 50}%`,
+              transform: `scale(${(hero.imageZoom ?? 100) / 100}, ${(hero.imageHeight ?? 100) / 100})`,
+              transformOrigin: `${hero.imagePositionX ?? 50}% ${hero.imagePositionY ?? 50}%`,
             }}
-          />
+          >
+            <img
+              src={hero.image}
+              alt={hero.title}
+              className="w-full h-full object-contain drop-shadow-2xl"
+              style={{
+                objectPosition: `${hero.imagePositionX ?? 50}% ${hero.imagePositionY ?? 50}%`,
+              }}
+            />
+          </div>
 
           {/* Градиентные края (кроме нижнего) примерно на 1/7 ширины/высоты */}
           <div className="pointer-events-none absolute inset-0" aria-hidden>

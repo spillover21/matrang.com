@@ -805,29 +805,126 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                     /* Изображения */
                     ) : field.toLowerCase().includes("image") ||
                     field.toLowerCase().includes("photo") ? (
-                      <div>
-                        {value && (
-                          <div className="mb-4">
-                            <img
-                              src={value}
-                              alt={field}
-                              className="max-w-full h-auto rounded max-h-64 object-cover"
-                            />
+                      activeSection === "hero" && field === "image" ? (
+                        <div className="space-y-4">
+                          {sectionData.image && (
+                            <div className="relative w-full max-w-md aspect-square rounded border border-border overflow-hidden bg-card">
+                              <div
+                                className="w-full h-full"
+                                style={{
+                                  transform: `scale(${(sectionData.imageZoom || 100) / 100}, ${(sectionData.imageHeight || 100) / 100})`,
+                                  transformOrigin: `${sectionData.imagePositionX || 50}% ${sectionData.imagePositionY || 50}%`,
+                                }}
+                              >
+                                <img
+                                  src={sectionData.image}
+                                  alt="Hero"
+                                  className="w-full h-full object-contain"
+                                  style={{
+                                    objectPosition: `${sectionData.imagePositionX || 50}% ${sectionData.imagePositionY || 50}%`
+                                  }}
+                                />
+                              </div>
+                              <div className="pointer-events-none absolute inset-0" aria-hidden>
+                                <div className="absolute top-0 left-0 right-0 h-[14%] bg-gradient-to-b from-background via-background/85 to-transparent" />
+                                <div className="absolute top-0 left-0 bottom-0 w-[14%] bg-gradient-to-r from-background via-background/85 to-transparent" />
+                                <div className="absolute top-0 right-0 bottom-0 w-[14%] bg-gradient-to-l from-background via-background/85 to-transparent" />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Настройки позиции и зума для Hero */}
+                          <div className="space-y-3 p-3 bg-background rounded border border-border max-w-md">
+                            <div>
+                              <label className="text-xs text-muted-foreground mb-2 block">
+                                Ширина (зум): {sectionData.imageZoom || 100}%
+                              </label>
+                              <Slider
+                                value={[sectionData.imageZoom || 100]}
+                                onValueChange={(value) => handleTextChange(activeSection, 'imageZoom', value[0])}
+                                min={50}
+                                max={200}
+                                step={5}
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground mb-2 block">
+                                Высота: {sectionData.imageHeight || 100}%
+                              </label>
+                              <Slider
+                                value={[sectionData.imageHeight || 100]}
+                                onValueChange={(value) => handleTextChange(activeSection, 'imageHeight', value[0])}
+                                min={50}
+                                max={200}
+                                step={5}
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground mb-2 block">
+                                Позиция по горизонтали: {sectionData.imagePositionX || 50}%
+                              </label>
+                              <Slider
+                                value={[sectionData.imagePositionX || 50]}
+                                onValueChange={(value) => handleTextChange(activeSection, 'imagePositionX', value[0])}
+                                min={0}
+                                max={100}
+                                step={5}
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground mb-2 block">
+                                Позиция по вертикали: {sectionData.imagePositionY || 50}%
+                              </label>
+                              <Slider
+                                value={[sectionData.imagePositionY || 50]}
+                                onValueChange={(value) => handleTextChange(activeSection, 'imagePositionY', value[0])}
+                                min={0}
+                                max={100}
+                                step={5}
+                                className="w-full"
+                              />
+                            </div>
                           </div>
-                        )}
-                        <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors">
-                          <Upload className="w-5 h-5" />
-                          <span>Загрузить изображение</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) =>
-                              handleImageUpload(e, activeSection, field)
-                            }
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
+
+                          <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors max-w-md">
+                            <Upload className="w-5 h-5" />
+                            <span>{sectionData.image ? 'Изменить изображение' : 'Загрузить изображение'}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(e, activeSection, field)}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <div>
+                          {value && (
+                            <div className="mb-4">
+                              <img
+                                src={value}
+                                alt={field}
+                                className="max-w-full h-auto rounded max-h-64 object-cover"
+                              />
+                            </div>
+                          )}
+                          <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors">
+                            <Upload className="w-5 h-5" />
+                            <span>Загрузить изображение</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleImageUpload(e, activeSection, field)
+                              }
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      )
 
                     /* Длинный текст */
                     ) : typeof value === "string" && value.length > 100 ? (
