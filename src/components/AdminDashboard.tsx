@@ -184,7 +184,10 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
     );
   }
 
-  const sectionData = content[activeSection] || {};
+  const sectionDataRaw = content[activeSection] || {};
+  const sectionData = activeSection === "header"
+    ? { favicon: sectionDataRaw.favicon || "", ...sectionDataRaw }
+    : sectionDataRaw;
 
   return (
     <div className="min-h-screen bg-background">
