@@ -28,6 +28,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Stamp version
+        run: echo "version=$(git rev-parse --short HEAD)-$(date -u +%Y%m%dT%H%M%SZ)" > dist/version.txt
+
       - name: Deploy to server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -37,6 +40,6 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }} # ftp или sftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/
-          # Хостинг ожидает загрузку именно в /files/public_html/
-          server-dir: /files/public_html/
+          # FTP root уже указывает на публичную директорию; загружаем прямо в неё
+          server-dir: public_html/
           dangerous-clean-slate: true
