@@ -154,6 +154,80 @@ if ($action === 'contact') {
     exit();
 }
 
+// Фолбэк: если пришёл POST и не совпадает с известными action, но содержит поля формы
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && !in_array($action, ['save', 'upload', 'login', 'contact'], true)
+) {
+    $input = [];
+    if (is_array($jsonInput)) {
+        $input = $jsonInput;
+    } else {
+        $decoded = json_decode($rawInput, true);
+        if (is_array($decoded)) {
+            $input = $decoded;
+        }
+    }
+    if (empty($input) && !empty($_POST)) {
+        $input = $_POST;
+    }
+    if (empty($input) && !empty($rawInput)) {
+        parse_str($rawInput, $parsed);
+        if (is_array($parsed)) {
+            $input = $parsed;
+        }
+    }
+
+    if (isset($input['name']) || isset($input['phone']) || isset($input['message'])) {
+        // Логируем, чтобы понять откуда пришло
+        if (!is_dir(dirname($requestsLog))) {
+            mkdir(dirname($requestsLog), 0755, true);
+        }
+        file_put_contents($requestsLog, "[" . date('Y-m-d H:i:s') . "] fallback contact | action={$action} | body=" . $rawInput . "\n", FILE_APPEND);
+
+        // Передаём в обработчик contact, подставив action
+        $jsonInput = $input;
+        $action = 'contact';
+        // и повторно выполняем блок contact
+        // (простая рекурсия через include невозможна, поэтому дублируем вызов)
+        $name = isset($input['name']) ? trim((string)$input['name']) : '';
+        $phone = isset($input['phone']) ? trim((string)$input['phone']) : '';
+        $message = isset($input['message']) ? trim((string)$input['message']) : '';
+
+        if ($name === '' || $phone === '' || $message === '') {
+            http_response_code(200);
+            echo json_encode(['success' => false, 'message' => 'Заполните все поля']);
+            exit();
+        }
+
+        $recipient = 'info@example.com';
+        if (file_exists($dataFile)) {
+            $contentData = json_decode(file_get_contents($dataFile), true);
+            if (!empty($contentData['contact']['email'])) {
+                $recipient = $contentData['contact']['email'];
+            }
+        }
+
+        $subject = 'Новая заявка с сайта MATRANG (fallback)';
+        $body = "Имя: {$name}\nТелефон: {$phone}\nСообщение: {$message}\nВремя: " . date('Y-m-d H:i:s');
+        $headers = "Content-Type: text/plain; charset=utf-8" . "\r\n";
+
+        if (!is_dir(dirname($requestsLog))) {
+            mkdir(dirname($requestsLog), 0755, true);
+        }
+        file_put_contents($requestsLog, "[" . date('Y-m-d H:i:s') . "] {$name} | {$phone} | {$message} | fallback\n", FILE_APPEND);
+
+        $sent = @mail($recipient, $subject, $body, $headers);
+
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'message' => $sent ? 'Отправлено' : 'Сохранено. Отправка письма может быть отключена на сервере.'
+        ]);
+        exit();
+    }
+}
+
 // Загрузка изображения
 if ($action === 'upload') {
     if (!checkAuth()) {
