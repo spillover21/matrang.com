@@ -41,10 +41,10 @@ const Header = () => {
               <img
                 src={logoImage}
                 alt={logoText || "logo"}
-                className="h-14 w-14 rounded-sm object-contain drop-shadow-[0_0_18px_rgba(255,215,0,0.45)]"
+                className="h-20 w-20 rounded-sm object-contain drop-shadow-[0_0_18px_rgba(255,215,0,0.45)]"
               />
             ) : (
-              <div className="w-14 h-14 rounded-sm bg-[#1a140f] border border-[#2d2516] shadow-inner" aria-hidden />
+              <div className="w-20 h-20 rounded-sm bg-[#1a140f] border border-[#2d2516] shadow-inner" aria-hidden />
             )}
             <div className={`leading-[1.05] relative min-w-[150px] ${headerContent ? "opacity-100" : "opacity-0"}`}>
               <span className="font-display text-3xl tracking-wider text-foreground block drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]">
