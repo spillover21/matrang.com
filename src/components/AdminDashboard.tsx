@@ -826,6 +826,27 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         </div>
                       </div>
 
+                    /* HERO TITLE SIZE */
+                    ) : field === 'titleSize' && activeSection === 'hero' ? (
+                      <div className="space-y-3 max-w-md">
+                        <div className="text-xs text-muted-foreground">
+                          Размер заголовка: {value || 80}px
+                        </div>
+                        <Slider
+                          value={[value || 80]}
+                          onValueChange={(val) => handleTextChange(activeSection, field, val[0])}
+                          min={40}
+                          max={150}
+                          step={2}
+                          className="w-full"
+                        />
+                        <div className="p-4 bg-secondary rounded border border-border">
+                          <div className="font-display leading-none" style={{ fontSize: `${value || 80}px` }}>
+                            {sectionData.title || 'Заголовок'}
+                          </div>
+                        </div>
+                      </div>
+
                     /* FAVICON */
                     ) : field === 'favicon' ? (
                       <div className="space-y-3 max-w-sm">

@@ -24,6 +24,7 @@ const HeroSection = () => {
   }
 
   const hero = content.hero;
+  const titleSize = hero.titleSize || 80;
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
       {/* Фон с контролируемым позиционированием как в галерее (object-position) */}
@@ -58,8 +59,8 @@ const HeroSection = () => {
               </span>
             )}
             <h1
-              className="font-display text-5xl md:text-7xl lg:text-8xl leading-none mb-6"
-              style={{ whiteSpace: "pre-line" }}
+              className="font-display leading-none mb-6"
+              style={{ whiteSpace: "pre-line", fontSize: `${titleSize}px` }}
             >
               {hero.title}
             </h1>
