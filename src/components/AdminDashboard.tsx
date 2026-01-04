@@ -308,7 +308,15 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
               </h2>
 
               <div className="space-y-6">
-                {Object.entries(sectionData).map(([field, value]) => (
+                {Object.entries(sectionData)
+                  .filter(([field]) => {
+                    // Скрываем служебные поля для изображений hero, которые уже обрабатываются в блоке image
+                    if (activeSection === 'hero' && ['imageZoom', 'imageHeight', 'imagePositionX', 'imagePositionY'].includes(field)) {
+                      return false;
+                    }
+                    return true;
+                  })
+                  .map(([field, value]) => (
                   <div key={field}>
                     <label className="block text-sm font-medium mb-2 capitalize">
                       {field === 'stats' ? 'Статистика' : 
