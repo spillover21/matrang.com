@@ -90,10 +90,6 @@ const HeroSection = () => {
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
         <ChevronDown className="w-8 h-8 text-primary" />
       </div>
-
-      {/* Decorative Elements */}
-      <div className="absolute top-1/4 right-10 w-32 h-32 border border-primary/20 rotate-45 hidden lg:block" />
-      <div className="absolute bottom-1/4 right-20 w-20 h-20 border border-primary/30 rotate-12 hidden lg:block" />
     </section>
   );
 };
