@@ -59,3 +59,15 @@ jobs:
           local-dir: api/
           server-dir: public_html/api/
           dangerous-clean-slate: false
+
+      - name: Deploy Data
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ secrets.FTP_PROTOCOL }}
+          port: ${{ secrets.FTP_PORT }}
+          local-dir: data/
+          server-dir: public_html/data/
+          dangerous-clean-slate: false
