@@ -805,6 +805,27 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         </Button>
                       </div>
 
+                    /* FONT SIZE SETTINGS */
+                    ) : (field === 'logoTextSize' || field === 'taglineSize') && activeSection === 'header' ? (
+                      <div className="space-y-3 max-w-md">
+                        <div className="text-xs text-muted-foreground">
+                          Размер шрифта: {value || (field === 'logoTextSize' ? 30 : 12)}px
+                        </div>
+                        <Slider
+                          value={[value || (field === 'logoTextSize' ? 30 : 12)]}
+                          onValueChange={(val) => handleTextChange(activeSection, field, val[0])}
+                          min={field === 'logoTextSize' ? 20 : 8}
+                          max={field === 'logoTextSize' ? 60 : 24}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="p-4 bg-secondary rounded border border-border">
+                          <div style={{ fontSize: `${value || (field === 'logoTextSize' ? 30 : 12)}px` }}>
+                            {field === 'logoTextSize' ? (sectionData.logoText || 'MATRANG DOGS') : (sectionData.tagline || 'GREAT LEGACY BULLY')}
+                          </div>
+                        </div>
+                      </div>
+
                     /* FAVICON */
                     ) : field === 'favicon' ? (
                       <div className="space-y-3 max-w-sm">

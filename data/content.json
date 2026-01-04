@@ -2,7 +2,9 @@
     "header": {
         "logoText": "MATRANG DOGS",
         "logoImage": "\/uploads\/1767259080_d99ce6c2.png",
-        "tagline": "𝗚𝗥𝗘𝗔𝗧 𝗟𝗘𝗚𝗔𝗖𝗬 𝗕𝗨𝗟𝗟𝗬"
+        "tagline": "𝗚𝗥𝗘𝗔𝗧 𝗟𝗘𝗚𝗔𝗖𝗬 𝗕𝗨𝗟𝗟𝗬",
+        "logoTextSize": 30,
+        "taglineSize": 12
     },
     "hero": {
         "tag": "AMERICAN BULLY ",

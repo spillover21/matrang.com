@@ -12,6 +12,8 @@ const Header = () => {
   const logoText = headerContent?.logoText;
   const tagline = headerContent?.tagline;
   const favicon = headerContent?.favicon;
+  const logoTextSize = headerContent?.logoTextSize || 30;
+  const taglineSize = headerContent?.taglineSize || 12;
 
   useEffect(() => {
     if (!favicon) return;
@@ -47,13 +49,16 @@ const Header = () => {
               <div className="w-20 h-20 rounded-sm bg-[#1a140f] border border-[#2d2516] shadow-inner" aria-hidden />
             )}
             <div className={`leading-[1.05] relative min-w-[150px] ${headerContent ? "opacity-100" : "opacity-0"}`}>
-              <span className="font-display text-3xl tracking-wider text-foreground block drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]">
+              <span 
+                className="font-display tracking-wider text-foreground block drop-shadow-[0_0_14px_rgba(255,215,0,0.4)]"
+                style={{ fontSize: `${logoTextSize}px` }}
+              >
                 {logoText || ""}
               </span>
               {tagline && (
                 <span
-                  className="mt-[-2px] block text-xs font-semibold uppercase tracking-[0.18em] text-[#f1c94a] drop-shadow-[0_0_14px_rgba(255,215,0,0.45)]"
-                  style={{ letterSpacing: "0.18em" }}
+                  className="mt-[-2px] block font-semibold uppercase tracking-[0.18em] text-[#f1c94a] drop-shadow-[0_0_14px_rgba(255,215,0,0.45)]"
+                  style={{ letterSpacing: "0.18em", fontSize: `${taglineSize}px` }}
                 >
                   {tagline}
                 </span>
