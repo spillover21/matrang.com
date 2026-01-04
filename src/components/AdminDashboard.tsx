@@ -51,6 +51,21 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
           if (loadedData.hero.titleSize === undefined) {
             loadedData.hero.titleSize = 80;
           }
+          // Если есть старое поле title, конвертируем в titles
+          if (loadedData.hero.title && !loadedData.hero.titles) {
+            loadedData.hero.titles = [
+              {
+                text: loadedData.hero.title,
+                size: loadedData.hero.titleSize || 80
+              }
+            ];
+          }
+          // Если нет titles, создаем пустой массив
+          if (!loadedData.hero.titles) {
+            loadedData.hero.titles = [
+              { text: 'Заголовок', size: 80 }
+            ];
+          }
         }
         
         setContent(loadedData);
@@ -305,6 +320,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                        field === 'logoTextSize' ? 'Размер названия логотипа' :
                        field === 'taglineSize' ? 'Размер подзаголовка' :
                        field === 'titleSize' ? 'Размер заголовка Hero' :
+                       field === 'titles' ? 'Заголовки Hero (множественные)' :
                        field}
                     </label>
 
@@ -868,6 +884,65 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                             {sectionData.title || 'Заголовок'}
                           </div>
                         </div>
+                      </div>
+
+                    /* HERO TITLES ARRAY */
+                    ) : field === 'titles' && activeSection === 'hero' && Array.isArray(value) ? (
+                      <div className="space-y-4">
+                        {value.map((titleItem: any, index: number) => (
+                          <div key={index} className="p-4 bg-secondary border border-border rounded">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-semibold">Заголовок {index + 1}</h4>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveArrayItem(activeSection, field, index)}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Текст</label>
+                                <Input
+                                  value={titleItem.text || ''}
+                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'text', e.target.value)}
+                                  placeholder="Введите текст заголовка"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">
+                                  Размер шрифта: {titleItem.size || 80}px
+                                </label>
+                                <Slider
+                                  value={[titleItem.size || 80]}
+                                  onValueChange={(val) => handleArrayItemChange(activeSection, field, index, 'size', val[0])}
+                                  min={40}
+                                  max={150}
+                                  step={2}
+                                  className="w-full"
+                                />
+                              </div>
+                              <div className="p-3 bg-background rounded border border-border">
+                                <div className="font-display leading-none" style={{ fontSize: `${titleItem.size || 80}px` }}>
+                                  {titleItem.text || 'Предпросмотр'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddArrayItem(activeSection, field, { 
+                            text: 'Новый заголовок', 
+                            size: 80 
+                          })}
+                          className="w-full"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Добавить заголовок
+                        </Button>
                       </div>
 
                     /* FAVICON */

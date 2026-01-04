@@ -24,7 +24,7 @@ const HeroSection = () => {
   }
 
   const hero = content.hero;
-  const titleSize = hero.titleSize || 80;
+  const titles = hero.titles || [{ text: hero.title || '', size: hero.titleSize || 80 }];
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
       {/* Фон с контролируемым позиционированием как в галерее (object-position) */}
@@ -58,12 +58,17 @@ const HeroSection = () => {
                 {hero.tag}
               </span>
             )}
-            <h1
-              className="font-display leading-none mb-6"
-              style={{ whiteSpace: "pre-line", fontSize: `${titleSize}px` }}
-            >
-              {hero.title}
-            </h1>
+            <div className="mb-6">
+              {titles.map((titleItem: any, index: number) => (
+                <h1
+                  key={index}
+                  className="font-display leading-none"
+                  style={{ fontSize: `${titleItem.size || 80}px` }}
+                >
+                  {titleItem.text}
+                </h1>
+              ))}
+            </div>
             {hero.subtitle && (
               <p className="font-body text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
                 {hero.subtitle}
