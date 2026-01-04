@@ -33,7 +33,27 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
       const response = await fetch("/api/api.php?action=get");
       const data = await response.json();
       if (data.success) {
-        setContent(data.data);
+        // Добавляем дефолтные значения для полей размера шрифта, если их нет
+        const loadedData = data.data;
+        
+        // Header defaults
+        if (loadedData.header) {
+          if (loadedData.header.logoTextSize === undefined) {
+            loadedData.header.logoTextSize = 30;
+          }
+          if (loadedData.header.taglineSize === undefined) {
+            loadedData.header.taglineSize = 12;
+          }
+        }
+        
+        // Hero defaults
+        if (loadedData.hero) {
+          if (loadedData.hero.titleSize === undefined) {
+            loadedData.hero.titleSize = 80;
+          }
+        }
+        
+        setContent(loadedData);
       }
     } catch (error) {
       toast.error("Ошибка при загрузке контента");
