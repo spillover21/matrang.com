@@ -282,6 +282,9 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                        field === 'social' ? 'Социальные сети' :
                        field === 'items' && activeSection === 'testimonials' ? 'Отзывы' :
                        field === 'locations' ? 'Города доставки' :
+                       field === 'logoTextSize' ? 'Размер названия логотипа' :
+                       field === 'taglineSize' ? 'Размер подзаголовка' :
+                       field === 'titleSize' ? 'Размер заголовка Hero' :
                        field}
                     </label>
 
