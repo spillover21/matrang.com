@@ -68,6 +68,16 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
           }
         }
         
+        // Gallery defaults
+        if (loadedData.gallery) {
+          if (!loadedData.gallery.availableText) {
+            loadedData.gallery.availableText = "В продаже";
+          }
+          if (!loadedData.gallery.notAvailableText) {
+            loadedData.gallery.notAvailableText = "Производитель";
+          }
+        }
+        
         setContent(loadedData);
       }
     } catch (error) {
