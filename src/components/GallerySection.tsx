@@ -25,6 +25,8 @@ const GallerySection = () => {
   }
 
   const dogs = content.gallery.dogs || [];
+  const availableText = content.gallery.availableText || "В продаже";
+  const notAvailableText = content.gallery.notAvailableText || "Производитель";
 
   return (
     <section id="gallery" className="py-24 bg-background">
@@ -81,7 +83,7 @@ const GallerySection = () => {
                               : "bg-muted text-muted-foreground"
                           }`}
                         >
-                          {dog.available ? "В продаже" : "Производитель"}
+                          {dog.available ? availableText : notAvailableText}
                         </span>
                       </div>
                     </div>
