@@ -75,17 +75,6 @@ const GallerySection = () => {
                           />
                         </div>
                       </div>
-                      <div className="absolute top-4 right-4">
-                        <span
-                          className={`font-heading text-xs uppercase tracking-wider px-3 py-1 rounded ${
-                            dog.available
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {dog.available ? availableText : notAvailableText}
-                        </span>
-                      </div>
                     </div>
 
                     <div className="p-4 flex flex-col gap-2">
