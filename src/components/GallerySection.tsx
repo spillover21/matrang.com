@@ -27,19 +27,22 @@ const GallerySection = () => {
   const dogs = content.gallery.dogs || [];
   const availableText = content.gallery.availableText || "В продаже";
   const notAvailableText = content.gallery.notAvailableText || "Производитель";
+  const galleryTag = content.gallery.tag || "Наши питомцы";
+  const galleryTitle = content.gallery.title || "ГАЛЕРЕЯ";
+  const galleryDescription = content.gallery.description || "Познакомьтесь с нашими питомцами. Каждый из них — результат тщательной селекции и заботливого воспитания.";
 
   return (
     <section id="gallery" className="py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
-            Наши питомцы
+            {galleryTag}
           </span>
           <h2 className="font-display text-5xl md:text-7xl mb-6">
-            <span className="text-gradient-gold">ГАЛЕРЕЯ</span>
+            <span className="text-gradient-gold">{galleryTitle}</span>
           </h2>
           <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
-            Познакомьтесь с нашими питомцами. Каждый из них — результат тщательной селекции и заботливого воспитания.
+            {galleryDescription}
           </p>
         </div>
 
