@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, MessageCircle, Instagram, Youtube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContent } from "@/hooks/useContent";
 
+const iconMap = {
+  Phone,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Instagram,
+  Youtube
+};
 const ContactSection = () => {
   const { content, loading } = useContent();
   const { toast } = useToast();
@@ -119,7 +127,43 @@ const ContactSection = () => {
                   </div>
                 </div>
               )}
+
+              {/* Social Links */}
+              {content.contact.social && content.contact.social.length > 0 && (
+                <div className="pt-6 mt-6 border-t border-border">
+                  <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground mb-4">
+                    Социальные сети
+                  </div>
+                  <div className="space-y-4">
+                    {content.contact.social.map((item: any, index: number) => {
+                      const IconComponent = iconMap[item.icon as keyof typeof iconMap] || MessageCircle;
+                      return (
+                        <a
+                          key={index}
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-4 group"
+                        >
+                          <div className="w-14 h-14 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                            <IconComponent className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
+                              {item.label}
+                            </div>
+                            <div className="font-display text-2xl group-hover:text-primary transition-colors">
+                              {item.value}
+                            </div>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
+
           </div>
 
           {/* Right Column - Contact Form */}

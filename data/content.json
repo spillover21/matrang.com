@@ -6,9 +6,9 @@
         "logoTextSize": 39,
         "taglineSize": 12,
         "favicon": "\/uploads\/1767891363_d6d38c69.png",
-        "siteTitle": "Питомник питбулей MATRANG DOGS",
-        "ogTitle": "Питомник MATRANG - Элитные питбули",
-        "ogDescription": "Элитный питомник питбулей. Разводим чемпионов с безупречной родословной."
+        "siteTitle": "MATRANG DOGS",
+        "ogTitle": "MATRANG",
+        "ogDescription": "питомник американских булли Great Legacy bully"
     },
     "hero": {
         "tag": "AMERICAN BULLY ",
@@ -38,7 +38,7 @@
     },
     "about": {
         "tag": "Почему мы",
-        "title": "ПОРОДА ЧЕМПИОНОВ",
+        "title": "American bully - как образ жизни ",
         "description": "American Bully — это не просто собака. Это сочетание силы, уверенности и стабильного характера.  Мы — семейный питомник Great Legacy Bully, где каждый щенок растёт в любви, внимании и заботе. Мы не гонимся за количеством — для нас важны качество, генетика и правильное развитие.  Наши собаки обладают мощной родословной, устойчивой психикой и выразительным экстерьером. Каждый щенок проходит раннюю социализацию и получает индивидуальный подход, чтобы вы получили не просто красивую собаку, а надёжного компаньона и члена семьи.  Мы также активно ведём профиль в Instagram, где показываем жизнь питомника такой, какая она есть — без приукрашенной «инстаграмной картинки». Мы честно рассказываем не только о радостях, но и о сложностях, с которыми сталкивается каждый ответственный заводчик. В нашем профиле вы сможете ближе познакомиться с нашими собаками, увидеть их развитие и узнать нас как семью, для которой American Bully — это не бизнес, а образ жизни.",
         "features": [
             {
@@ -67,60 +67,86 @@
     "gallery": {
         "tag": "Наши питомцы",
         "title": "ГАЛЕРЕЯ",
-        "description": "Познакомьтесь с нашими собаками. Поколения, на которых строится питомник: семейные собаки, выпускники и щенки, доступные к бронированию. ",
+        "description": "В этом разделе вы познакомитесь с нашими семейными собаками, на которых строится и развивается питомник.\nЗдесь представлены наши воспитанники — щенки, уже уехавшие в новые дома, а также щенки, которые сейчас доступны для бронирования и продажи.\nМы с любовью вкладываемся в каждого нашего питомца и гордимся результатом.",
         "availableText": "В продаже",
         "notAvailableText": "Производитель",
         "dogs": [
             {
                 "id": 1,
-                "name": "MATRANG and Arianna",
-                "age": "8 месяцев",
-                "color": "Blue Fawn",
-                "price": "",
-                "image": "\/uploads\/1767257675_64652501.jpg",
-                "imageZoom": 140,
-                "imageHeight": 140,
+                "name": "MATRANG  ",
+                "age": "2 года ",
+                "color": "Lilac blotched ",
+                "price": "Производитель ",
+                "image": "\/uploads\/1767901714_2f0c67b4.jpeg",
+                "imageZoom": 130,
+                "imageHeight": 130,
                 "imagePositionX": 50,
                 "imagePositionY": 20,
                 "available": false
             },
             {
                 "id": 2,
-                "name": "MATRANG",
+                "name": "Meloni ",
                 "age": "2 года",
-                "color": "Red Nose",
+                "color": "Lilac tan with ",
                 "price": "Производитель",
-                "image": "\/uploads\/1767257550_a126f5f4.jpeg",
-                "imageZoom": 120,
-                "imageHeight": 120,
+                "image": "\/uploads\/1767901811_5343bb97.jpeg",
+                "imageZoom": 135,
+                "imageHeight": 125,
                 "imagePositionX": 50,
-                "imagePositionY": 5,
+                "imagePositionY": 45,
                 "available": false
             },
             {
                 "id": 3,
                 "name": "Arianna",
-                "age": "6 месяцев",
-                "color": "Red Nose",
-                "price": "Воспитанник питомника",
-                "image": "\/uploads\/1767257613_5954f98f.jpg",
-                "imageZoom": 135,
-                "imageHeight": 135,
-                "imagePositionX": 50,
-                "imagePositionY": 10,
+                "age": "4 месяца ",
+                "color": "Lilac tric",
+                "price": " Будущий производитель ",
+                "image": "\/uploads\/1767902984_620c925d.jpeg",
+                "imageZoom": 115,
+                "imageHeight": 105,
+                "imagePositionX": 60,
+                "imagePositionY": 100,
                 "available": true
             },
             {
                 "id": 1767257700892,
-                "name": "FAMILY",
+                "name": "Tayron ",
                 "age": "",
-                "color": "",
-                "price": "",
-                "image": "\/uploads\/1767257716_05be1610.jpg",
-                "imageZoom": 100,
-                "imageHeight": 100,
-                "imagePositionX": 50,
+                "color": "Lilac blotched ",
+                "price": "Выпускник питомника ",
+                "image": "\/uploads\/1767902918_ba90e5ea.jpeg",
+                "imageZoom": 115,
+                "imageHeight": 115,
+                "imagePositionX": 45,
                 "imagePositionY": 50,
+                "available": false
+            },
+            {
+                "id": 1767903027178,
+                "name": "Kiara",
+                "age": "",
+                "color": "Lilac blotched ",
+                "price": "Выпускник питомника ",
+                "image": "\/uploads\/1767903701_cfcccbd5.jpeg",
+                "imageZoom": 100,
+                "imageHeight": 110,
+                "imagePositionX": 60,
+                "imagePositionY": 45,
+                "available": false
+            },
+            {
+                "id": 1767906000199,
+                "name": "Meltar",
+                "age": "",
+                "color": "Lilac tan white",
+                "price": "Выпускник питомника ",
+                "image": "\/uploads\/1767906063_75666ae6.jpeg",
+                "imageZoom": 130,
+                "imageHeight": 130,
+                "imagePositionX": 50,
+                "imagePositionY": 95,
                 "available": false
             }
         ]
@@ -131,7 +157,27 @@
         "description": "Ответим на все вопросы о породе, поможем выбрать щенка и организуем доставку в любой город России.",
         "phone": "+7 (900) 455-27-16",
         "email": "info@matrang.com",
-        "address": "Москва, Россия"
+        "address": "Москва, Россия",
+        "social": [
+            {
+                "icon": "MessageCircle",
+                "label": "WhatsApp",
+                "value": "+79004552716",
+                "link": "https://wa.me/79004552716"
+            },
+            {
+                "icon": "Instagram",
+                "label": "Instagram",
+                "value": "@matrang_dogs",
+                "link": "https://instagram.com/matrang_dogs"
+            },
+            {
+                "icon": "Youtube",
+                "label": "YouTube",
+                "value": "MATRANG DOGS",
+                "link": "https://youtube.com/@matrangdogs"
+            }
+        ]
     },
     "testimonials": {
         "tag": "Отзывы",

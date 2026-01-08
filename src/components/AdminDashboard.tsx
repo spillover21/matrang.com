@@ -332,7 +332,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                       {field === 'stats' ? 'Статистика' : 
                        field === 'features' ? 'Преимущества (карточки)' :
                        field === 'dogs' ? 'Собаки в галерее' :
-                       field === 'social' ? 'Социальные сети' :
+                       field === 'social' ? 'Социальные сети и контакты' :
                        field === 'items' && activeSection === 'testimonials' ? 'Отзывы' :
                        field === 'locations' ? 'Города доставки' :
                        field === 'logoTextSize' ? 'Размер названия логотипа' :
@@ -657,7 +657,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         {value.map((social: any, index: number) => (
                           <div key={index} className="p-4 bg-secondary border border-border rounded">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold">{social.name || `Соцсеть ${index + 1}`}</h4>
+                              <h4 className="font-semibold">{social.label || `Соцсеть ${index + 1}`}</h4>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -666,21 +666,46 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                 <Trash2 className="w-4 h-4 text-destructive" />
                               </Button>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-3">
                               <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Название</label>
-                                <Input
-                                  value={social.name || ''}
-                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'name', e.target.value)}
-                                  placeholder="Instagram"
-                                />
+                                <label className="text-xs text-muted-foreground mb-1 block">Иконка</label>
+                                <select
+                                  value={social.icon || 'MessageCircle'}
+                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'icon', e.target.value)}
+                                  className="w-full bg-background border border-border px-3 py-2 rounded"
+                                >
+                                  <option value="MessageCircle">💬 WhatsApp</option>
+                                  <option value="Instagram">📷 Instagram</option>
+                                  <option value="Youtube">▶️ YouTube</option>
+                                  <option value="Phone">📱 Телефон</option>
+                                  <option value="Mail">✉️ Email</option>
+                                  <option value="MapPin">📍 Адрес</option>
+                                </select>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">Название</label>
+                                  <Input
+                                    value={social.label || ''}
+                                    onChange={(e) => handleArrayItemChange(activeSection, field, index, 'label', e.target.value)}
+                                    placeholder="Instagram"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">Значение</label>
+                                  <Input
+                                    value={social.value || ''}
+                                    onChange={(e) => handleArrayItemChange(activeSection, field, index, 'value', e.target.value)}
+                                    placeholder="@matrang_dogs"
+                                  />
+                                </div>
                               </div>
                               <div>
                                 <label className="text-xs text-muted-foreground mb-1 block">Ссылка</label>
                                 <Input
-                                  value={social.url || ''}
-                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'url', e.target.value)}
-                                  placeholder="https://instagram.com/..."
+                                  value={social.link || ''}
+                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'link', e.target.value)}
+                                  placeholder="https://instagram.com/matrang_dogs"
                                 />
                               </div>
                             </div>
@@ -689,7 +714,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleAddArrayItem(activeSection, field, { name: '', url: '#' })}
+                          onClick={() => handleAddArrayItem(activeSection, field, { icon: 'MessageCircle', label: '', value: '', link: '#' })}
                           className="w-full"
                         >
                           <Plus className="w-4 h-4 mr-2" />
