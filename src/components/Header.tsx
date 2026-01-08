@@ -28,6 +28,31 @@ const Header = () => {
     document.title = siteTitle;
   }, [headerContent]);
 
+  useEffect(() => {
+    // Обновляем Open Graph метатеги
+    const ogTitle = headerContent?.ogTitle || 'Питомник MATRANG - Элитные питбули';
+    const ogDescription = headerContent?.ogDescription || 'Элитный питомник питбулей. Разводим чемпионов с безупречной родословной.';
+    
+    const updateMetaTag = (property: string, content: string) => {
+      let meta = document.querySelector(`meta[property="${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+    
+    updateMetaTag('og:title', ogTitle);
+    updateMetaTag('og:description', ogDescription);
+    
+    // Также обновляем обычные meta теги
+    const descMeta = document.querySelector('meta[name="description"]');
+    if (descMeta) {
+      descMeta.setAttribute('content', ogDescription);
+    }
+  }, [headerContent]);
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
