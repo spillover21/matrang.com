@@ -23,6 +23,11 @@ const Header = () => {
     document.head.appendChild(existing);
   }, [favicon]);
 
+  useEffect(() => {
+    const siteTitle = headerContent?.siteTitle || 'MATRANG DOGS';
+    document.title = siteTitle;
+  }, [headerContent]);
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
