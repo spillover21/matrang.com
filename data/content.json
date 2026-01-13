@@ -108,7 +108,7 @@
                 "imageHeight": 105,
                 "imagePositionX": 60,
                 "imagePositionY": 100,
-                "available": true
+                "available": false
             },
             {
                 "id": 1767257700892,
@@ -156,26 +156,26 @@
         "title": "ГОТОВЫ НАЧАТЬ?",
         "description": "Ответим на все вопросы о породе, поможем выбрать щенка и организуем доставку в любой город России.",
         "phone": "+7 (900) 455-27-16",
-        "email": "info@matrang.com",
-        "address": "Москва, Россия",
+        "email": "greatlegacybully@gmail.com",
+        "address": "Finland, Kajaani",
         "social": [
             {
                 "icon": "MessageCircle",
                 "label": "WhatsApp",
                 "value": "+79004552716",
-                "link": "https://wa.me/79004552716"
+                "link": "https:\/\/wa.me\/79004552716"
             },
             {
                 "icon": "Instagram",
                 "label": "Instagram",
                 "value": "@matrang_dogs",
-                "link": "https://instagram.com/matrang_dogs"
+                "link": "https:\/\/instagram.com\/matrang_dogs"
             },
             {
                 "icon": "Youtube",
                 "label": "YouTube",
-                "value": "MATRANG DOGS",
-                "link": "https://youtube.com/@matrangdogs"
+                "value": "MATRANG_DOG_FAMILY",
+                "link": "https:\/\/youtube.com\/@matrang_dog_family?si=xw_RTDTWKtVXGOTA"
             }
         ]
     },
@@ -186,81 +186,62 @@
         "items": [
             {
                 "id": 1,
-                "title": "Мария, Москва",
-                "image": "\/uploads\/1767257765_9dde146f.png"
+                "title": "Виктория , Москва",
+                "image": "\/uploads\/1768334695_85a8c32e.jpeg"
             },
             {
-                "id": 2,
-                "title": "Александр, Санкт-Петербург",
-                "image": "\/uploads\/1767257770_c890e4bc.png"
-            },
-            {
-                "id": 3,
-                "title": "Екатерина, Казань",
-                "image": "\/uploads\/1767257773_216d55bf.png"
+                "id": 1768334845066,
+                "title": "Иванна ,Сочи",
+                "image": "\/uploads\/1768334860_dda9af23.jpeg"
             }
         ]
     },
     "geography": {
         "tag": "География",
-        "title": "НАШИ ЩЕНКИ ПО ВСЕЙ РОССИИ",
+        "title": "НАШИ ЩЕНКИ УЕЗЖАЮТ ПО РАЗНЫМ СТРАНАМ",
         "description": "Мы доставили щенков в десятки городов России. Организуем безопасную доставку в любой регион.",
         "locations": [
             {
                 "id": 1,
                 "city": "Москва",
-                "count": 45,
+                "count": 3,
                 "lat": 55.7558,
                 "lng": 37.6173
             },
             {
                 "id": 2,
-                "city": "Санкт-Петербург",
-                "count": 28,
-                "lat": 59.9311,
-                "lng": 30.3609
+                "city": "Воронеж ",
+                "count": 1,
+                "lat": 51.672,
+                "lng": 39.1843
             },
             {
                 "id": 3,
-                "city": "Казань",
-                "count": 15,
-                "lat": 55.7964,
-                "lng": 49.1089
-            },
-            {
-                "id": 4,
-                "city": "Нижний Новгород",
-                "count": 12,
-                "lat": 56.3269,
-                "lng": 44.0075
+                "city": "Сочи ",
+                "count": 1,
+                "lat": 43.5853,
+                "lng": 39.7203
             },
             {
                 "id": 5,
-                "city": "Екатеринбург",
-                "count": 18,
-                "lat": 56.8389,
-                "lng": 60.6057
+                "city": "Франция",
+                "count": 1,
+                "lat": 46.6034,
+                "lng": 1.8883
             },
             {
                 "id": 6,
-                "city": "Краснодар",
-                "count": 20,
-                "lat": 45.0355,
-                "lng": 38.9753
+                "city": "Болгария ",
+                "count": 1,
+                "lat": 42.7339,
+                "lng": 25.4858
             },
             {
                 "id": 7,
-                "city": "Сочи",
-                "count": 10,
-                "lat": 43.5855,
-                "lng": 39.7231
-            },
-            {
-                "id": 8,
-                "city": "Воронеж",
-                "count": 8,
-                "lat": 51.6605,
-                "lng": 39.2006
+                "city": "Финляндия ",
+                "count": 1,
+                "lat": 64,
+                "lng": 26
             }
         ]
     },

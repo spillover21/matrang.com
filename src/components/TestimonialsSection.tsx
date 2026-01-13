@@ -48,25 +48,19 @@ const TestimonialsSection = () => {
           >
             <CarouselContent>
               {items?.map((testimonial: any, index: number) => (
-                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-full">
                   <div className="p-1">
                     <Card className="overflow-hidden border-2 hover:border-primary/50 transition-colors">
-                      <div className="aspect-[3/4] relative">
-                        {testimonial.image ? (
+                      {testimonial.image && (
+                        <div className="w-full h-auto">
                           <img
                             src={testimonial.image}
                             alt={testimonial.title || `Отзыв ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-auto object-contain max-h-[800px]"
                             loading="lazy"
                           />
-                        ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <span className="text-muted-foreground text-sm">
-                              Изображение не загружено
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                       {testimonial.title && (
                         <div className="p-4 bg-card">
                           <p className="font-semibold text-center">
