@@ -70,84 +70,93 @@
         "description": "В этом разделе вы познакомитесь с нашими семейными собаками, на которых строится и развивается питомник.\nЗдесь представлены наши воспитанники — щенки, уже уехавшие в новые дома, а также щенки, которые сейчас доступны для бронирования и продажи.\nМы с любовью вкладываемся в каждого нашего питомца и гордимся результатом.",
         "availableText": "В продаже",
         "notAvailableText": "Производитель",
-        "dogs": [
+        "categories": [
             {
-                "id": 1,
-                "name": "MATRANG  ",
-                "age": "2 года ",
-                "color": "Lilac blotched ",
-                "price": "Производитель ",
-                "image": "\/uploads\/1767901714_2f0c67b4.jpeg",
-                "imageZoom": 130,
-                "imageHeight": 130,
-                "imagePositionX": 50,
-                "imagePositionY": 20,
-                "available": false
+                "name": "На продажу",
+                "dogs": []
             },
             {
-                "id": 2,
-                "name": "Meloni ",
-                "age": "2 года",
-                "color": "Lilac tan with ",
-                "price": "Производитель",
-                "image": "\/uploads\/1767901811_5343bb97.jpeg",
-                "imageZoom": 135,
-                "imageHeight": 125,
-                "imagePositionX": 50,
-                "imagePositionY": 45,
-                "available": false
-            },
-            {
-                "id": 3,
-                "name": "Arianna",
-                "age": "4 месяца ",
-                "color": "Lilac tric",
-                "price": " Будущий производитель ",
-                "image": "\/uploads\/1767902984_620c925d.jpeg",
-                "imageZoom": 115,
-                "imageHeight": 105,
-                "imagePositionX": 60,
-                "imagePositionY": 100,
-                "available": false
-            },
-            {
-                "id": 1767257700892,
-                "name": "Tayron ",
-                "age": "",
-                "color": "Lilac blotched ",
-                "price": "Выпускник питомника ",
-                "image": "\/uploads\/1767902918_ba90e5ea.jpeg",
-                "imageZoom": 115,
-                "imageHeight": 115,
-                "imagePositionX": 45,
-                "imagePositionY": 50,
-                "available": false
-            },
-            {
-                "id": 1767903027178,
-                "name": "Kiara",
-                "age": "",
-                "color": "Lilac blotched ",
-                "price": "Выпускник питомника ",
-                "image": "\/uploads\/1767903701_cfcccbd5.jpeg",
-                "imageZoom": 100,
-                "imageHeight": 110,
-                "imagePositionX": 60,
-                "imagePositionY": 45,
-                "available": false
-            },
-            {
-                "id": 1767906000199,
-                "name": "Meltar",
-                "age": "",
-                "color": "Lilac tan white",
-                "price": "Выпускник питомника ",
-                "image": "\/uploads\/1767906063_75666ae6.jpeg",
-                "imageZoom": 130,
-                "imageHeight": 130,
-                "imagePositionX": 50,
-                "imagePositionY": 95,
-                "available": false
+                "name": "Семья",
+                "dogs": [
+                    {
+                        "id": 1,
+                        "name": "MATRANG  ",
+                        "age": "2 года ",
+                        "color": "Lilac blotched ",
+                        "price": "Производитель ",
+                        "image": "\/uploads\/1767901714_2f0c67b4.jpeg",
+                        "imageZoom": 130,
+                        "imageHeight": 130,
+                        "imagePositionX": 50,
+                        "imagePositionY": 20,
+                        "available": false
+                    },
+                    {
+                        "id": 2,
+                        "name": "Meloni ",
+                        "age": "2 года",
+                        "color": "Lilac tan with ",
+                        "price": "Производитель",
+                        "image": "\/uploads\/1767901811_5343bb97.jpeg",
+                        "imageZoom": 135,
+                        "imageHeight": 125,
+                        "imagePositionX": 50,
+                        "imagePositionY": 45,
+                        "available": false
+                    },
+                    {
+                        "id": 3,
+                        "name": "Arianna",
+                        "age": "4 месяца ",
+                        "color": "Lilac tric",
+                        "price": " Будущий производитель ",
+                        "image": "\/uploads\/1767902984_620c925d.jpeg",
+                        "imageZoom": 115,
+                        "imageHeight": 105,
+                        "imagePositionX": 60,
+                        "imagePositionY": 100,
+                        "available": false
+                    },
+                    {
+                        "id": 1767257700892,
+                        "name": "Tayron ",
+                        "age": "",
+                        "color": "Lilac blotched ",
+                        "price": "Выпускник питомника ",
+                        "image": "\/uploads\/1767902918_ba90e5ea.jpeg",
+                        "imageZoom": 115,
+                        "imageHeight": 115,
+                        "imagePositionX": 45,
+                        "imagePositionY": 50,
+                        "available": false
+                    },
+                    {
+                        "id": 1767903027178,
+                        "name": "Kiara",
+                        "age": "",
+                        "color": "Lilac blotched ",
+                        "price": "Выпускник питомника ",
+                        "image": "\/uploads\/1767903701_cfcccbd5.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 110,
+                        "imagePositionX": 60,
+                        "imagePositionY": 45,
+                        "available": false
+                    },
+                    {
+                        "id": 1767906000199,
+                        "name": "Meltar",
+                        "age": "",
+                        "color": "Lilac tan white",
+                        "price": "Выпускник питомника ",
+                        "image": "\/uploads\/1767906063_75666ae6.jpeg",
+                        "imageZoom": 130,
+                        "imageHeight": 130,
+                        "imagePositionX": 50,
+                        "imagePositionY": 95,
+                        "available": false
+                    }
+                ]
             }
         ]
     },

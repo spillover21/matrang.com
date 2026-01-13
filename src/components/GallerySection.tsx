@@ -19,17 +19,24 @@ import {
 const GallerySection = () => {
   const { content, loading } = useContent();
   const [activeDog, setActiveDog] = useState<any | null>(null);
+  const [activeCategory, setActiveCategory] = useState(0);
 
   if (loading || !content.gallery) {
     return null;
   }
 
-  const dogs = content.gallery.dogs || [];
+  // Поддержка как старой структуры (dogs), так и новой (categories)
+  const categories = content.gallery.categories || [
+    { name: "Все собаки", dogs: content.gallery.dogs || [] }
+  ];
+  
   const availableText = content.gallery.availableText || "В продаже";
   const notAvailableText = content.gallery.notAvailableText || "Производитель";
   const galleryTag = content.gallery.tag || "Наши питомцы";
   const galleryTitle = content.gallery.title || "ГАЛЕРЕЯ";
   const galleryDescription = content.gallery.description || "Познакомьтесь с нашими питомцами. Каждый из них — результат тщательной селекции и заботливого воспитания.";
+
+  const dogs = categories[activeCategory]?.dogs || [];
 
   return (
     <section id="gallery" className="py-24 bg-background">
@@ -45,6 +52,23 @@ const GallerySection = () => {
             {galleryDescription}
           </p>
         </div>
+
+        {/* Табы категорий */}
+        {categories.length > 1 && (
+          <div className="flex flex-wrap justify-center gap-3 mb-12">
+            {categories.map((category: any, index: number) => (
+              <Button
+                key={index}
+                variant={activeCategory === index ? "default" : "outline"}
+                size="lg"
+                onClick={() => setActiveCategory(index)}
+                className="font-heading uppercase tracking-wider"
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
+        )}
 
         <Carousel
           opts={{ align: "start", loop: true }}

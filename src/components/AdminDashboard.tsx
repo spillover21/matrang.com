@@ -324,6 +324,10 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                     if (activeSection === 'hero' && ['imageZoom', 'imageHeight', 'imagePositionX', 'imagePositionY'].includes(field)) {
                       return false;
                     }
+                    // Скрываем старое поле dogs если есть categories
+                    if (activeSection === 'gallery' && field === 'dogs' && sectionData.categories) {
+                      return false;
+                    }
                     return true;
                   })
                   .map(([field, value]) => (
@@ -332,6 +336,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                       {field === 'stats' ? 'Статистика' : 
                        field === 'features' ? 'Преимущества (карточки)' :
                        field === 'dogs' ? 'Собаки в галерее' :
+                       field === 'categories' ? 'Категории галереи' :
                        field === 'social' ? 'Социальные сети и контакты' :
                        field === 'items' && activeSection === 'testimonials' ? 'Отзывы' :
                        field === 'locations' ? 'Города доставки' :
@@ -719,6 +724,175 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Добавить соцсеть
+                        </Button>
+                      </div>
+
+                    /* CATEGORIES - Категории галереи */
+                    ) : field === 'categories' && Array.isArray(value) ? (
+                      <div className="space-y-4">
+                        {value.map((category: any, catIndex: number) => (
+                          <div key={catIndex} className="p-4 bg-muted border-2 border-border rounded-lg">
+                            <div className="flex items-center justify-between mb-4">
+                              <Input
+                                value={category.name || ''}
+                                onChange={(e) => handleArrayItemChange(activeSection, field, catIndex, 'name', e.target.value)}
+                                placeholder="Название категории"
+                                className="text-lg font-semibold flex-1 mr-3"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveArrayItem(activeSection, field, catIndex)}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                            
+                            {/* Собаки в категории */}
+                            <div className="space-y-3 ml-4 border-l-2 border-primary/30 pl-4">
+                              <h5 className="text-sm font-semibold text-muted-foreground mb-2">Собаки в категории:</h5>
+                              {(category.dogs || []).map((dog: any, dogIndex: number) => (
+                                <div key={dogIndex} className="p-3 bg-background border border-border rounded">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h5 className="font-semibold text-sm">Собака {dogIndex + 1}: {dog.name || 'Без имени'}</h5>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updatedCategory = { ...category };
+                                        updatedCategory.dogs = [...category.dogs];
+                                        updatedCategory.dogs.splice(dogIndex, 1);
+                                        handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedCategory.dogs);
+                                      }}
+                                    >
+                                      <Trash2 className="w-3 h-3 text-destructive" />
+                                    </Button>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                      <label className="text-xs text-muted-foreground mb-1 block">Кличка</label>
+                                      <Input
+                                        value={dog.name || ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          updatedDogs[dogIndex] = { ...dog, name: e.target.value };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="TITAN"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground mb-1 block">Возраст</label>
+                                      <Input
+                                        value={dog.age || ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          updatedDogs[dogIndex] = { ...dog, age: e.target.value };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="8 месяцев"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground mb-1 block">Окрас</label>
+                                      <Input
+                                        value={dog.color || ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          updatedDogs[dogIndex] = { ...dog, color: e.target.value };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="Blue Fawn"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground mb-1 block">Цена/Статус</label>
+                                      <Input
+                                        value={dog.price || ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          updatedDogs[dogIndex] = { ...dog, price: e.target.value };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="150 000 ₽"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                  </div>
+                                  {dog.image && (
+                                    <div className="mt-2">
+                                      <img src={dog.image} alt={dog.name} className="w-20 h-20 object-cover rounded" />
+                                    </div>
+                                  )}
+                                  <label className="flex items-center justify-center gap-2 mt-2 p-2 border border-dashed border-border rounded cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <Upload className="w-3 h-3" />
+                                    <span className="text-xs">{dog.image ? 'Изменить фото' : 'Загрузить фото'}</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          const formData = new FormData();
+                                          formData.append("file", file);
+                                          fetch("/api/api.php?action=upload", {
+                                            method: "POST",
+                                            headers: { Authorization: `Bearer ${token}` },
+                                            body: formData,
+                                          })
+                                            .then((res) => res.json())
+                                            .then((data) => {
+                                              if (data.success) {
+                                                const updatedDogs = [...category.dogs];
+                                                updatedDogs[dogIndex] = { ...dog, image: data.url };
+                                                handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                              }
+                                            });
+                                        }
+                                      }}
+                                      className="hidden"
+                                    />
+                                  </label>
+                                </div>
+                              ))}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const updatedDogs = [...(category.dogs || []), {
+                                    id: Date.now(),
+                                    name: '',
+                                    age: '',
+                                    color: '',
+                                    price: '',
+                                    image: '',
+                                    imageZoom: 100,
+                                    imageHeight: 100,
+                                    imagePositionX: 50,
+                                    imagePositionY: 50,
+                                    available: true
+                                  }];
+                                  handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                }}
+                                className="w-full"
+                              >
+                                <Plus className="w-3 h-3 mr-2" />
+                                Добавить собаку в категорию
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddArrayItem(activeSection, field, { name: 'Новая категория', dogs: [] })}
+                          className="w-full"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Добавить категорию
                         </Button>
                       </div>
 
