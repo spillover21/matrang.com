@@ -48,7 +48,7 @@ const TestimonialsSection = () => {
           >
             <CarouselContent>
               {items?.map((testimonial: any, index: number) => (
-                <CarouselItem key={index} className="md:basis-1/2 lg:basis-full">
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                   <div className="p-1">
                     <Card className="overflow-hidden border-2 hover:border-primary/50 transition-colors">
                       {testimonial.image && (
