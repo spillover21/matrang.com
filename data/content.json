@@ -577,12 +577,18 @@
         "items": [
             {
                 "id": 1,
-                "title": "Виктория , Москва",
+                "title": {
+                    "ru": "Виктория , Москва",
+                    "en": "Victoria, Moscow"
+                },
                 "image": "\/uploads\/1768334695_85a8c32e.jpeg"
             },
             {
                 "id": 1768334845066,
-                "title": "Иванна ,Сочи",
+                "title": {
+                    "ru": "Иванна ,Сочи",
+                    "en": "Ivanna, Sochi"
+                },
                 "image": "\/uploads\/1768334860_dda9af23.jpeg"
             }
         ]
@@ -603,42 +609,60 @@
         "locations": [
             {
                 "id": 1,
-                "city": "Москва",
+                "city": {
+                    "ru": "Москва",
+                    "en": "Moscow"
+                },
                 "count": 3,
                 "lat": 55.7558,
                 "lng": 37.6173
             },
             {
                 "id": 2,
-                "city": "Воронеж ",
+                "city": {
+                    "ru": "Воронеж ",
+                    "en": "Voronezh"
+                },
                 "count": 1,
                 "lat": 51.672,
                 "lng": 39.1843
             },
             {
                 "id": 3,
-                "city": "Сочи ",
+                "city": {
+                    "ru": "Сочи ",
+                    "en": "Sochi"
+                },
                 "count": 1,
                 "lat": 43.5853,
                 "lng": 39.7203
             },
             {
                 "id": 5,
-                "city": "Франция",
+                "city": {
+                    "ru": "Франция",
+                    "en": "France"
+                },
                 "count": 1,
                 "lat": 46.6034,
                 "lng": 1.8883
             },
             {
                 "id": 6,
-                "city": "Болгария ",
+                "city": {
+                    "ru": "Болгария ",
+                    "en": "Bulgaria"
+                },
                 "count": 1,
                 "lat": 42.7339,
                 "lng": 25.4858
             },
             {
                 "id": 7,
-                "city": "Финляндия ",
+                "city": {
+                    "ru": "Финляндия ",
+                    "en": "Finland"
+                },
                 "count": 1,
                 "lat": 64,
                 "lng": 26

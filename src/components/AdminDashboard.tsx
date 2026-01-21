@@ -347,8 +347,41 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                        field}
                     </label>
 
-                    {/* STATS - Статистика */}
-                    {field === 'stats' && Array.isArray(value) ? (
+                    {/* Объект с переводами (уже сохранен) - ПРОВЕРЯЕМ ПЕРВЫМ */}
+                    {typeof value === "object" && value !== null && !Array.isArray(value) && (value.ru !== undefined || value.en !== undefined) ? (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                            🇷🇺 Русский
+                          </label>
+                          <Textarea
+                            value={value.ru || ''}
+                            onChange={(e) => {
+                              const newValue = { ...value, ru: e.target.value };
+                              handleTextChange(activeSection, field, newValue);
+                            }}
+                            className="min-h-24"
+                            placeholder={`Введите ${field} на русском`}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                            🇬🇧 English
+                          </label>
+                          <Textarea
+                            value={value.en || ''}
+                            onChange={(e) => {
+                              const newValue = { ...value, en: e.target.value };
+                              handleTextChange(activeSection, field, newValue);
+                            }}
+                            className="min-h-24"
+                            placeholder={`Enter ${field} in English`}
+                          />
+                        </div>
+                      </div>
+
+                    /* STATS - Статистика */
+                    ) : field === 'stats' && Array.isArray(value) ? (
                       <div className="space-y-4">
                         {value.map((stat: any, index: number) => (
                           <div key={index} className="p-4 bg-secondary border border-border rounded">
@@ -1561,39 +1594,6 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                             value={''}
                             onChange={(e) => {
                               const newValue = { ru: value, en: e.target.value };
-                              handleTextChange(activeSection, field, newValue);
-                            }}
-                            className="min-h-24"
-                            placeholder={`Enter ${field} in English`}
-                          />
-                        </div>
-                      </div>
-
-                    /* Объект с переводами (уже сохранен) */
-                    ) : typeof value === "object" && value !== null && (value.ru !== undefined || value.en !== undefined) ? (
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
-                            🇷🇺 Русский
-                          </label>
-                          <Textarea
-                            value={value.ru || ''}
-                            onChange={(e) => {
-                              const newValue = { ...value, ru: e.target.value };
-                              handleTextChange(activeSection, field, newValue);
-                            }}
-                            className="min-h-24"
-                            placeholder={`Введите ${field} на русском`}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
-                            🇬🇧 English
-                          </label>
-                          <Textarea
-                            value={value.en || ''}
-                            onChange={(e) => {
-                              const newValue = { ...value, en: e.target.value };
                               handleTextChange(activeSection, field, newValue);
                             }}
                             className="min-h-24"
