@@ -6,6 +6,7 @@ import { LogOut, Save, Upload, Key, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import ContractManager from "./ContractManager";
 
 interface ContentData {
   [key: string]: any;
@@ -293,6 +294,16 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
             <div className="bg-card border border-border rounded-lg p-4 sticky top-24">
               <h2 className="font-bold mb-4">Секции</h2>
               <div className="space-y-2">
+                <button
+                  onClick={() => setActiveSection("contracts")}
+                  className={`w-full text-left px-4 py-2 rounded transition-colors ${
+                    activeSection === "contracts"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background hover:bg-muted"
+                  }`}
+                >
+                  📄 Договоры
+                </button>
                 {Object.keys(content).map((section) => (
                   <button
                     key={section}
@@ -312,6 +323,9 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
+            {activeSection === "contracts" ? (
+              <ContractManager token={token} />
+            ) : (
             <div className="bg-card border border-border rounded-lg p-6 mb-6">
               <h2 className="text-2xl font-bold mb-6">
                 {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
@@ -1666,10 +1680,9 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                   </div>
                 ))}
               </div>
-            </div>
 
             {/* Save Button */}
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-4 mt-6">
               <Button
                 variant="outline"
                 onClick={loadContent}
@@ -1685,6 +1698,8 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                 {saving ? "Сохранение..." : "Сохранить"}
               </Button>
             </div>
+          </div>
+          )}
           </div>
         </div>
       </div>

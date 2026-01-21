@@ -332,4 +332,121 @@ function getDefaultContent() {
         ]
     ];
 }
-?>
+
+// ===== ENDPOINTS ДЛЯ ДОГОВОРОВ =====
+
+if ($action === 'getcontracts') {
+    if (!checkAuth()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        http_response_code(401);
+        exit;
+    }
+    
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    $templatesFile = __DIR__ . '/../data/contract_templates.json';
+    
+    $contracts = file_exists($contractsFile) ? json_decode(file_get_contents($contractsFile), true) : [];
+    $templates = file_exists($templatesFile) ? json_decode(file_get_contents($templatesFile), true) : [];
+    
+    echo json_encode([
+        'success' => true,
+        'contracts' => $contracts,
+        'templates' => $templates
+    ]);
+    exit;
+}
+
+if ($action === 'savecontracttemplate') {
+    if (!checkAuth()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        http_response_code(401);
+        exit;
+    }
+    
+    $templatesFile = __DIR__ . '/../data/contract_templates.json';
+    $templates = file_exists($templatesFile) ? json_decode(file_get_contents($templatesFile), true) : [];
+    
+    $newTemplate = [
+        'id' => time(),
+        'name' => $jsonInput['name'] ?? 'Шаблон',
+        'data' => $jsonInput['data'] ?? [],
+        'createdAt' => date('Y-m-d H:i:s')
+    ];
+    
+    $templates[] = $newTemplate;
+    file_put_contents($templatesFile, json_encode($templates, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+    echo json_encode(['success' => true, 'template' => $newTemplate]);
+    exit;
+}
+
+if ($action === 'deletecontracttemplate') {
+    if (!checkAuth()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        http_response_code(401);
+        exit;
+    }
+    
+    $templatesFile = __DIR__ . '/../data/contract_templates.json';
+    $templates = file_exists($templatesFile) ? json_decode(file_get_contents($templatesFile), true) : [];
+    
+    $id = $jsonInput['id'] ?? 0;
+    $templates = array_filter($templates, function($t) use ($id) {
+        return $t['id'] != $id;
+    });
+    
+    file_put_contents($templatesFile, json_encode(array_values($templates), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+    echo json_encode(['success' => true]);
+    exit;
+}
+
+if ($action === 'sendcontract') {
+    if (!checkAuth()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        http_response_code(401);
+        exit;
+    }
+    
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    $contracts = file_exists($contractsFile) ? json_decode(file_get_contents($contractsFile), true) : [];
+    
+    $contractNumber = 'DOG-' . date('Y') . '-' . str_pad(count($contracts) + 1, 4, '0', STR_PAD_LEFT);
+    
+    $newContract = [
+        'id' => time(),
+        'contractNumber' => $contractNumber,
+        'data' => $jsonInput['data'] ?? [],
+        'createdAt' => date('Y-m-d H:i:s'),
+        'sentAt' => date('Y-m-d H:i:s'),
+        'signedAt' => null,
+        'signedDocumentUrl' => null
+    ];
+    
+    $contracts[] = $newContract;
+    file_put_contents($contractsFile, json_encode($contracts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+    // Отправка email
+    $data = $jsonInput['data'];
+    $buyerEmail = $data['buyerEmail'] ?? '';
+    $buyerName = $data['buyerName'] ?? '';
+    $dogName = $data['dogName'] ?? '';
+    
+    if ($buyerEmail) {
+        $subject = "Договор купли-продажи щенка - №{$contractNumber}";
+        $message = "Здравствуйте, {$buyerName}!\n\n";
+        $message .= "Вам направлен договор купли-продажи щенка {$dogName}.\n";
+        $message .= "Номер договора: {$contractNumber}\n\n";
+        $message .= "Для подписания договора, пожалуйста, ознакомьтесь с документом и подтвердите согласие.\n\n";
+        $message .= "С уважением,\nПитомник GREAT LEGACY BULLY";
+        
+        $headers = "From: noreply@matrang.com\r\n";
+        $headers .= "Reply-To: " . ($data['kennelEmail'] ?? 'info@matrang.com') . "\r\n";
+        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+        
+        @mail($buyerEmail, $subject, $message, $headers);
+    }
+    
+    echo json_encode(['success' => true, 'contract' => $newContract]);
+    exit;
+}
