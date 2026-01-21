@@ -504,7 +504,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         {value.map((dog: any, index: number) => (
                           <div key={index} className="p-4 bg-secondary border border-border rounded">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold">Собака {index + 1}: {dog.name || 'Без имени'}</h4>
+                              <h4 className="font-semibold">Собака {index + 1}: {typeof dog.name === 'object' ? (dog.name?.ru || dog.name?.en || 'Без имени') : (dog.name || 'Без имени')}</h4>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -707,7 +707,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         {value.map((social: any, index: number) => (
                           <div key={index} className="p-4 bg-secondary border border-border rounded">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold">{social.label || `Соцсеть ${index + 1}`}</h4>
+                              <h4 className="font-semibold">{typeof social.label === 'object' ? (social.label?.ru || social.label?.en || `Соцсеть ${index + 1}`) : (social.label || `Соцсеть ${index + 1}`)}</h4>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -799,7 +799,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                               {(category.dogs || []).map((dog: any, dogIndex: number) => (
                                 <div key={dogIndex} className="p-3 bg-background border border-border rounded">
                                   <div className="flex items-center justify-between mb-3">
-                                    <h5 className="font-semibold text-sm">Собака {dogIndex + 1}: {dog.name || 'Без имени'}</h5>
+                                    <h5 className="font-semibold text-sm">Собака {dogIndex + 1}: {typeof dog.name === 'object' ? (dog.name?.ru || dog.name?.en || 'Без имени') : (dog.name || 'Без имени')}</h5>
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -961,7 +961,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                   </div>
                                   {dog.image && (
                                     <div className="mt-2">
-                                      <img src={dog.image} alt={dog.name} className="w-20 h-20 object-cover rounded" />
+                                      <img src={dog.image} alt={typeof dog.name === 'object' ? (dog.name?.ru || dog.name?.en || 'Dog') : (dog.name || 'Dog')} className="w-20 h-20 object-cover rounded" />
                                     </div>
                                   )}
                                   <label className="flex items-center justify-center gap-2 mt-2 p-2 border border-dashed border-border rounded cursor-pointer hover:bg-muted/50 transition-colors">
@@ -1039,7 +1039,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         {value.map((testimonial: any, index: number) => (
                           <div key={index} className="p-4 bg-secondary border border-border rounded">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold">Отзыв {index + 1}: {testimonial.title || 'Без названия'}</h4>
+                              <h4 className="font-semibold">Отзыв {index + 1}: {typeof testimonial.title === 'object' ? (testimonial.title?.ru || testimonial.title?.en || 'Без названия') : (testimonial.title || 'Без названия')}</h4>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -1063,7 +1063,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                   <div className="mb-3">
                                     <img
                                       src={testimonial.image}
-                                      alt={testimonial.title || 'Отзыв'}
+                                      alt={typeof testimonial.title === 'object' ? (testimonial.title?.ru || testimonial.title?.en || 'Отзыв') : (testimonial.title || 'Отзыв')}
                                       className="max-w-full h-auto rounded max-h-64 object-cover"
                                     />
                                   </div>
@@ -1124,7 +1124,7 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                         {value.map((location: any, index: number) => (
                           <div key={index} className="p-4 bg-secondary border border-border rounded">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold">{location.city || `Город ${index + 1}`}</h4>
+                              <h4 className="font-semibold">{typeof location.city === 'object' ? (location.city?.ru || location.city?.en || `Город ${index + 1}`) : (location.city || `Город ${index + 1}`)}</h4>
                               <Button
                                 variant="ghost"
                                 size="sm"
