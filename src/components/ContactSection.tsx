@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, Mail, MapPin, MessageCircle, Instagram, Youtube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContent } from "@/hooks/useContent";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const iconMap = {
   Phone,
@@ -14,6 +15,7 @@ const iconMap = {
 };
 const ContactSection = () => {
   const { content, loading } = useContent();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [form, setForm] = useState({ name: "", phone: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -59,12 +61,12 @@ const ContactSection = () => {
           <div>
             {tag && (
               <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
-                {tag}
+                {t(tag)}
               </span>
             )}
             {title && (
               <h2 className="font-display text-5xl md:text-7xl mb-6">
-                {title.split(" ").map((word, idx) => (
+                {t(title).split(" ").map((word, idx) => (
                   idx === 1 ? (
                     <span key={idx} className="text-gradient-gold">{` ${word} `}</span>
                   ) : (
@@ -75,7 +77,7 @@ const ContactSection = () => {
             )}
             {description && (
               <p className="font-body text-lg text-muted-foreground mb-12">
-                {description}
+                {t(description)}
               </p>
             )}
 

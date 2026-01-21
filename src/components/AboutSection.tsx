@@ -1,5 +1,6 @@
 import { Shield, Heart, Zap, Award } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const iconMap = {
   Shield,
@@ -10,6 +11,7 @@ const iconMap = {
 
 const AboutSection = () => {
   const { content, loading } = useContent();
+  const { t } = useLanguage();
 
   if (loading || !content.about) {
     return null;
@@ -23,15 +25,15 @@ const AboutSection = () => {
         <div className="text-center mb-16">
           {tag && (
             <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
-              {tag}
+              {t(tag)}
             </span>
           )}
           {title && (
-            <h2 className="font-display text-5xl md:text-7xl mb-6" dangerouslySetInnerHTML={{ __html: title }} />
+            <h2 className="font-display text-5xl md:text-7xl mb-6" dangerouslySetInnerHTML={{ __html: t(title) }} />
           )}
           {description && (
             <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
-              {description}
+              {t(description)}
             </p>
           )}
         </div>
@@ -48,9 +50,9 @@ const AboutSection = () => {
                   <div className="w-14 h-14 bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                     <IconComponent className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="font-display text-2xl mb-3">{feature.title}</h3>
-                  <p className="font-body text-muted-foreground text-sm leading-relaxed">
-                    {feature.description}
+                  <h3 className="font-display text-2xl mb-3">{t(feature.title)}</h3>
+                  <p className="font-body text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
+                    {t(feature.description)}
                   </p>
                 </div>
               );
@@ -64,10 +66,10 @@ const AboutSection = () => {
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="font-display text-5xl md:text-6xl text-gradient-gold mb-2">
-                  {stat.value}
+                  {t(stat.value)}
                 </div>
                 <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
-                  {stat.label}
+                  {t(stat.label)}
                 </div>
               </div>
             ))}

@@ -1,10 +1,12 @@
 import { useContent } from "@/hooks/useContent";
+import { useLanguage } from "@/hooks/useLanguage";
 import { MapPin, AlertCircle } from "lucide-react";
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
 import { useMemo, useState } from "react";
 
 const GeographySection = () => {
   const { content, loading } = useContent();
+  const { t } = useLanguage();
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [mapError, setMapError] = useState(false);
 
@@ -43,17 +45,17 @@ const GeographySection = () => {
         <div className="text-center mb-12">
           {tag && (
             <span className="inline-block px-4 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
-              {tag}
+              {t(tag)}
             </span>
           )}
           {title && (
             <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
-              {title}
+              {t(title)}
             </h2>
           )}
           {description && (
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              {description}
+              {t(description)}
             </p>
           )}
         </div>

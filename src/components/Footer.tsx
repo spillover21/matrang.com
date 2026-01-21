@@ -1,7 +1,9 @@
 import { useContent } from "@/hooks/useContent";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Footer = () => {
   const { content, loading } = useContent();
+  const { t } = useLanguage();
 
   if (loading || !content.footer) {
     return null;
@@ -41,7 +43,7 @@ const Footer = () => {
           
           {copyright && (
             <p className="font-body text-sm text-muted-foreground text-center">
-              {copyright}
+              {t(copyright)}
             </p>
           )}
           

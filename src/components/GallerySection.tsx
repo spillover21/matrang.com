@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useContent } from "@/hooks/useContent";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   Carousel,
   CarouselContent,
@@ -18,6 +19,7 @@ import {
 
 const GallerySection = () => {
   const { content, loading } = useContent();
+  const { t } = useLanguage();
   const [activeDog, setActiveDog] = useState<any | null>(null);
   const [activeCategory, setActiveCategory] = useState(0);
 
@@ -43,13 +45,13 @@ const GallerySection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
-            {galleryTag}
+            {t(galleryTag)}
           </span>
           <h2 className="font-display text-5xl md:text-7xl mb-6">
-            <span className="text-gradient-gold">{galleryTitle}</span>
+            <span className="text-gradient-gold">{t(galleryTitle)}</span>
           </h2>
-          <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
-            {galleryDescription}
+          <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto whitespace-pre-line">
+            {t(galleryDescription)}
           </p>
         </div>
 
@@ -64,7 +66,7 @@ const GallerySection = () => {
                 onClick={() => setActiveCategory(index)}
                 className="font-heading uppercase tracking-wider"
               >
-                {category.name}
+                {t(category.name)}
               </Button>
             ))}
           </div>
