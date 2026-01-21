@@ -71,42 +71,87 @@
             {
                 "icon": "Heart",
                 "title": "American Bully XL",
-                "description": "American Bully XL — это впечатляющее сочетание силы, баланса и уравновешенного характера. Это самая крупная разновидность породы, созданная для тех, кто ценит мощный экстерьер, но при этом ищет надёжного и адекватного семейного компаньона.\n\nXL-булли отличаются массивным костяком, широкой грудью, развитой мускулатурой и уверенной, спокойной манерой поведения. Несмотря на грозный внешний вид, эти собаки ориентированы на человека, отлично ладят с детьми и при правильном воспитании демонстрируют стабильную психику и высокий уровень социализации.\n\nВ нашем питомнике Great Legacy Bully мы уделяем особое внимание здоровью, генетике и характеру XL-линии. Все щенки проходят раннюю социализацию, растут в семейной среде и получают индивидуальный подход с первых дней жизни."
+                "description": {
+                    "ru": "American Bully XL — это впечатляющее сочетание силы, баланса и уравновешенного характера. Это самая крупная разновидность породы, созданная для тех, кто ценит мощный экстерьер, но при этом ищет надёжного и адекватного семейного компаньона.\n\nXL-булли отличаются массивным костяком, широкой грудью, развитой мускулатурой и уверенной, спокойной манерой поведения. Несмотря на грозный внешний вид, эти собаки ориентированы на человека, отлично ладят с детьми и при правильном воспитании демонстрируют стабильную психику и высокий уровень социализации.\n\nВ нашем питомнике Great Legacy Bully мы уделяем особое внимание здоровью, генетике и характеру XL-линии. Все щенки проходят раннюю социализацию, растут в семейной среде и получают индивидуальный подход с первых дней жизни.",
+                    "en": "The American Bully XL is an impressive combination of strength, balance, and a balanced personality. This is the largest variety of the breed, created for those who value a powerful exterior but are also looking for a reliable and capable family companion.\n\nXL Bullies are distinguished by their massive bones, broad chest, well-developed muscles, and confident, calm demeanor. Despite their formidable appearance, these dogs are people-oriented, get along well with children, and, with proper training, demonstrate a stable psyche and a high level of socialization.\n\nAt our Great Legacy Bully kennel, we pay special attention to the health, genetics, and character of our XL line. All puppies undergo early socialization, grow up in a family environment, and receive individual attention from the very first days of life."
+                }
             },
             {
                 "icon": "Heart",
                 "title": "American Bully Standard",
-                "description": "American Bully Standard — это идеальный баланс между атлетичностью, силой и подвижностью. Эта разновидность считается классическим представителем породы и отлично подходит для активной жизни в семье.\n\nСтандарты обладают компактным, гармоничным телосложением, выраженной мускулатурой и уверенным, но дружелюбным характером. Они энергичны, обучаемы и легко адаптируются как к жизни в доме, так и к городской среде.\n\nСобаки формата Standard особенно ценятся за универсальность: они одинаково хорошо подходят как для выставок и разведения, так и для роли верного семейного компаньона."
+                "description": {
+                    "ru": "American Bully Standard — это идеальный баланс между атлетичностью, силой и подвижностью. Эта разновидность считается классическим представителем породы и отлично подходит для активной жизни в семье.\n\nСтандарты обладают компактным, гармоничным телосложением, выраженной мускулатурой и уверенным, но дружелюбным характером. Они энергичны, обучаемы и легко адаптируются как к жизни в доме, так и к городской среде.\n\nСобаки формата Standard особенно ценятся за универсальность: они одинаково хорошо подходят как для выставок и разведения, так и для роли верного семейного компаньона.",
+                    "en": "The American Bully Standard is the perfect balance between athleticism, strength, and agility. This variety is considered the classic representative of the breed and is ideal for an active family life.\n\nStandards have a compact, harmonious build, pronounced muscles, and a confident yet friendly nature. They are energetic, trainable, and easily adapt to both indoor and urban life.\n\nStandard dogs are particularly prized for their versatility: they are equally well suited for show and breeding, as well as for being loyal family companions."
+                }
             },
             {
                 "icon": "Shield",
-                "title": "ХАРАКТЕР И ПСИХИКА",
-                "description": "Для нас важна\nне только внешность,\nно и устойчивый характер.\nНаши собаки растут\nв семейной среде,\nпроходят раннюю социализацию\nи готовы к жизни с человеком.\n"
+                "title": {
+                    "ru": "ХАРАКТЕР И ПСИХИКА",
+                    "en": "CHARACTER AND MENTALITY"
+                },
+                "description": {
+                    "ru": "Для нас важна\nне только внешность,\nно и устойчивый характер.\nНаши собаки растут\nв семейной среде,\nпроходят раннюю социализацию\nи готовы к жизни с человеком.\n",
+                    "en": "For us, it's not just appearance that matters,\nbut also a stable character.\nOur dogs are raised\nin a family environment,\nare socialized early, and are prepared for life with people."
+                }
             },
             {
                 "icon": "Zap",
-                "title": "ЧЕСТНОЕ РАЗВЕДЕНИЕ",
-                "description": "Мы не гонимся\nза количеством.\nОткрыто показываем\nжизнь питомника,\nговорим о сложностях\nи берём ответственность\nза каждого щенка.\n"
+                "title": {
+                    "ru": "ЧЕСТНОЕ РАЗВЕДЕНИЕ",
+                    "en": "HONEST BREEDING"
+                },
+                "description": {
+                    "ru": "Мы не гонимся\nза количеством.\nОткрыто показываем\nжизнь питомника,\nговорим о сложностях\nи берём ответственность\nза каждого щенка.\n",
+                    "en": "We don't chase\nquantity.\nWe openly show\nkennel life,\nwe talk about the challenges\nand take responsibility\nfor each puppy."
+                }
             }
         ],
         "stats": []
     },
     "gallery": {
-        "tag": "Наши питомцы",
-        "title": "ГАЛЕРЕЯ",
-        "description": "В этом разделе вы познакомитесь с нашими семейными собаками, на которых строится и развивается питомник.\nЗдесь представлены наши воспитанники — щенки, уже уехавшие в новые дома, а также щенки, которые сейчас доступны для бронирования и продажи.\nМы с любовью вкладываемся в каждого нашего питомца и гордимся результатом.",
-        "availableText": "В продаже",
-        "notAvailableText": "Производитель",
+        "tag": {
+            "ru": "Наши питомцы",
+            "en": "Our pets"
+        },
+        "title": {
+            "ru": "ГАЛЕРЕЯ",
+            "en": "GALLERY"
+        },
+        "description": {
+            "ru": "В этом разделе вы познакомитесь с нашими семейными собаками, на которых строится и развивается питомник.\nЗдесь представлены наши воспитанники — щенки, уже уехавшие в новые дома, а также щенки, которые сейчас доступны для бронирования и продажи.\nМы с любовью вкладываемся в каждого нашего питомца и гордимся результатом.",
+            "en": "In this section, you'll learn about our family dogs, who are the foundation and foundation of our kennel.\n\nHere you'll find our fosterlings—puppies that have already gone to new homes, as well as puppies currently available for reservation and sale.\nWe lovingly invest in each of our pets and are proud of the results."
+        },
+        "availableText": {
+            "ru": "В продаже",
+            "en": "On sale"
+        },
+        "notAvailableText": {
+            "ru": "Производитель",
+            "en": "Manufacturer"
+        },
         "categories": [
             {
                 "name": "Щенки в продаже",
                 "dogs": [
                     {
                         "id": 1768336977419,
-                        "name": "Мальчик (синий ошейник)",
-                        "age": "2 недели ",
-                        "color": "Lilac blotched ",
-                        "price": "700.000 тыс.руб",
+                        "name": {
+                            "ru": "Мальчик (синий ошейник)",
+                            "en": "Boy (blue collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched"
+                        },
+                        "price": {
+                            "ru": "700.000 руб",
+                            "en": "700,000 rur"
+                        },
                         "image": "\/uploads\/1768781200_a6553aac.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -116,10 +161,22 @@
                     },
                     {
                         "id": 1768781227065,
-                        "name": "Мальчик (черный ошейник)",
-                        "age": "2 недели ",
-                        "color": "Lilac blotched ",
-                        "price": "700.000 тыс.руб",
+                        "name": {
+                            "ru": "Мальчик (черный ошейник)",
+                            "en": "Boy (black collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "700.000 руб",
+                            "en": "700,000 rur"
+                        },
                         "image": "\/uploads\/1768781282_84e55942.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -129,10 +186,22 @@
                     },
                     {
                         "id": 1768781287057,
-                        "name": "Девочка (красный ошейник)",
-                        "age": "2 недели ",
-                        "color": "Lilac blotched ",
-                        "price": "700.000 тыс. руб",
+                        "name": {
+                            "ru": "Девочка (красный ошейник)",
+                            "en": "Girl (red collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "700.000  руб",
+                            "en": "700,000 rur"
+                        },
                         "image": "\/uploads\/1768781307_78527c71.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -142,10 +211,22 @@
                     },
                     {
                         "id": 1768781382448,
-                        "name": "Девочка (серый ошейник)",
-                        "age": "2 недели ",
-                        "color": "Lilac tan with ",
-                        "price": "600.000 тыс.руб",
+                        "name": {
+                            "ru": "Девочка (серый ошейник)",
+                            "en": "Girl (gray collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
                         "image": "\/uploads\/1768781498_72cb7de6.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -155,10 +236,22 @@
                     },
                     {
                         "id": 1768781568735,
-                        "name": "Девочка (оранжевый ошейник)",
-                        "age": "2 недели ",
-                        "color": "Lilac tan with ",
-                        "price": "600.000 тыс.руб",
+                        "name": {
+                            "ru": "Девочка (оранжевый ошейник)",
+                            "en": "Girl (orange collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
                         "image": "\/uploads\/1768781687_1d15d7a8.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -168,10 +261,22 @@
                     },
                     {
                         "id": 1768781933947,
-                        "name": "Девочка (бордовый ошейник)",
-                        "age": "2 недели ",
-                        "color": "Lilac tan with ",
-                        "price": "600.000 тыс.руб",
+                        "name": {
+                            "ru": "Девочка (бордовый ошейник)",
+                            "en": "Girl (burgundy collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
                         "image": "\/uploads\/1768782046_4d9c0ca5.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -181,10 +286,22 @@
                     },
                     {
                         "id": 1768781935193,
-                        "name": "Девочка (зеленый ошейник) ",
-                        "age": "2 недели ",
-                        "color": "Lilac tan with ",
-                        "price": "600.000 тыс.руб",
+                        "name": {
+                            "ru": "Девочка (зеленый ошейник) ",
+                            "en": "Girl (green collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
                         "image": "\/uploads\/1768782094_edeae44d.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -199,10 +316,22 @@
                 "dogs": [
                     {
                         "id": 1,
-                        "name": "MATRANG  ",
-                        "age": "2 года ",
-                        "color": "Lilac blotched ",
-                        "price": "Производитель ",
+                        "name": {
+                            "ru": "MATRANG  ",
+                            "en": "MATRANG  "
+                        },
+                        "age": {
+                            "ru": "2 года ",
+                            "en": "2 years"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Производитель ",
+                            "en": "Stud dog"
+                        },
                         "image": "\/uploads\/1767901714_2f0c67b4.jpeg",
                         "imageZoom": 130,
                         "imageHeight": 130,
@@ -212,10 +341,22 @@
                     },
                     {
                         "id": 2,
-                        "name": "Meloni ",
-                        "age": "2 года",
-                        "color": "Lilac tan with ",
-                        "price": "Производитель",
+                        "name": {
+                            "ru": "Meloni ",
+                            "en": "Meloni "
+                        },
+                        "age": {
+                            "ru": "2 года",
+                            "en": "2 years"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "Производитель",
+                            "en": "Stud dog"
+                        },
                         "image": "\/uploads\/1767901811_5343bb97.jpeg",
                         "imageZoom": 135,
                         "imageHeight": 125,
@@ -225,10 +366,22 @@
                     },
                     {
                         "id": 3,
-                        "name": "Arianna",
-                        "age": "4 месяца ",
-                        "color": "Lilac tric",
-                        "price": " Будущий производитель ",
+                        "name": {
+                            "ru": "Arianna",
+                            "en": "Arianna"
+                        },
+                        "age": {
+                            "ru": "4 месяца ",
+                            "en": "4 months"
+                        },
+                        "color": {
+                            "ru": "Lilac tric",
+                            "en": "Lilac tric"
+                        },
+                        "price": {
+                            "ru": " Будущий производитель ",
+                            "en": "Stud dog"
+                        },
                         "image": "\/uploads\/1767902984_620c925d.jpeg",
                         "imageZoom": 115,
                         "imageHeight": 105,
@@ -238,10 +391,22 @@
                     },
                     {
                         "id": 1767257700892,
-                        "name": "Tayron ",
-                        "age": "8месяцев ",
-                        "color": "Lilac blotched ",
-                        "price": "Выпускник питомника ",
+                        "name": {
+                            "ru": "Tayron ",
+                            "en": "Tayron "
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
                         "image": "\/uploads\/1767902918_ba90e5ea.jpeg",
                         "imageZoom": 115,
                         "imageHeight": 115,
@@ -251,10 +416,22 @@
                     },
                     {
                         "id": 1767903027178,
-                        "name": "Kiara",
-                        "age": "8 месяцев ",
-                        "color": "Lilac blotched ",
-                        "price": "Выпускник питомника ",
+                        "name": {
+                            "ru": "Kiara",
+                            "en": "Kiara"
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
                         "image": "\/uploads\/1767903701_cfcccbd5.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 110,
@@ -264,10 +441,22 @@
                     },
                     {
                         "id": 1767906000199,
-                        "name": "Meltar",
-                        "age": "8 месяцев",
-                        "color": "Lilac tan white",
-                        "price": "Выпускник питомника ",
+                        "name": {
+                            "ru": "Meltar",
+                            "en": "Meltar"
+                        },
+                        "age": {
+                            "ru": "8 месяцев",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac tan white",
+                            "en": "Lilac tan white"
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
                         "image": "\/uploads\/1767906063_75666ae6.jpeg",
                         "imageZoom": 130,
                         "imageHeight": 130,
@@ -277,10 +466,22 @@
                     },
                     {
                         "id": 1768782515716,
-                        "name": "Gennady",
-                        "age": "8 месяцев ",
-                        "color": "Lilac blotched ",
-                        "price": "Выпускник питомника ",
+                        "name": {
+                            "ru": "Gennady",
+                            "en": "Gennady"
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
                         "image": "\/uploads\/1768782534_0d5518c6.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,
@@ -290,10 +491,22 @@
                     },
                     {
                         "id": 1768786316340,
-                        "name": "Max",
-                        "age": "8 месяцев ",
-                        "color": "Lilac blotched ",
-                        "price": "Выпускник питомника",
+                        "name": {
+                            "ru": "Max",
+                            "en": "Max"
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника",
+                            "en": "Nursery graduate"
+                        },
                         "image": "\/uploads\/1768786357_f44a220b.jpeg",
                         "imageZoom": 100,
                         "imageHeight": 100,

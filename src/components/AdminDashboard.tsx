@@ -777,13 +777,41 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                       <div className="space-y-4">
                         {value.map((category: any, catIndex: number) => (
                           <div key={catIndex} className="p-4 bg-muted border-2 border-border rounded-lg">
-                            <div className="flex items-center justify-between mb-4">
-                              <Input
-                                value={category.name || ''}
-                                onChange={(e) => handleArrayItemChange(activeSection, field, catIndex, 'name', e.target.value)}
-                                placeholder="Название категории"
-                                className="text-lg font-semibold flex-1 mr-3"
-                              />
+                            <div className="flex items-end justify-between mb-4 gap-3">
+                              <div className="flex-1 grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                    🇷🇺 Название категории
+                                  </label>
+                                  <Input
+                                    value={typeof category.name === 'string' ? category.name : category.name?.ru || ''}
+                                    onChange={(e) => {
+                                      const newName = typeof category.name === 'string'
+                                        ? { ru: e.target.value, en: '' }
+                                        : { ...category.name, ru: e.target.value };
+                                      handleArrayItemChange(activeSection, field, catIndex, 'name', newName);
+                                    }}
+                                    placeholder="На продажу"
+                                    className="font-semibold"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                    🇬🇧 Category name
+                                  </label>
+                                  <Input
+                                    value={typeof category.name === 'object' ? category.name?.en || '' : ''}
+                                    onChange={(e) => {
+                                      const newName = typeof category.name === 'string'
+                                        ? { ru: category.name, en: e.target.value }
+                                        : { ...category.name, en: e.target.value };
+                                      handleArrayItemChange(activeSection, field, catIndex, 'name', newName);
+                                    }}
+                                    placeholder="For Sale"
+                                    className="font-semibold"
+                                  />
+                                </div>
+                              </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
