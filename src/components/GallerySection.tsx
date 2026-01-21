@@ -107,18 +107,18 @@ const GallerySection = () => {
                     </div>
 
                     <div className="p-4 flex flex-col gap-2">
-                      <h3 className="font-display text-3xl tracking-tight">{dog.name}</h3>
+                      <h3 className="font-display text-3xl tracking-tight">{t(dog.name)}</h3>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                        {dog.age && <span>{dog.age}</span>}
+                        {dog.age && <span>{t(dog.age)}</span>}
                         {dog.color && (
                           <>
                             <span className="w-1 h-1 bg-primary rounded-full" />
-                            <span>{dog.color}</span>
+                            <span>{t(dog.color)}</span>
                           </>
                         )}
                       </div>
                       {dog.price && (
-                        <span className="font-display text-2xl text-primary">{dog.price}</span>
+                        <span className="font-display text-2xl text-primary">{t(dog.price)}</span>
                       )}
                     </div>
                   </div>
@@ -135,10 +135,10 @@ const GallerySection = () => {
         <DialogContent className="max-w-5xl bg-background/95 border border-border">
           <DialogHeader>
             <DialogTitle className="font-display text-3xl leading-tight">
-              {activeDog?.name}
+              {t(activeDog?.name)}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {activeDog?.price || ""}
+              {t(activeDog?.price) || ""}
             </DialogDescription>
           </DialogHeader>
           <div className="grid md:grid-cols-2 gap-6 items-start">
@@ -153,7 +153,7 @@ const GallerySection = () => {
                 >
                   <img
                     src={activeDog.image}
-                    alt={activeDog.name}
+                    alt={t(activeDog.name)}
                     className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(255,215,0,0.35)]"
                     style={{
                       objectPosition: `${activeDog.imagePositionX || 50}% ${activeDog.imagePositionY || 50}%`,
@@ -164,20 +164,20 @@ const GallerySection = () => {
             </div>
             <div className="space-y-3">
               {activeDog?.age && (
-                <p className="text-sm text-muted-foreground">Возраст: {activeDog.age}</p>
+                <p className="text-sm text-muted-foreground">{t({ ru: 'Возраст', en: 'Age' })}: {t(activeDog.age)}</p>
               )}
               {activeDog?.color && (
-                <p className="text-sm text-muted-foreground">Окрас: {activeDog.color}</p>
+                <p className="text-sm text-muted-foreground">{t({ ru: 'Окрас', en: 'Color' })}: {t(activeDog.color)}</p>
               )}
               {activeDog?.price && (
-                <p className="text-lg font-display text-primary">{activeDog.price}</p>
+                <p className="text-lg font-display text-primary">{t(activeDog.price)}</p>
               )}
               <div className="pt-2">
                 <Button variant="hero" size="lg" onClick={() => {
                   const el = document.getElementById("contact");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}>
-                  Связаться
+                  {t({ ru: 'Связаться', en: 'Contact' })}
                 </Button>
               </div>
             </div>

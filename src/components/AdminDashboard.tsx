@@ -815,54 +815,146 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                   </div>
                                   <div className="grid grid-cols-2 gap-2 text-xs">
                                     <div>
-                                      <label className="text-xs text-muted-foreground mb-1 block">Кличка</label>
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇷🇺 Кличка
+                                      </label>
                                       <Input
-                                        value={dog.name || ''}
+                                        value={typeof dog.name === 'string' ? dog.name : dog.name?.ru || ''}
                                         onChange={(e) => {
                                           const updatedDogs = [...category.dogs];
-                                          updatedDogs[dogIndex] = { ...dog, name: e.target.value };
+                                          const newName = typeof dog.name === 'string' 
+                                            ? { ru: e.target.value, en: '' }
+                                            : { ...dog.name, ru: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, name: newName };
                                           handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
                                         }}
-                                        placeholder="TITAN"
+                                        placeholder="MATRANG"
                                         className="h-8"
                                       />
                                     </div>
                                     <div>
-                                      <label className="text-xs text-muted-foreground mb-1 block">Возраст</label>
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇬🇧 Name
+                                      </label>
                                       <Input
-                                        value={dog.age || ''}
+                                        value={typeof dog.name === 'object' ? dog.name?.en || '' : ''}
                                         onChange={(e) => {
                                           const updatedDogs = [...category.dogs];
-                                          updatedDogs[dogIndex] = { ...dog, age: e.target.value };
+                                          const newName = typeof dog.name === 'string'
+                                            ? { ru: dog.name, en: e.target.value }
+                                            : { ...dog.name, en: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, name: newName };
                                           handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
                                         }}
-                                        placeholder="8 месяцев"
+                                        placeholder="MATRANG"
                                         className="h-8"
                                       />
                                     </div>
                                     <div>
-                                      <label className="text-xs text-muted-foreground mb-1 block">Окрас</label>
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇷🇺 Возраст
+                                      </label>
                                       <Input
-                                        value={dog.color || ''}
+                                        value={typeof dog.age === 'string' ? dog.age : dog.age?.ru || ''}
                                         onChange={(e) => {
                                           const updatedDogs = [...category.dogs];
-                                          updatedDogs[dogIndex] = { ...dog, color: e.target.value };
+                                          const newAge = typeof dog.age === 'string'
+                                            ? { ru: e.target.value, en: '' }
+                                            : { ...dog.age, ru: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, age: newAge };
                                           handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
                                         }}
-                                        placeholder="Blue Fawn"
+                                        placeholder="2 года"
                                         className="h-8"
                                       />
                                     </div>
                                     <div>
-                                      <label className="text-xs text-muted-foreground mb-1 block">Цена/Статус</label>
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇬🇧 Age
+                                      </label>
                                       <Input
-                                        value={dog.price || ''}
+                                        value={typeof dog.age === 'object' ? dog.age?.en || '' : ''}
                                         onChange={(e) => {
                                           const updatedDogs = [...category.dogs];
-                                          updatedDogs[dogIndex] = { ...dog, price: e.target.value };
+                                          const newAge = typeof dog.age === 'string'
+                                            ? { ru: dog.age, en: e.target.value }
+                                            : { ...dog.age, en: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, age: newAge };
                                           handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
                                         }}
-                                        placeholder="150 000 ₽"
+                                        placeholder="2 years"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇷🇺 Окрас
+                                      </label>
+                                      <Input
+                                        value={typeof dog.color === 'string' ? dog.color : dog.color?.ru || ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          const newColor = typeof dog.color === 'string'
+                                            ? { ru: e.target.value, en: '' }
+                                            : { ...dog.color, ru: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, color: newColor };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="Lilac blotched"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇬🇧 Color
+                                      </label>
+                                      <Input
+                                        value={typeof dog.color === 'object' ? dog.color?.en || '' : ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          const newColor = typeof dog.color === 'string'
+                                            ? { ru: dog.color, en: e.target.value }
+                                            : { ...dog.color, en: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, color: newColor };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="Lilac blotched"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div className="col-span-2">
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇷🇺 Цена/Статус
+                                      </label>
+                                      <Input
+                                        value={typeof dog.price === 'string' ? dog.price : dog.price?.ru || ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          const newPrice = typeof dog.price === 'string'
+                                            ? { ru: e.target.value, en: '' }
+                                            : { ...dog.price, ru: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, price: newPrice };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="Производитель"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div className="col-span-2">
+                                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                        🇬🇧 Price/Status
+                                      </label>
+                                      <Input
+                                        value={typeof dog.price === 'object' ? dog.price?.en || '' : ''}
+                                        onChange={(e) => {
+                                          const updatedDogs = [...category.dogs];
+                                          const newPrice = typeof dog.price === 'string'
+                                            ? { ru: dog.price, en: e.target.value }
+                                            : { ...dog.price, en: e.target.value };
+                                          updatedDogs[dogIndex] = { ...dog, price: newPrice };
+                                          handleArrayItemChange(activeSection, field, catIndex, 'dogs', updatedDogs);
+                                        }}
+                                        placeholder="Stud Dog"
                                         className="h-8"
                                       />
                                     </div>
