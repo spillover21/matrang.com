@@ -8,25 +8,43 @@
         "favicon": "\/uploads\/1767891363_d6d38c69.png",
         "siteTitle": "MATRANG DOGS",
         "ogTitle": "MATRANG",
-        "ogDescription": "питомник американских булли Great Legacy bully"
+        "ogDescription": {
+            "ru": "питомник американских булли Great Legacy bully",
+            "en": "American Bully Kennel Great Legacy Bully"
+        }
     },
     "hero": {
-        "tag": "AMERICAN BULLY ",
+        "tag": {
+            "ru": "AMERICAN BULLY ",
+            "en": "AMERICAN BULLY "
+        },
         "titles": [
             {
-                "text": "American Bully",
+                "text": {
+                    "ru": "American Bully",
+                    "en": "American Bully"
+                },
                 "size": 80
             },
             {
-                "text": "Качество ",
+                "text": {
+                    "ru": "Качество ",
+                    "en": "Quality"
+                },
                 "size": 80
             },
             {
-                "text": "Генетика ",
+                "text": {
+                    "ru": "Генетика ",
+                    "en": "Genetics"
+                },
                 "size": 80
             },
             {
-                "text": "Характер ",
+                "text": {
+                    "ru": "Характер ",
+                    "en": "Character"
+                },
                 "size": 80
             }
         ],
@@ -37,9 +55,18 @@
         "imagePositionY": 55
     },
     "about": {
-        "tag": "Почему мы",
-        "title": "American bully - как образ жизни ",
-        "description": "American Bully — это не просто собака. Это сочетание силы, уверенности и стабильного характера.  Мы — семейный питомник Great Legacy Bully, где каждый щенок растёт в любви, внимании и заботе. Мы не гонимся за количеством — для нас важны качество, генетика и правильное развитие.  Наши собаки обладают мощной родословной, устойчивой психикой и выразительным экстерьером. Каждый щенок проходит раннюю социализацию и получает индивидуальный подход, чтобы вы получили не просто красивую собаку, а надёжного компаньона и члена семьи.  Мы также активно ведём профиль в Instagram, где показываем жизнь питомника такой, какая она есть — без приукрашенной «инстаграмной картинки». Мы честно рассказываем не только о радостях, но и о сложностях, с которыми сталкивается каждый ответственный заводчик. В нашем профиле вы сможете ближе познакомиться с нашими собаками, увидеть их развитие и узнать нас как семью, для которой American Bully — это не бизнес, а образ жизни.",
+        "tag": {
+            "ru": "Почему мы",
+            "en": "Why us"
+        },
+        "title": {
+            "ru": "American bully - как образ жизни ",
+            "en": "American bully as a way of life"
+        },
+        "description": {
+            "ru": "American Bully — это не просто собака. Это сочетание силы, уверенности и стабильного характера.  Мы — семейный питомник Great Legacy Bully, где каждый щенок растёт в любви, внимании и заботе. Мы не гонимся за количеством — для нас важны качество, генетика и правильное развитие.  Наши собаки обладают мощной родословной, устойчивой психикой и выразительным экстерьером. Каждый щенок проходит раннюю социализацию и получает индивидуальный подход, чтобы вы получили не просто красивую собаку, а надёжного компаньона и члена семьи.  Мы также активно ведём профиль в Instagram, где показываем жизнь питомника такой, какая она есть — без приукрашенной «инстаграмной картинки». Мы честно рассказываем не только о радостях, но и о сложностях, с которыми сталкивается каждый ответственный заводчик. В нашем профиле вы сможете ближе познакомиться с нашими собаками, увидеть их развитие и узнать нас как семью, для которой American Bully — это не бизнес, а образ жизни.",
+            "en": "An American Bully is more than just a dog. It's a combination of strength, confidence, and a stable character. We are a family-run kennel, Great Legacy Bully, where every puppy grows with love, attention, and care. We don't strive for quantity—we prioritize quality, genetics, and proper development. Our dogs have strong pedigrees, stable personalities, and distinctive exteriors. Each puppy undergoes early socialization and receives personalized attention to ensure you get not just a beautiful dog, but a reliable companion and family member. We also maintain an active Instagram account, where we show kennel life as it really is—without the sugarcoated \"Instagram image.\" We honestly share not only the joys but also the challenges that every responsible breeder faces. On our profile, you can get to know our dogs better, witness their development, and get to know us as a family for whom American Bullying isn't just a business, but a way of life."
+        },
         "features": [
             {
                 "icon": "Heart",

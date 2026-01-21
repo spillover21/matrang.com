@@ -423,19 +423,64 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                 </select>
                               </div>
                               <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Заголовок</label>
+                                <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                                  🇷🇺 Заголовок (Русский)
+                                </label>
                                 <Input
-                                  value={feature.title || ''}
-                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'title', e.target.value)}
+                                  value={typeof feature.title === 'string' ? feature.title : feature.title?.ru || ''}
+                                  onChange={(e) => {
+                                    const newTitle = typeof feature.title === 'string' 
+                                      ? { ru: e.target.value, en: '' }
+                                      : { ...feature.title, ru: e.target.value };
+                                    handleArrayItemChange(activeSection, field, index, 'title', newTitle);
+                                  }}
                                   placeholder="Защитник"
                                 />
                               </div>
                               <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Описание</label>
+                                <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                                  🇬🇧 Title (English)
+                                </label>
+                                <Input
+                                  value={typeof feature.title === 'object' ? feature.title?.en || '' : ''}
+                                  onChange={(e) => {
+                                    const newTitle = typeof feature.title === 'string'
+                                      ? { ru: feature.title, en: e.target.value }
+                                      : { ...feature.title, en: e.target.value };
+                                    handleArrayItemChange(activeSection, field, index, 'title', newTitle);
+                                  }}
+                                  placeholder="Protector"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                                  🇷🇺 Описание (Русский)
+                                </label>
                                 <Textarea
-                                  value={feature.description || ''}
-                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'description', e.target.value)}
+                                  value={typeof feature.description === 'string' ? feature.description : feature.description?.ru || ''}
+                                  onChange={(e) => {
+                                    const newDesc = typeof feature.description === 'string'
+                                      ? { ru: e.target.value, en: '' }
+                                      : { ...feature.description, ru: e.target.value };
+                                    handleArrayItemChange(activeSection, field, index, 'description', newDesc);
+                                  }}
                                   placeholder="Непоколебимая преданность..."
+                                  className="min-h-20"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                                  🇬🇧 Description (English)
+                                </label>
+                                <Textarea
+                                  value={typeof feature.description === 'object' ? feature.description?.en || '' : ''}
+                                  onChange={(e) => {
+                                    const newDesc = typeof feature.description === 'string'
+                                      ? { ru: feature.description, en: e.target.value }
+                                      : { ...feature.description, en: e.target.value };
+                                    handleArrayItemChange(activeSection, field, index, 'description', newDesc);
+                                  }}
+                                  placeholder="Unwavering loyalty..."
                                   className="min-h-20"
                                 />
                               </div>
@@ -1345,11 +1390,42 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                             🇬🇧 English
                           </label>
                           <Textarea
-                            value={(typeof value === 'object' && value?.en) || ''}
+                            value={''}
                             onChange={(e) => {
-                              const newValue = typeof value === 'string' 
-                                ? { ru: value, en: e.target.value }
-                                : { ...value, en: e.target.value };
+                              const newValue = { ru: value, en: e.target.value };
+                              handleTextChange(activeSection, field, newValue);
+                            }}
+                            className="min-h-24"
+                            placeholder={`Enter ${field} in English`}
+                          />
+                        </div>
+                      </div>
+
+                    /* Объект с переводами (уже сохранен) */
+                    ) : typeof value === "object" && value !== null && (value.ru !== undefined || value.en !== undefined) ? (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                            🇷🇺 Русский
+                          </label>
+                          <Textarea
+                            value={value.ru || ''}
+                            onChange={(e) => {
+                              const newValue = { ...value, ru: e.target.value };
+                              handleTextChange(activeSection, field, newValue);
+                            }}
+                            className="min-h-24"
+                            placeholder={`Введите ${field} на русском`}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-2">
+                            🇬🇧 English
+                          </label>
+                          <Textarea
+                            value={value.en || ''}
+                            onChange={(e) => {
+                              const newValue = { ...value, en: e.target.value };
                               handleTextChange(activeSection, field, newValue);
                             }}
                             className="min-h-24"
@@ -1382,11 +1458,9 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                             🇬🇧 English
                           </label>
                           <Input
-                            value={(typeof value === 'object' && value?.en) || ''}
+                            value={''}
                             onChange={(e) => {
-                              const newValue = typeof value === 'string'
-                                ? { ru: value, en: e.target.value }
-                                : { ...value, en: e.target.value };
+                              const newValue = { ru: value, en: e.target.value };
                               handleTextChange(activeSection, field, newValue);
                             }}
                             placeholder={`Enter ${field} in English`}

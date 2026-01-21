@@ -171,24 +171,24 @@ const ContactSection = () => {
           {/* Right Column - Contact Form */}
           <div className="bg-secondary border border-border p-8 md:p-12">
             <h3 className="font-display text-3xl mb-8">
-              ОСТАВИТЬ ЗАЯВКУ
+              {t({ ru: 'ОСТАВИТЬ ЗАЯВКУ', en: 'SUBMIT REQUEST' })}
             </h3>
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="font-heading text-sm uppercase tracking-wider text-muted-foreground block mb-2">
-                  Ваше имя
+                  {t({ ru: 'Ваше имя', en: 'Your name' })}
                 </label>
                 <input
                   type="text"
                   className="w-full bg-background border border-border px-4 py-3 font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
-                  placeholder="Введите имя"
+                  placeholder={t({ ru: 'Введите имя', en: 'Enter your name' })}
                   value={form.name}
                   onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                 />
               </div>
               <div>
                 <label className="font-heading text-sm uppercase tracking-wider text-muted-foreground block mb-2">
-                  Телефон
+                  {t({ ru: 'Телефон', en: 'Phone' })}
                 </label>
                 <input
                   type="tel"
@@ -200,18 +200,18 @@ const ContactSection = () => {
               </div>
               <div>
                 <label className="font-heading text-sm uppercase tracking-wider text-muted-foreground block mb-2">
-                  Сообщение
+                  {t({ ru: 'Сообщение', en: 'Message' })}
                 </label>
                 <textarea
                   className="w-full bg-background border border-border px-4 py-3 font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors h-32 resize-none"
-                  placeholder="Расскажите, какой щенок вас интересует..."
+                  placeholder={t({ ru: 'Расскажите, какой щенок вас интересует...', en: 'Tell us which puppy you are interested in...' })}
                   value={form.message}
                   onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
                 />
               </div>
               <Button type="submit" variant="hero" size="xl" className="w-full" disabled={submitting}>
                 <MessageCircle className="w-5 h-5" />
-                {submitting ? "Отправляем..." : "Отправить заявку"}
+                {submitting ? t({ ru: 'Отправляем...', en: 'Sending...' }) : t({ ru: 'Отправить заявку', en: 'Send Request' })}
               </Button>
             </form>
           </div>
