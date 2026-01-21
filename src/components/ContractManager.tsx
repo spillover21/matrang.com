@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Send, Download, FileText, Trash2, Plus, Archive } from "lucide-react";
+import { Save, Send, Download, FileText, Trash2, Plus, Archive, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -58,6 +58,8 @@ interface SignedContract {
   sentAt?: string;
   signedAt?: string;
   signedDocumentUrl?: string;
+  adobeSignAgreementId?: string;
+  status?: 'draft' | 'sent' | 'sent_by_email' | 'signed';
 }
 
 interface ContractManagerProps {
@@ -71,6 +73,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [pdfTemplate, setPdfTemplate] = useState<string>("");
   
   const [formData, setFormData] = useState<ContractData>({
     kennelName: "GREAT LEGACY BULLY",
@@ -111,12 +114,36 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       if (data.success) {
         setTemplates(data.templates || []);
         setContracts(data.contracts || []);
+        setPdfTemplate(data.pdfTemplate || "");
       }
     } catch (error) {
       console.error(error);
       toast.error("Ошибка загрузки данных");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const uploadPdfTemplate = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/api.php?action=uploadPdfTemplate", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setPdfTemplate(data.url);
+        toast.success("PDF шаблон загружен");
+      } else {
+        toast.error(data.message || "Ошибка загрузки");
+      }
+    } catch (error) {
+      toast.error("Ошибка сети");
     }
   };
 
@@ -192,9 +219,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       return;
     }
 
+    if (!pdfTemplate) {
+      toast.error("Загрузите PDF шаблон договора");
+      return;
+    }
+
     setSending(true);
     try {
-      const response = await fetch("/api/api.php?action=sendContract", {
+      const response = await fetch("/api/api.php?action=sendContractPdf", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -202,12 +234,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         },
         body: JSON.stringify({
           data: formData,
+          pdfTemplate: pdfTemplate,
         }),
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success("Договор отправлен на email покупателя");
+        toast.success("Договор отправлен на подпись через Adobe Sign");
         loadData();
         // Очистка формы
         setFormData({
@@ -341,6 +374,54 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           </TabsList>
 
           <TabsContent value="new" className="space-y-6 mt-6">
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">PDF Шаблон договора</h2>
+              {pdfTemplate ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">Шаблон загружен</p>
+                    <a href={pdfTemplate} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      Просмотреть PDF
+                    </a>
+                  </div>
+                  <label className="cursor-pointer">
+                    <Button variant="outline" size="sm" asChild>
+                      <span>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Заменить шаблон
+                      </span>
+                    </Button>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadPdfTemplate(file);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center gap-2 p-8 border-2 border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors">
+                  <Upload className="w-6 h-6" />
+                  <span>Загрузите PDF шаблон договора</span>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadPdfTemplate(file);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                💡 Загрузите PDF договора с заполняемыми полями (созданный в Adobe Acrobat)
+              </p>
+            </div>
+
             <div className="bg-card border border-border rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Данные питомника</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -616,41 +697,98 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   Архив пуст
                 </div>
               ) : (
-                contracts.map((contract) => (
+                contracts.map((contract) => {
+                  const getStatusBadge = () => {
+                    if (contract.status === 'signed' || contract.signedAt) {
+                      return <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium">✓ Подписан</span>;
+                    }
+                    if (contract.status === 'sent' || contract.sentAt) {
+                      return <span className="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-medium">📧 Отправлен на подпись</span>;
+                    }
+                    if (contract.status === 'sent_by_email') {
+                      return <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-medium">✉️ Отправлен Email</span>;
+                    }
+                    return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">⊙ Черновик</span>;
+                  };
+                  
+                  return (
                   <div key={contract.id} className="bg-card border border-border rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold">Договор №{contract.contractNumber}</h3>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold">Договор №{contract.contractNumber}</h3>
+                          {getStatusBadge()}
+                        </div>
                         <p className="text-sm text-muted-foreground">
-                          Покупатель: {contract.data.buyerName}
+                          Покупатель: {contract.data.buyerName} ({contract.data.buyerEmail})
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Щенок: {contract.data.dogName}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Создан: {new Date(contract.createdAt).toLocaleDateString('ru-RU')}
+                          Цена: {contract.data.price} ₽
                         </p>
-                      </div>
-                      <div className="text-right">
-                        {contract.signedAt ? (
-                          <span className="text-green-600 text-sm">✓ Подписан</span>
-                        ) : contract.sentAt ? (
-                          <span className="text-yellow-600 text-sm">⏳ Отправлен</span>
-                        ) : (
-                          <span className="text-gray-600 text-sm">⊙ Черновик</span>
+                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                          <span>Создан: {new Date(contract.createdAt).toLocaleDateString('ru-RU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}</span>
+                          {contract.sentAt && (
+                            <span>Отправлен: {new Date(contract.sentAt).toLocaleDateString('ru-RU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</span>
+                          )}
+                          {contract.signedAt && (
+                            <span className="text-green-600 font-medium">Подписан: {new Date(contract.signedAt).toLocaleDateString('ru-RU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</span>
+                          )}
+                        </div>
+                        {contract.adobeSignAgreementId && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Adobe Sign ID: {contract.adobeSignAgreementId}
+                          </p>
                         )}
                       </div>
                     </div>
-                    {contract.signedDocumentUrl && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={contract.signedDocumentUrl} download>
-                          <Download className="w-4 h-4 mr-2" />
-                          Скачать подписанный договор
-                        </a>
+                    <div className="flex gap-2">
+                      {contract.signedDocumentUrl && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={contract.signedDocumentUrl} download>
+                            <Download className="w-4 h-4 mr-2" />
+                            Скачать подписанный
+                          </a>
+                        </Button>
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          // Показать детали договора
+                          const details = Object.entries(contract.data)
+                            .map(([key, value]) => `${key}: ${value}`)
+                            .join('\n');
+                          alert(`Детали договора №${contract.contractNumber}\n\n${details}`);
+                        }}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Детали
                       </Button>
-                    )}
+                    </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </TabsContent>

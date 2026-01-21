@@ -401,6 +401,262 @@ if ($action === 'deletecontracttemplate') {
     exit;
 }
 
+// Загрузка PDF шаблона
+if ($action === 'uploadpdftemplate') {
+    if (!checkAuth()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        http_response_code(401);
+        exit;
+    }
+    
+    if (!isset($_FILES['pdf']) || $_FILES['pdf']['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode(['success' => false, 'message' => 'No PDF file uploaded']);
+        http_response_code(400);
+        exit;
+    }
+    
+    $file = $_FILES['pdf'];
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    
+    if ($ext !== 'pdf') {
+        echo json_encode(['success' => false, 'message' => 'Only PDF files allowed']);
+        http_response_code(400);
+        exit;
+    }
+    
+    // Создаем папку для контрактов
+    $contractsDir = $uploadDir . 'contracts/';
+    if (!is_dir($contractsDir)) {
+        mkdir($contractsDir, 0755, true);
+    }
+    
+    $filename = 'contract_template.pdf';
+    $uploadPath = $contractsDir . $filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+        $url = '/uploads/contracts/' . $filename;
+        echo json_encode(['success' => true, 'url' => $url]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to save PDF']);
+        http_response_code(500);
+    }
+    exit;
+}
+
+// Отправка договора через Adobe Sign
+if ($action === 'sendcontractpdf') {
+    if (!checkAuth()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        http_response_code(401);
+        exit;
+    }
+    
+    // Загружаем конфигурацию Adobe Sign
+    $adobeSignConfig = require __DIR__ . '/adobe_sign_config.php';
+    
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    $contracts = file_exists($contractsFile) ? json_decode(file_get_contents($contractsFile), true) : [];
+    
+    $contractNumber = 'DOG-' . date('Y') . '-' . str_pad(count($contracts) + 1, 4, '0', STR_PAD_LEFT);
+    
+    $data = $jsonInput['data'] ?? [];
+    $pdfTemplate = $jsonInput['pdfTemplate'] ?? '';
+    
+    if (!$pdfTemplate) {
+        echo json_encode(['success' => false, 'message' => 'PDF template required']);
+        http_response_code(400);
+        exit;
+    }
+    
+    // Если Adobe Sign не настроен, используем email-рассылку как fallback
+    if (!$adobeSignConfig['enabled'] || empty($adobeSignConfig['access_token'])) {
+        $newContract = [
+            'id' => time(),
+            'contractNumber' => $contractNumber,
+            'data' => $data,
+            'createdAt' => date('Y-m-d H:i:s'),
+            'sentAt' => date('Y-m-d H:i:s'),
+            'signedAt' => null,
+            'signedDocumentUrl' => null,
+            'status' => 'sent_by_email'
+        ];
+        
+        $contracts[] = $newContract;
+        file_put_contents($contractsFile, json_encode($contracts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        // Отправка email с PDF (упрощенная версия)
+        $buyerEmail = $data['buyerEmail'] ?? '';
+        $buyerName = $data['buyerName'] ?? '';
+        $dogName = $data['dogName'] ?? '';
+        
+        if ($buyerEmail) {
+            $subject = "Договор купли-продажи щенка - №{$contractNumber}";
+            $message = "Здравствуйте, {$buyerName}!\n\n";
+            $message .= "Вам направлен договор купли-продажи щенка {$dogName}.\n";
+            $message .= "Номер договора: {$contractNumber}\n\n";
+            $message .= "Для подписания договора, пожалуйста, ознакомьтесь с документом.\n\n";
+            $message .= "С уважением,\nПитомник GREAT LEGACY BULLY";
+            
+            $headers = "From: noreply@matrang.com\r\n";
+            $headers .= "Reply-To: " . ($data['kennelEmail'] ?? 'info@matrang.com') . "\r\n";
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            
+            @mail($buyerEmail, $subject, $message, $headers);
+        }
+        
+        echo json_encode(['success' => true, 'contract' => $newContract, 'note' => 'Sent by email (Adobe Sign not configured)']);
+        exit;
+    }
+    
+    // Интеграция с Adobe Sign API
+    try {
+        // Шаг 1: Загрузить документ на Adobe Sign
+        $pdfPath = __DIR__ . '/..' . $pdfTemplate;
+        
+        if (!file_exists($pdfPath)) {
+            throw new Exception('PDF template not found');
+        }
+        
+        // Загрузка transient document
+        $ch = curl_init($adobeSignConfig['base_url'] . '/transientDocuments');
+        $cfile = new CURLFile($pdfPath, 'application/pdf', 'contract.pdf');
+        
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => ['File' => $cfile],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $adobeSignConfig['access_token']
+            ]
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode !== 201) {
+            throw new Exception('Failed to upload document to Adobe Sign');
+        }
+        
+        $transientDoc = json_decode($response, true);
+        $transientDocumentId = $transientDoc['transientDocumentId'];
+        
+        // Шаг 2: Создать соглашение
+        $agreementData = [
+            'fileInfos' => [[
+                'transientDocumentId' => $transientDocumentId
+            ]],
+            'name' => "Договор купли-продажи щенка - №{$contractNumber}",
+            'participantSetsInfo' => [[
+                'order' => 1,
+                'role' => 'SIGNER',
+                'memberInfos' => [[
+                    'email' => $data['buyerEmail'] ?? '',
+                    'name' => $data['buyerName'] ?? ''
+                ]]
+            ]],
+            'signatureType' => 'ESIGN',
+            'state' => 'IN_PROCESS',
+            'mergeFieldInfo' => [
+                // Здесь можно добавить данные для заполнения полей PDF
+                ['fieldName' => 'contractNumber', 'defaultValue' => $contractNumber],
+                ['fieldName' => 'dogName', 'defaultValue' => $data['dogName'] ?? ''],
+                ['fieldName' => 'buyerName', 'defaultValue' => $data['buyerName'] ?? ''],
+                ['fieldName' => 'buyerPassport', 'defaultValue' => $data['buyerPassport'] ?? ''],
+                ['fieldName' => 'buyerAddress', 'defaultValue' => $data['buyerAddress'] ?? ''],
+                ['fieldName' => 'price', 'defaultValue' => $data['price'] ?? ''],
+                ['fieldName' => 'date', 'defaultValue' => date('d.m.Y')]
+            ]
+        ];
+        
+        $ch = curl_init($adobeSignConfig['base_url'] . '/agreements');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($agreementData),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $adobeSignConfig['access_token'],
+                'Content-Type: application/json'
+            ]
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode !== 201) {
+            throw new Exception('Failed to create agreement: ' . $response);
+        }
+        
+        $agreement = json_decode($response, true);
+        $agreementId = $agreement['id'];
+        
+        // Сохраняем контракт в базе
+        $newContract = [
+            'id' => time(),
+            'contractNumber' => $contractNumber,
+            'data' => $data,
+            'createdAt' => date('Y-m-d H:i:s'),
+            'sentAt' => date('Y-m-d H:i:s'),
+            'signedAt' => null,
+            'signedDocumentUrl' => null,
+            'adobeSignAgreementId' => $agreementId,
+            'status' => 'sent'
+        ];
+        
+        $contracts[] = $newContract;
+        file_put_contents($contractsFile, json_encode($contracts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        echo json_encode([
+            'success' => true,
+            'contract' => $newContract,
+            'agreementId' => $agreementId
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+        http_response_code(500);
+    }
+    
+    exit;
+}
+
+// Webhook для получения уведомлений от Adobe Sign
+if ($action === 'adobesignwebhook') {
+    // Логируем все входящие webhook для отладки
+    $webhookLog = __DIR__ . '/../data/adobe_sign_webhooks.log';
+    file_put_contents($webhookLog, date('Y-m-d H:i:s') . ': ' . $rawInput . "\n", FILE_APPEND);
+    
+    $event = $jsonInput['event'] ?? '';
+    $agreementId = $jsonInput['agreement']['id'] ?? '';
+    
+    if ($event === 'AGREEMENT_WORKFLOW_COMPLETED' && $agreementId) {
+        // Обновляем статус контракта
+        $contractsFile = __DIR__ . '/../data/contracts.json';
+        $contracts = file_exists($contractsFile) ? json_decode(file_get_contents($contractsFile), true) : [];
+        
+        foreach ($contracts as &$contract) {
+            if (isset($contract['adobeSignAgreementId']) && $contract['adobeSignAgreementId'] === $agreementId) {
+                $contract['signedAt'] = date('Y-m-d H:i:s');
+                $contract['status'] = 'signed';
+                
+                // Можно скачать подписанный документ через Adobe Sign API
+                // и сохранить URL
+                $contract['signedDocumentUrl'] = '/uploads/contracts/signed_' . $contract['contractNumber'] . '.pdf';
+                break;
+            }
+        }
+        
+        file_put_contents($contractsFile, json_encode($contracts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+    
+    echo json_encode(['success' => true]);
+    exit;
+}
+
 if ($action === 'sendcontract') {
     if (!checkAuth()) {
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);

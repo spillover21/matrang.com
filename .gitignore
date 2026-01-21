@@ -28,6 +28,13 @@ dist-ssr
 .env.local
 .env.production
 
+# Adobe Sign config (содержит секретные ключи)
+api/adobe_sign_config.php
+
+# Data files
+data/*.json
+data/*.log
+
 # Hostinger specific
 uploads/*
 !uploads/.gitkeep
