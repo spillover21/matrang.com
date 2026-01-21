@@ -91,10 +91,13 @@ const GeographySection = () => {
                         onCloseClick={() => setSelectedLocation(null)}
                       >
                         <div className="p-2">
-                          <h3 className="font-semibold text-foreground">{selectedLocation.city}</h3>
+                          <h3 className="font-semibold text-foreground">{t(selectedLocation.city)}</h3>
                           {selectedLocation.count && (
                             <p className="text-sm text-muted-foreground">
-                              {selectedLocation.count} {selectedLocation.count === 1 ? "щенок" : "щенков"}
+                              {selectedLocation.count} {t(selectedLocation.count === 1 
+                                ? { ru: "щенок", en: "puppy" } 
+                                : { ru: "щенков", en: "puppies" }
+                              )}
                             </p>
                           )}
                         </div>
@@ -124,10 +127,13 @@ const GeographySection = () => {
               >
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-sm">{location.city}</p>
+                  <p className="font-semibold text-sm">{t(location.city)}</p>
                   {location.count && (
                     <p className="text-xs text-muted-foreground">
-                      {location.count} {location.count === 1 ? "щенок" : "щенков"}
+                      {location.count} {t(location.count === 1 
+                        ? { ru: "щенок", en: "puppy" } 
+                        : { ru: "щенков", en: "puppies" }
+                      )}
                     </p>
                   )}
                 </div>

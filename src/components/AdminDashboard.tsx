@@ -1077,13 +1077,37 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                               </Button>
                             </div>
                             <div className="space-y-3">
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Подпись (Имя, город)</label>
-                                <Input
-                                  value={testimonial.title || ''}
-                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'title', e.target.value)}
-                                  placeholder="Мария, Москва"
-                                />
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                    🇷🇺 Подпись (Имя, город)
+                                  </label>
+                                  <Input
+                                    value={typeof testimonial.title === 'string' ? testimonial.title : testimonial.title?.ru || ''}
+                                    onChange={(e) => {
+                                      const newTitle = typeof testimonial.title === 'string'
+                                        ? { ru: e.target.value, en: '' }
+                                        : { ...testimonial.title, ru: e.target.value };
+                                      handleArrayItemChange(activeSection, field, index, 'title', newTitle);
+                                    }}
+                                    placeholder="Мария, Москва"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                    🇬🇧 Signature (Name, City)
+                                  </label>
+                                  <Input
+                                    value={typeof testimonial.title === 'object' ? testimonial.title?.en || '' : ''}
+                                    onChange={(e) => {
+                                      const newTitle = typeof testimonial.title === 'string'
+                                        ? { ru: testimonial.title, en: e.target.value }
+                                        : { ...testimonial.title, en: e.target.value };
+                                      handleArrayItemChange(activeSection, field, index, 'title', newTitle);
+                                    }}
+                                    placeholder="Maria, Moscow"
+                                  />
+                                </div>
                               </div>
                               <div>
                                 <label className="text-xs text-muted-foreground mb-1 block">Скриншот отзыва</label>
@@ -1161,14 +1185,38 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                                 <Trash2 className="w-4 h-4 text-destructive" />
                               </Button>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Город</label>
-                                <Input
-                                  value={location.city || ''}
-                                  onChange={(e) => handleArrayItemChange(activeSection, field, index, 'city', e.target.value)}
-                                  placeholder="Москва"
-                                />
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                    🇷🇺 Город
+                                  </label>
+                                  <Input
+                                    value={typeof location.city === 'string' ? location.city : location.city?.ru || ''}
+                                    onChange={(e) => {
+                                      const newCity = typeof location.city === 'string'
+                                        ? { ru: e.target.value, en: '' }
+                                        : { ...location.city, ru: e.target.value };
+                                      handleArrayItemChange(activeSection, field, index, 'city', newCity);
+                                    }}
+                                    placeholder="Москва"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                                    🇬🇧 City
+                                  </label>
+                                  <Input
+                                    value={typeof location.city === 'object' ? location.city?.en || '' : ''}
+                                    onChange={(e) => {
+                                      const newCity = typeof location.city === 'string'
+                                        ? { ru: location.city, en: e.target.value }
+                                        : { ...location.city, en: e.target.value };
+                                      handleArrayItemChange(activeSection, field, index, 'city', newCity);
+                                    }}
+                                    placeholder="Moscow"
+                                  />
+                                </div>
                               </div>
                               <div>
                                 <label className="text-xs text-muted-foreground mb-1 block">Количество щенков</label>

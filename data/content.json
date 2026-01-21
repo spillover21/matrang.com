@@ -132,7 +132,10 @@
         },
         "categories": [
             {
-                "name": "Щенки в продаже",
+                "name": {
+                    "ru": "Щенки в продаже",
+                    "en": "Puppies for sale"
+                },
                 "dogs": [
                     {
                         "id": 1768336977419,
@@ -312,7 +315,10 @@
                 ]
             },
             {
-                "name": "Производители и выпускники ",
+                "name": {
+                    "ru": "Производители и выпускники ",
+                    "en": "Manufacturers and graduates"
+                },
                 "dogs": [
                     {
                         "id": 1,
@@ -519,9 +525,18 @@
         ]
     },
     "contact": {
-        "tag": "Свяжитесь с нами",
-        "title": "ГОТОВЫ НАЧАТЬ?",
-        "description": "Ответим на все вопросы о породе, поможем выбрать щенка и организуем доставку в любой город России.",
+        "tag": {
+            "ru": "Свяжитесь с нами",
+            "en": "Contact us"
+        },
+        "title": {
+            "ru": "ГОТОВЫ НАЧАТЬ?",
+            "en": "READY TO START?"
+        },
+        "description": {
+            "ru": "Ответим на все вопросы о породе, поможем выбрать щенка и организуем доставку в любой город России.",
+            "en": "We'll answer all your questions about the breed, help you choose a puppy, and arrange delivery to any city in Russia."
+        },
         "phone": "+7 (900) 455-27-16",
         "email": "greatlegacybully@gmail.com",
         "address": "Finland, Kajaani",
@@ -547,9 +562,18 @@
         ]
     },
     "testimonials": {
-        "tag": "Отзывы",
-        "title": "ЧТО О НАС ГОВОРЯТ",
-        "description": "Отзывы наших клиентов — наша лучшая рекомендация. Читайте, что говорят владельцы наших щенков.",
+        "tag": {
+            "ru": "Отзывы",
+            "en": "Reviews"
+        },
+        "title": {
+            "ru": "ЧТО О НАС ГОВОРЯТ",
+            "en": "WHAT THEY SAY ABOUT US"
+        },
+        "description": {
+            "ru": "Отзывы наших клиентов — наша лучшая рекомендация. Читайте, что говорят владельцы наших щенков.",
+            "en": "Our clients' reviews are our best recommendations. Read what our puppy owners have to say."
+        },
         "items": [
             {
                 "id": 1,
@@ -564,9 +588,18 @@
         ]
     },
     "geography": {
-        "tag": "География",
-        "title": "НАШИ ЩЕНКИ УЕЗЖАЮТ ПО РАЗНЫМ СТРАНАМ",
-        "description": "Мы доставили щенков в десятки городов России. Организуем безопасную доставку в любой регион.",
+        "tag": {
+            "ru": "География",
+            "en": "Geography"
+        },
+        "title": {
+            "ru": "НАШИ ЩЕНКИ УЕЗЖАЮТ ПО РАЗНЫМ СТРАНАМ",
+            "en": "OUR PUPPIES ARE GOING TO DIFFERENT COUNTRIES"
+        },
+        "description": {
+            "ru": "Мы доставили щенков в десятки городов России. Организуем безопасную доставку в любой регион.",
+            "en": "We've delivered puppies to dozens of cities across Russia. We offer safe delivery to any region."
+        },
         "locations": [
             {
                 "id": 1,
@@ -613,15 +646,20 @@
         ]
     },
     "footer": {
-        "copyright": "© 2025 AmericanBully. Все права защищены.",
+        "copyright": {
+            "ru": "© 2025 Great Legacy bully. Все права защищены.",
+            "en": "© 2025 Great Legacy bully. All rights reserved."
+        },
         "social": [
             {
                 "name": "Instagram",
-                "url": "https:\/\/www.instagram.com\/matrang_dog2\/"
+                "url": "https:\/\/www.instagram.com\/matrang_dog2\/",
+                "icon": "Instagram"
             },
             {
                 "name": "Telegram",
-                "url": "https:\/\/www.t.me\/matrang_dog2"
+                "url": "https:\/\/www.t.me\/matrang_dog2",
+                "icon": "Instagram"
             },
             {
                 "name": "ВК",
