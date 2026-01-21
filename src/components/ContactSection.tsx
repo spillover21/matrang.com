@@ -152,10 +152,10 @@ const ContactSection = () => {
                           </div>
                           <div>
                             <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground">
-                              {item.label}
+                              {t(item.label)}
                             </div>
                             <div className="font-display text-2xl group-hover:text-primary transition-colors">
-                              {item.value}
+                              {t(item.value)}
                             </div>
                           </div>
                         </a>

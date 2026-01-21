@@ -57,7 +57,7 @@ const TestimonialsSection = () => {
                         <div className="w-full h-auto">
                           <img
                             src={testimonial.image}
-                            alt={testimonial.title || `Отзыв ${index + 1}`}
+                            alt={typeof testimonial.title === 'object' ? (testimonial.title?.ru || testimonial.title?.en || `Отзыв ${index + 1}`) : (testimonial.title || `Отзыв ${index + 1}`)}
                             className="w-full h-auto object-contain max-h-[800px]"
                             loading="lazy"
                           />
@@ -66,7 +66,7 @@ const TestimonialsSection = () => {
                       {testimonial.title && (
                         <div className="p-4 bg-card">
                           <p className="font-semibold text-center">
-                            {testimonial.title}
+                            {t(testimonial.title)}
                           </p>
                         </div>
                       )}

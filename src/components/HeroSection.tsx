@@ -41,7 +41,7 @@ const HeroSection = () => {
           >
             <img
               src={hero.image}
-              alt={hero.title}
+              alt={typeof hero.title === 'object' ? (hero.title?.ru || hero.title?.en || 'Hero') : (hero.title || 'Hero')}
               className="w-full h-full object-contain drop-shadow-2xl"
               style={{
                 objectPosition: `${hero.imagePositionX ?? 50}% ${hero.imagePositionY ?? 50}%`,
