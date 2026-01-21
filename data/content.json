@@ -3,8 +3,8 @@
         "logoText": "GREAT LEGACY BULLY",
         "logoImage": "\/uploads\/1767891439_85337ea8.png",
         "tagline": "Home of Matrang",
-        "logoTextSize": 39,
-        "taglineSize": 12,
+        "logoTextSize": 31,
+        "taglineSize": 14,
         "favicon": "\/uploads\/1767891363_d6d38c69.png",
         "siteTitle": "MATRANG DOGS",
         "ogTitle": "MATRANG",
@@ -72,11 +72,103 @@
         "notAvailableText": "Производитель",
         "categories": [
             {
-                "name": "На продажу",
-                "dogs": []
+                "name": "Щенки в продаже",
+                "dogs": [
+                    {
+                        "id": 1768336977419,
+                        "name": "Мальчик (синий ошейник)",
+                        "age": "2 недели ",
+                        "color": "Lilac blotched ",
+                        "price": "700.000 тыс.руб",
+                        "image": "\/uploads\/1768781200_a6553aac.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781227065,
+                        "name": "Мальчик (черный ошейник)",
+                        "age": "2 недели ",
+                        "color": "Lilac blotched ",
+                        "price": "700.000 тыс.руб",
+                        "image": "\/uploads\/1768781282_84e55942.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781287057,
+                        "name": "Девочка (красный ошейник)",
+                        "age": "2 недели ",
+                        "color": "Lilac blotched ",
+                        "price": "700.000 тыс. руб",
+                        "image": "\/uploads\/1768781307_78527c71.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781382448,
+                        "name": "Девочка (серый ошейник)",
+                        "age": "2 недели ",
+                        "color": "Lilac tan with ",
+                        "price": "600.000 тыс.руб",
+                        "image": "\/uploads\/1768781498_72cb7de6.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781568735,
+                        "name": "Девочка (оранжевый ошейник)",
+                        "age": "2 недели ",
+                        "color": "Lilac tan with ",
+                        "price": "600.000 тыс.руб",
+                        "image": "\/uploads\/1768781687_1d15d7a8.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781933947,
+                        "name": "Девочка (бордовый ошейник)",
+                        "age": "2 недели ",
+                        "color": "Lilac tan with ",
+                        "price": "600.000 тыс.руб",
+                        "image": "\/uploads\/1768782046_4d9c0ca5.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781935193,
+                        "name": "Девочка (зеленый ошейник) ",
+                        "age": "2 недели ",
+                        "color": "Lilac tan with ",
+                        "price": "600.000 тыс.руб",
+                        "image": "\/uploads\/1768782094_edeae44d.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    }
+                ]
             },
             {
-                "name": "Семья",
+                "name": "Производители и выпускники ",
                 "dogs": [
                     {
                         "id": 1,
@@ -120,7 +212,7 @@
                     {
                         "id": 1767257700892,
                         "name": "Tayron ",
-                        "age": "",
+                        "age": "8месяцев ",
                         "color": "Lilac blotched ",
                         "price": "Выпускник питомника ",
                         "image": "\/uploads\/1767902918_ba90e5ea.jpeg",
@@ -133,7 +225,7 @@
                     {
                         "id": 1767903027178,
                         "name": "Kiara",
-                        "age": "",
+                        "age": "8 месяцев ",
                         "color": "Lilac blotched ",
                         "price": "Выпускник питомника ",
                         "image": "\/uploads\/1767903701_cfcccbd5.jpeg",
@@ -146,7 +238,7 @@
                     {
                         "id": 1767906000199,
                         "name": "Meltar",
-                        "age": "",
+                        "age": "8 месяцев",
                         "color": "Lilac tan white",
                         "price": "Выпускник питомника ",
                         "image": "\/uploads\/1767906063_75666ae6.jpeg",
@@ -155,6 +247,32 @@
                         "imagePositionX": 50,
                         "imagePositionY": 95,
                         "available": false
+                    },
+                    {
+                        "id": 1768782515716,
+                        "name": "Gennady",
+                        "age": "8 месяцев ",
+                        "color": "Lilac blotched ",
+                        "price": "Выпускник питомника ",
+                        "image": "\/uploads\/1768782534_0d5518c6.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768786316340,
+                        "name": "Max",
+                        "age": "8 месяцев ",
+                        "color": "Lilac blotched ",
+                        "price": "Выпускник питомника",
+                        "image": "\/uploads\/1768786357_f44a220b.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
                     }
                 ]
             }
@@ -255,7 +373,7 @@
         ]
     },
     "footer": {
-        "copyright": "© 2024 PitbullElite. Все права защищены.",
+        "copyright": "© 2025 AmericanBully. Все права защищены.",
         "social": [
             {
                 "name": "Instagram",

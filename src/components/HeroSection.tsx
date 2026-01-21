@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const HeroSection = () => {
   const { content, loading } = useContent();
+  const { t } = useLanguage();
 
   const scrollToGallery = () => {
     const element = document.getElementById("gallery");
@@ -55,7 +57,7 @@ const HeroSection = () => {
           <div className="animate-slide-up">
             {hero.tag && (
               <span className="inline-block font-heading text-sm uppercase tracking-[0.3em] text-primary mb-4">
-                {hero.tag}
+                {t(hero.tag)}
               </span>
             )}
             <div className="mb-6">
@@ -65,21 +67,21 @@ const HeroSection = () => {
                   className="font-display leading-none"
                   style={{ fontSize: `${titleItem.size || 80}px` }}
                 >
-                  {titleItem.text}
+                  {t(titleItem.text)}
                 </h1>
               ))}
             </div>
             {hero.subtitle && (
               <p className="font-body text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
-                {hero.subtitle}
+                {t(hero.subtitle)}
               </p>
             )}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="hero" size="xl" onClick={scrollToGallery}>
-                Смотреть щенков
+                {t(hero.buttonGallery || { ru: 'Смотреть щенков', en: 'View Puppies' })}
               </Button>
               <Button variant="outline" size="xl" onClick={scrollToContact}>
-                Связаться с нами
+                {t(hero.buttonContact || { ru: 'Связаться с нами', en: 'Contact Us' })}
               </Button>
             </div>
           </div>

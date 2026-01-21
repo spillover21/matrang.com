@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, Globe } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { content, loading } = useContent();
+  const { language, setLanguage, t } = useLanguage();
 
   const headerContent = !loading ? content.header : null;
   const logoImage = headerContent?.logoImage;
@@ -102,23 +104,34 @@ const Header = () => {
               onClick={() => scrollToSection("about")}
               className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
             >
-              О породе
+              {language === 'ru' ? 'О породе' : 'About'}
             </button>
             <button
               onClick={() => scrollToSection("gallery")}
               className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
             >
-              Галерея
+              {language === 'ru' ? 'Галерея' : 'Gallery'}
             </button>
             <button
               onClick={() => scrollToSection("contact")}
               className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
             >
-              Контакты
+              {language === 'ru' ? 'Контакты' : 'Contact'}
             </button>
+            
+            {/* Language Switcher */}
+            <button
+              onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
+              className="flex items-center gap-2 font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
+              title={language === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+            >
+              <Globe className="w-4 h-4" />
+              <span>{language === 'ru' ? 'EN' : 'RU'}</span>
+            </button>
+            
             <Button variant="hero" size="sm" onClick={() => scrollToSection("contact")}>
               <Phone className="w-4 h-4" />
-              Связаться
+              {language === 'ru' ? 'Связаться' : 'Contact'}
             </Button>
           </nav>
 
@@ -139,23 +152,30 @@ const Header = () => {
                 onClick={() => scrollToSection("about")}
                 className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors text-left"
               >
-                О породе
+                {language === 'ru' ? 'О породе' : 'About'}
               </button>
               <button
                 onClick={() => scrollToSection("gallery")}
                 className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors text-left"
               >
-                Галерея
+                {language === 'ru' ? 'Галерея' : 'Gallery'}
               </button>
               <button
                 onClick={() => scrollToSection("contact")}
                 className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors text-left"
               >
-                Контакты
+                {language === 'ru' ? 'Контакты' : 'Contact'}
+              </button>
+              <button
+                onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
+                className="flex items-center gap-2 font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Globe className="w-4 h-4" />
+                <span>{language === 'ru' ? 'Switch to English' : 'Переключить на русский'}</span>
               </button>
               <Button variant="hero" size="sm" onClick={() => scrollToSection("contact")}>
                 <Phone className="w-4 h-4" />
-                Связаться
+                {language === 'ru' ? 'Связаться' : 'Contact'}
               </Button>
             </div>
           </nav>
