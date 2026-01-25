@@ -26,6 +26,10 @@
   Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
 
-<FilesMatch "\.html$">
-  Header set Cache-Control "public, max-age=0, must-revalidate"
+<FilesMatch "\.(html)$">
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+</FilesMatch>
+
+<FilesMatch "^(version\.txt)$">
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
 </FilesMatch>
