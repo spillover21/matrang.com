@@ -29,88 +29,127 @@ function generateContractPdfSimple($data, $outputPath) {
         $pdf->AddPage();
         file_put_contents($logFile, "Page added\n", FILE_APPEND);
         
-        // Добавляем шрифт для русского текста
-        $fontPath = __DIR__ . '/DejaVuSansCondensed.ttf';
-        $pdf->AddFont('DejaVu', '', $fontPath, true);
-        $pdf->SetFont('DejaVu', '', 12);
+        // Добавляем шрифт для русского текста (через font definition)
+        $fontDir = __DIR__ . '/vendor/setasign/fpdf/font/';
+        $fontTtf = __DIR__ . '/DejaVuSansCondensed.ttf';
+        $fontDef = $fontDir . 'DejaVuSansCondensed.php';
+        
+        if (!file_exists($fontDef)) {
+            file_put_contents($logFile, "Font definition not found, generating...\n", FILE_APPEND);
+            if (!is_dir($fontDir)) {
+                mkdir($fontDir, 0755, true);
+            }
+            if (!is_writable($fontDir)) {
+                file_put_contents($logFile, "ERROR: Font dir not writable: $fontDir\n", FILE_APPEND);
+                return false;
+            }
+            if (!file_exists($fontTtf)) {
+                file_put_contents($logFile, "ERROR: TTF not found: $fontTtf\n", FILE_APPEND);
+                return false;
+            }
+            
+            $prevCwd = getcwd();
+            chdir($fontDir);
+            ob_start();
+            require_once __DIR__ . '/vendor/setasign/fpdf/makefont/makefont.php';
+            MakeFont($fontTtf, 'cp1251', true, true);
+            ob_end_clean();
+            chdir($prevCwd);
+            
+            file_put_contents($logFile, "Font definition generated\n", FILE_APPEND);
+        }
+        
+        if (!file_exists($fontDef)) {
+            file_put_contents($logFile, "ERROR: Font definition still missing: $fontDef\n", FILE_APPEND);
+            return false;
+        }
+        
+        $pdf->AddFont('DejaVuSansCondensed', '', 'DejaVuSansCondensed.php');
+        $pdf->SetFont('DejaVuSansCondensed', '', 12);
+        
+        $encode = function ($text) {
+            $text = (string) $text;
+            $converted = @iconv('UTF-8', 'CP1251//TRANSLIT', $text);
+            return $converted !== false ? $converted : $text;
+        };
         
         file_put_contents($logFile, "PDF instance created\n", FILE_APPEND);
         
         // Заголовок
-        $pdf->SetFont('DejaVu', '', 16);
-        $pdf->Cell(0, 10, 'ДОГОВОР КУПЛИ-ПРОДАЖИ ЩЕНКА', 0, 1, 'C');
+        $pdf->SetFont('DejaVuSansCondensed', '', 16);
+        $pdf->Cell(0, 10, $encode('ДОГОВОР КУПЛИ-ПРОДАЖИ ЩЕНКА'), 0, 1, 'C');
         $pdf->Ln(5);
         
         // Номер и дата
-        $pdf->SetFont('DejaVu', '', 12);
-        $pdf->Cell(0, 8, 'Договор № ' . ($data['contractNumber'] ?? ''), 0, 1);
-        $pdf->Cell(0, 8, 'от ' . ($data['contractDate'] ?? date('d.m.Y')), 0, 1);
+        $pdf->SetFont('DejaVuSansCondensed', '', 12);
+        $pdf->Cell(0, 8, $encode('Договор № ' . ($data['contractNumber'] ?? '')), 0, 1);
+        $pdf->Cell(0, 8, $encode('от ' . ($data['contractDate'] ?? date('d.m.Y'))), 0, 1);
         $pdf->Ln(5);
         
         // Заводчик
-        $pdf->SetFont('DejaVu', '', 14);
-        $pdf->Cell(0, 8, 'ПРОДАВЕЦ (Заводчик):', 0, 1);
-        $pdf->SetFont('DejaVu', '', 11);
-        $pdf->MultiCell(0, 6, 
+        $pdf->SetFont('DejaVuSansCondensed', '', 14);
+        $pdf->Cell(0, 8, $encode('ПРОДАВЕЦ (Заводчик):'), 0, 1);
+        $pdf->SetFont('DejaVuSansCondensed', '', 11);
+        $pdf->MultiCell(0, 6, $encode(
             'ФИО: ' . ($data['kennelOwner'] ?? '') . "\n" .
             'Адрес: ' . ($data['kennelAddress'] ?? '') . "\n" .
             'Телефон: ' . ($data['kennelPhone'] ?? '') . "\n" .
             'Email: ' . ($data['kennelEmail'] ?? '') . "\n" .
             'Паспорт: ' . ($data['kennelPassportSeries'] ?? '') . ' ' . ($data['kennelPassportNumber'] ?? '') . "\n" .
             'Выдан: ' . ($data['kennelPassportIssuedBy'] ?? '') . ', ' . ($data['kennelPassportIssuedDate'] ?? '')
-        );
+        ));
         $pdf->Ln(3);
         
         // Покупатель
-        $pdf->SetFont('DejaVu', '', 14);
-        $pdf->Cell(0, 8, 'ПОКУПАТЕЛЬ:', 0, 1);
-        $pdf->SetFont('DejaVu', '', 11);
-        $pdf->MultiCell(0, 6,
+        $pdf->SetFont('DejaVuSansCondensed', '', 14);
+        $pdf->Cell(0, 8, $encode('ПОКУПАТЕЛЬ:'), 0, 1);
+        $pdf->SetFont('DejaVuSansCondensed', '', 11);
+        $pdf->MultiCell(0, 6, $encode(
             'ФИО: ' . ($data['buyerName'] ?? '') . "\n" .
             'Адрес: ' . ($data['buyerAddress'] ?? '') . "\n" .
             'Телефон: ' . ($data['buyerPhone'] ?? '') . "\n" .
             'Email: ' . ($data['buyerEmail'] ?? '') . "\n" .
             'Паспорт: ' . ($data['buyerPassportSeries'] ?? '') . ' ' . ($data['buyerPassportNumber'] ?? '') . "\n" .
             'Выдан: ' . ($data['buyerPassportIssuedBy'] ?? '') . ', ' . ($data['buyerPassportIssuedDate'] ?? '')
-        );
+        ));
         $pdf->Ln(3);
         
         // Родители
-        $pdf->SetFont('DejaVu', '', 14);
-        $pdf->Cell(0, 8, 'РОДИТЕЛИ ЩЕНКА:', 0, 1);
-        $pdf->SetFont('DejaVu', '', 11);
-        $pdf->MultiCell(0, 6,
+        $pdf->SetFont('DejaVuSansCondensed', '', 14);
+        $pdf->Cell(0, 8, $encode('РОДИТЕЛИ ЩЕНКА:'), 0, 1);
+        $pdf->SetFont('DejaVuSansCondensed', '', 11);
+        $pdf->MultiCell(0, 6, $encode(
             'Отец (Sire): ' . ($data['sireName'] ?? '') . "\n" .
             'Мать (Dam): ' . ($data['damName'] ?? '')
-        );
+        ));
         $pdf->Ln(3);
         
         // Щенок
-        $pdf->SetFont('DejaVu', '', 14);
-        $pdf->Cell(0, 8, 'ПРЕДМЕТ ДОГОВОРА - ЩЕНОК:', 0, 1);
-        $pdf->SetFont('DejaVu', '', 11);
-        $pdf->MultiCell(0, 6,
+        $pdf->SetFont('DejaVuSansCondensed', '', 14);
+        $pdf->Cell(0, 8, $encode('ПРЕДМЕТ ДОГОВОРА - ЩЕНОК:'), 0, 1);
+        $pdf->SetFont('DejaVuSansCondensed', '', 11);
+        $pdf->MultiCell(0, 6, $encode(
             'Кличка: ' . ($data['dogName'] ?? '') . "\n" .
             'Порода: ' . ($data['dogBreed'] ?? 'American Bully') . "\n" .
             'Пол: ' . ($data['dogGender'] ?? '') . "\n" .
             'Окрас: ' . ($data['dogColor'] ?? '') . "\n" .
             'Дата рождения: ' . ($data['dogBirthDate'] ?? '') . "\n" .
             'Клеймо/Чип: ' . ($data['dogMicrochip'] ?? '')
-        );
+        ));
         $pdf->Ln(3);
         
         // Финансы
-        $pdf->SetFont('DejaVu', '', 14);
-        $pdf->Cell(0, 8, 'СТОИМОСТЬ:', 0, 1);
-        $pdf->SetFont('DejaVu', '', 12);
-        $pdf->Cell(0, 8, ($data['price'] ?? '0') . ' рублей', 0, 1);
+        $pdf->SetFont('DejaVuSansCondensed', '', 14);
+        $pdf->Cell(0, 8, $encode('СТОИМОСТЬ:'), 0, 1);
+        $pdf->SetFont('DejaVuSansCondensed', '', 12);
+        $pdf->Cell(0, 8, $encode(($data['price'] ?? '0') . ' рублей'), 0, 1);
         $pdf->Ln(5);
         
         // Подписи
-        $pdf->SetFont('DejaVu', '', 11);
+        $pdf->SetFont('DejaVuSansCondensed', '', 11);
         $pdf->Ln(10);
-        $pdf->Cell(90, 8, 'Продавец: _______________', 0, 0);
-        $pdf->Cell(90, 8, 'Покупатель: _______________', 0, 1);
+        $pdf->Cell(90, 8, $encode('Продавец: _______________'), 0, 0);
+        $pdf->Cell(90, 8, $encode('Покупатель: _______________'), 0, 1);
         
         // Сохраняем
         file_put_contents($logFile, "Saving to: $outputPath\n", FILE_APPEND);
