@@ -667,20 +667,94 @@ if ($action === 'sendcontractpdf') {
         
         if ($buyerEmail) {
             $subject = "Договор купли-продажи щенка - №{$contractNumber}";
-            $message = "Здравствуйте, {$buyerName}!\n\n";
-            $message .= "Вам направлен договор купли-продажи щенка {$dogName}.\n";
-            $message .= "Номер договора: {$contractNumber}\n\n";
-            $message .= "Для подписания договора, пожалуйста, ознакомьтесь с документом.\n\n";
-            $message .= "С уважением,\nПитомник GREAT LEGACY BULLY";
+            
+            // Создаем HTML письмо с данными договора
+            $htmlMessage = '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; text-align: center; }
+        .section { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; }
+        .field { margin: 8px 0; }
+        .label { font-weight: bold; color: #555; }
+        .note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GREAT LEGACY BULLY</h1>
+        <h2>Договор купли-продажи щенка American Bully</h2>
+        <p style="text-align: center;"><strong>№ ' . htmlspecialchars($contractNumber) . '</strong> от ' . date('d.m.Y') . '</p>
+        
+        <div class="note">
+            <p><strong>Здравствуйте, ' . htmlspecialchars($buyerName) . '!</strong></p>
+            <p>Вам направлен договор купли-продажи щенка <strong>' . htmlspecialchars($dogName) . '</strong>.</p>
+            <p>Пожалуйста, ознакомьтесь с условиями договора ниже.</p>
+        </div>
+        
+        <div class="section">
+            <h3>1. ЗАВОДЧИК-ПРОДАВЕЦ</h3>
+            <div class="field"><span class="label">ФИО:</span> ' . htmlspecialchars($data['kennelOwner'] ?? '') . '</div>
+            <div class="field"><span class="label">Адрес:</span> ' . htmlspecialchars($data['kennelAddress'] ?? '') . '</div>
+            <div class="field"><span class="label">Телефон:</span> ' . htmlspecialchars($data['kennelPhone'] ?? '') . '</div>
+            <div class="field"><span class="label">Email:</span> ' . htmlspecialchars($data['kennelEmail'] ?? '') . '</div>
+        </div>
+        
+        <div class="section">
+            <h3>2. ПОКУПАТЕЛЬ-ВЛАДЕЛЕЦ</h3>
+            <div class="field"><span class="label">ФИО:</span> ' . htmlspecialchars($buyerName) . '</div>
+            <div class="field"><span class="label">Адрес:</span> ' . htmlspecialchars($data['buyerAddress'] ?? '') . '</div>
+            <div class="field"><span class="label">Телефон:</span> ' . htmlspecialchars($data['buyerPhone'] ?? '') . '</div>
+            <div class="field"><span class="label">Email:</span> ' . htmlspecialchars($buyerEmail) . '</div>
+        </div>
+        
+        <div class="section">
+            <h3>3. ПРЕДМЕТ ДОГОВОРА - ЩЕНОК</h3>
+            <div class="field"><span class="label">Кличка:</span> ' . htmlspecialchars($dogName) . '</div>
+            <div class="field"><span class="label">Порода:</span> ' . htmlspecialchars($data['dogBreed'] ?? 'Американский булли') . '</div>
+            <div class="field"><span class="label">Дата рождения:</span> ' . htmlspecialchars($data['dogBirthDate'] ?? '') . '</div>
+            <div class="field"><span class="label">Пол:</span> ' . htmlspecialchars($data['dogGender'] ?? '') . '</div>
+            <div class="field"><span class="label">Окрас:</span> ' . htmlspecialchars($data['dogColor'] ?? '') . '</div>
+            ' . (!empty($data['dogChipNumber']) ? '<div class="field"><span class="label">Номер чипа:</span> ' . htmlspecialchars($data['dogChipNumber']) . '</div>' : '') . '
+        </div>
+        
+        <div class="section">
+            <h3>5. ФИНАНСОВЫЕ УСЛОВИЯ</h3>
+            <div class="field"><span class="label">Полная стоимость:</span> <strong>' . htmlspecialchars($data['price'] ?? '0') . ' руб.</strong></div>
+            ' . (!empty($data['depositAmount']) ? '<div class="field"><span class="label">Задаток:</span> ' . htmlspecialchars($data['depositAmount']) . ' руб. (внесен ' . htmlspecialchars($data['depositDate'] ?? '') . ')</div>' : '') . '
+            ' . (!empty($data['remainingAmount']) ? '<div class="field"><span class="label">Остаток к оплате:</span> ' . htmlspecialchars($data['remainingAmount']) . ' руб.</div>' : '') . '
+        </div>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">
+            <p><strong>С уважением,<br>Питомник GREAT LEGACY BULLY</strong></p>
+            <p style="font-size: 12px; color: #666;">Для подписания договора, пожалуйста, свяжитесь с нами.</p>
+        </div>
+    </div>
+</body>
+</html>';
             
             $headers = "From: noreply@matrang.com\r\n";
             $headers .= "Reply-To: " . ($data['kennelEmail'] ?? 'info@matrang.com') . "\r\n";
-            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $headers .= "MIME-Version: 1.0\r\n";
             
-            @mail($buyerEmail, $subject, $message, $headers);
+            $mailSent = @mail($buyerEmail, $subject, $htmlMessage, $headers);
+            
+            // Логируем отправку
+            $mailLog = __DIR__ . '/../data/mail.log';
+            file_put_contents($mailLog, date('Y-m-d H:i:s') . " - Email to: {$buyerEmail} | Subject: {$subject} | Sent: " . ($mailSent ? 'YES' : 'NO') . "\n", FILE_APPEND);
         }
         
-        echo json_encode(['success' => true, 'contract' => $newContract, 'note' => 'Sent by email (Adobe Sign not configured)']);
+        echo json_encode([
+            'success' => true, 
+            'contract' => $newContract, 
+            'note' => 'Договор отправлен на email: ' . $buyerEmail,
+            'emailSent' => !empty($buyerEmail)
+        ]);
         exit;
     }
     

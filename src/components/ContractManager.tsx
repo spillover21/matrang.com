@@ -317,7 +317,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
       const data = await response.json();
       if (data.success) {
-        toast.success("Договор отправлен на подпись через Adobe Sign");
+        const message = data.emailSent 
+          ? `Договор №${data.contract.contractNumber} отправлен на email ${formData.buyerEmail}` 
+          : "Договор создан (email не отправлен)";
+        toast.success(message);
         loadData();
         // Очистка формы - оставляем данные питомника, очищаем данные покупателя и щенка
         setFormData({
@@ -392,7 +395,17 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       const form = pdfDoc.getForm();
       const fields = form.getFields();
       
-      console.log('PDF Fields:', fields.map(f => f.getName())); // Отладка - покажет какие поля есть в PDF
+      console.log('=== PDF FIELDS DEBUG ===');
+      console.log('Total fields found:', fields.length);
+      console.log('Field names:', fields.map(f => f.getName()));
+      
+      if (fields.length === 0) {
+        toast.error("В PDF шаблоне нет заполняемых полей! Создайте поля в Foxit PDF Editor.");
+        
+        // Открываем оригинальный PDF для просмотра
+        window.open(pdfTemplate, '_blank');
+        return;
+      }
       
       // Заполняем поля (используем точные имена из вашего PDF)
       const fieldMap: Record<string, string | boolean> = {
@@ -454,6 +467,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         recommendedFood: formData.recommendedFood || ''
       };
       
+      let filledCount = 0;
+      let notFoundCount = 0;
+      
       // Заполняем все поля
       Object.entries(fieldMap).forEach(([fieldName, value]) => {
         try {
@@ -467,16 +483,27 @@ const ContractManager = ({ token }: ContractManagerProps) => {
             } else {
               checkbox.uncheck();
             }
+            filledCount++;
           } else {
             // Для текстовых полей
             const textField = form.getTextField(fieldName);
             textField.setText(String(value));
+            filledCount++;
           }
         } catch (e) {
-          // Поле не найдено в PDF - это нормально, не все поля могут быть в шаблоне
+          // Поле не найдено в PDF
+          notFoundCount++;
           console.log(`Field '${fieldName}' not found in PDF`);
         }
       });
+      
+      console.log(`Filled ${filledCount} fields, ${notFoundCount} fields not found in PDF`);
+      
+      if (filledCount === 0) {
+        toast.warning(`Ни одно поле не заполнено! Проверьте названия полей в PDF.`);
+      } else {
+        toast.success(`Заполнено полей: ${filledCount}`);
+      }
       
       // Сохраняем заполненный PDF
       const filledPdfBytes = await pdfDoc.save();
@@ -486,10 +513,12 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       
-      toast.success("PDF готов к просмотру");
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast.error("Ошибка генерации PDF: " + (error as Error).message);
+      toast.error("Ошибка: " + (error as Error).message);
+      
+      // Открываем оригинальный PDF для просмотра
+      window.open(pdfTemplate, '_blank');
     }
   };
 
