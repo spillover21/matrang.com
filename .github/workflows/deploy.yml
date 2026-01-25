@@ -34,6 +34,25 @@ jobs:
       - name: Stamp version
         run: echo "version=$(git rev-parse --short HEAD)-$(date -u +%Y%m%dT%H%M%SZ)" > dist/version.txt
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: |
+          cd api
+          composer install --no-dev --optimize-autoloader --no-interaction
+          cd ..
+          
+      - name: Copy vendor to dist
+        run: |
+          mkdir -p dist/api
+          cp -r api/vendor dist/api/
+          cp api/composer.json dist/api/
+          cp api/composer.lock dist/api/
+
       - name: Deploy to server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
