@@ -207,13 +207,18 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       });
 
       const data = await response.json();
+      console.log('Upload PDF response:', data); // Отладка
+      
       if (data.success) {
+        console.log('Setting pdfTemplate to:', data.url); // Отладка
         setPdfTemplate(data.url);
         toast.success("PDF шаблон загружен");
       } else {
+        console.error('Upload failed:', data.message); // Отладка
         toast.error(data.message || "Ошибка загрузки");
       }
     } catch (error) {
+      console.error('Upload error:', error); // Отладка
       toast.error("Ошибка сети");
     }
   };
