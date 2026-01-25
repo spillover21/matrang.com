@@ -43,7 +43,8 @@ jobs:
       - name: Install Composer dependencies
         run: |
           cd api
-          composer install --no-dev --optimize-autoloader --no-interaction
+          rm -rf vendor
+          composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
           cd ..
           
       - name: Copy vendor to dist
