@@ -4,6 +4,9 @@
  * Создаёт PDF с нуля с данными договора
  */
 
+if (!defined('FPDF_FONTPATH')) {
+    define('FPDF_FONTPATH', __DIR__ . '/fonts/');
+}
 require_once __DIR__ . '/vendor/autoload.php';
 
 function generateContractPdfSimple($data, $outputPath) {
@@ -30,37 +33,11 @@ function generateContractPdfSimple($data, $outputPath) {
         file_put_contents($logFile, "Page added\n", FILE_APPEND);
         
         // Добавляем шрифт для русского текста (через font definition)
-        $fontDir = __DIR__ . '/vendor/setasign/fpdf/font/';
-        $fontTtf = __DIR__ . '/DejaVuSansCondensed.ttf';
+        $fontDir = __DIR__ . '/fonts/';
         $fontDef = $fontDir . 'DejaVuSansCondensed.php';
         
         if (!file_exists($fontDef)) {
-            file_put_contents($logFile, "Font definition not found, generating...\n", FILE_APPEND);
-            if (!is_dir($fontDir)) {
-                mkdir($fontDir, 0755, true);
-            }
-            if (!is_writable($fontDir)) {
-                file_put_contents($logFile, "ERROR: Font dir not writable: $fontDir\n", FILE_APPEND);
-                return false;
-            }
-            if (!file_exists($fontTtf)) {
-                file_put_contents($logFile, "ERROR: TTF not found: $fontTtf\n", FILE_APPEND);
-                return false;
-            }
-            
-            $prevCwd = getcwd();
-            chdir($fontDir);
-            ob_start();
-            require_once __DIR__ . '/vendor/setasign/fpdf/makefont/makefont.php';
-            MakeFont($fontTtf, 'cp1251', true, true);
-            ob_end_clean();
-            chdir($prevCwd);
-            
-            file_put_contents($logFile, "Font definition generated\n", FILE_APPEND);
-        }
-        
-        if (!file_exists($fontDef)) {
-            file_put_contents($logFile, "ERROR: Font definition still missing: $fontDef\n", FILE_APPEND);
+            file_put_contents($logFile, "ERROR: Font definition missing: $fontDef\n", FILE_APPEND);
             return false;
         }
         
