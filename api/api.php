@@ -311,14 +311,17 @@ if ($action === 'getcontracts') {
     
     $contractsFile = __DIR__ . '/../data/contracts.json';
     $templatesFile = __DIR__ . '/../data/contract_templates.json';
+    $pdfTemplateFile = $uploadDir . 'contracts/contract_template.pdf';
     
     $contracts = file_exists($contractsFile) ? json_decode(file_get_contents($contractsFile), true) : [];
     $templates = file_exists($templatesFile) ? json_decode(file_get_contents($templatesFile), true) : [];
+    $pdfTemplate = file_exists($pdfTemplateFile) ? '/uploads/contracts/contract_template.pdf' : '';
     
     echo json_encode([
         'success' => true,
         'contracts' => $contracts,
-        'templates' => $templates
+        'templates' => $templates,
+        'pdfTemplate' => $pdfTemplate
     ]);
     exit;
 }
@@ -610,21 +613,21 @@ if ($action === 'sendcontractpdf') {
     file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Auth OK\n", FILE_APPEND);
     
     // Загружаем конфигурацию Adobe Sign
-    try {
-        $adobeSignConfigPath = __DIR__ . '/adobe_sign_config.php';
-        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config path: {$adobeSignConfigPath}\n", FILE_APPEND);
-        
-        if (!file_exists($adobeSignConfigPath)) {
-            throw new Exception('adobe_sign_config.php not found');
+    $adobeSignConfigPath = __DIR__ . '/adobe_sign_config.php';
+    
+    if (file_exists($adobeSignConfigPath)) {
+        try {
+            $adobeSignConfig = require $adobeSignConfigPath;
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config loaded\n", FILE_APPEND);
+        } catch (Exception $e) {
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config load error: " . $e->getMessage() . "\n", FILE_APPEND);
+            // Используем дефолтные настройки
+            $adobeSignConfig = ['enabled' => false, 'access_token' => ''];
         }
-        
-        $adobeSignConfig = require $adobeSignConfigPath;
-        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config loaded\n", FILE_APPEND);
-    } catch (Exception $e) {
-        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config error: " . $e->getMessage() . "\n", FILE_APPEND);
-        echo json_encode(['success' => false, 'message' => 'Config error: ' . $e->getMessage()]);
-        http_response_code(500);
-        exit;
+    } else {
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config not found, using defaults\n", FILE_APPEND);
+        // Используем дефолтные настройки - отправка через email
+        $adobeSignConfig = ['enabled' => false, 'access_token' => ''];
     }
     
     $contractsFile = __DIR__ . '/../data/contracts.json';
