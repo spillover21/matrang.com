@@ -416,10 +416,15 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           filledPdfBase64 = bytesToBase64(filledResult.bytes);
           console.log(`Filled PDF bytes: ${filledResult.bytes.length}`);
         } else if (filledResult && !filledResult.hasFields) {
-          toast.warning("В PDF нет заполняемых полей. Отправка без заполнения.");
+          toast.error("В PDF нет AcroForm полей. Сохраните PDF как форму (Acrobat/Foxit) и задайте имена полей.");
+          setSending(false);
+          return;
         }
       } catch (e) {
         console.error('Filled PDF generation error:', e);
+        toast.error("Не удалось заполнить PDF. Проверьте поля формы.");
+        setSending(false);
+        return;
       }
 
       const response = await fetch("/api/api.php?action=sendContractPdf", {
@@ -509,7 +514,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       
       const filledResult = await buildFilledPdfBytes();
       if (!filledResult || !filledResult.hasFields) {
-        toast.error("В PDF шаблоне нет заполняемых полей! Создайте поля в Foxit PDF Editor.");
+        toast.error("В PDF нет AcroForm полей! Создайте именно форму (Acrobat/Foxit) и задайте имена полей.");
         window.open(pdfTemplate, '_blank');
         return;
       }
