@@ -425,6 +425,175 @@ if ($action === 'uploadpdftemplate') {
     exit;
 }
 
+// Генерация заполненного PDF (для preview)
+if ($action === 'generatefilledpdf') {
+    if (!checkAuth()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        http_response_code(401);
+        exit;
+    }
+    
+    $data = $jsonInput['data'] ?? [];
+    $pdfTemplate = $jsonInput['pdfTemplate'] ?? '';
+    
+    if (!$pdfTemplate) {
+        echo json_encode(['success' => false, 'message' => 'PDF template required']);
+        http_response_code(400);
+        exit;
+    }
+    
+    // Путь к шаблону
+    $templatePath = __DIR__ . '/..' . $pdfTemplate;
+    
+    if (!file_exists($templatePath)) {
+        echo json_encode(['success' => false, 'message' => 'Template not found']);
+        http_response_code(404);
+        exit;
+    }
+    
+    // Генерируем HTML с данными договора для создания PDF
+    // В production используйте библиотеку для заполнения PDF полей (FPDI, PDFtk)
+    // Для демо создаем HTML-версию
+    
+    $contractNumber = 'DOG-' . date('Y') . '-PREVIEW';
+    $contractDate = $data['contractDate'] ?? date('d.m.Y');
+    $contractPlace = $data['contractPlace'] ?? 'г. Каяани, Финляндия';
+    
+    $html = '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: "Times New Roman", serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; }
+        h2 { text-align: center; margin: 5px 0; font-size: 16px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .section { margin: 20px 0; }
+        .section h3 { margin-bottom: 10px; }
+        .field { margin: 5px 0; }
+        .label { font-weight: bold; }
+        .checkbox { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>GREAT LEGACY BULLY</h1>
+    <h2>ДОГОВОР КУПЛИ-ПРОДАЖИ ЩЕНКА American Bully</h2>
+    
+    <div class="header">
+        <p>№ ' . htmlspecialchars($contractNumber) . ' от ' . htmlspecialchars($contractDate) . '</p>
+        <p>' . htmlspecialchars($contractPlace) . '</p>
+    </div>
+    
+    <div class="section">
+        <h3>1. ЗАВОДЧИК-ПРОДАВЕЦ</h3>
+        <div class="field"><span class="label">ФИО:</span> ' . htmlspecialchars($data['kennelOwner'] ?? '') . '</div>
+        <div class="field"><span class="label">Адрес:</span> ' . htmlspecialchars($data['kennelAddress'] ?? '') . '</div>
+        <div class="field"><span class="label">Телефон:</span> ' . htmlspecialchars($data['kennelPhone'] ?? '') . '</div>
+        <div class="field"><span class="label">Email:</span> ' . htmlspecialchars($data['kennelEmail'] ?? '') . '</div>
+        <div class="field"><span class="label">Паспорт:</span> ' . 
+            htmlspecialchars($data['kennelPassportSeries'] ?? '') . ' ' . 
+            htmlspecialchars($data['kennelPassportNumber'] ?? '') . 
+            ', выдан ' . htmlspecialchars($data['kennelPassportIssuedBy'] ?? '') . 
+            ' ' . htmlspecialchars($data['kennelPassportIssuedDate'] ?? '') . '</div>
+    </div>
+    
+    <div class="section">
+        <h3>2. ПОКУПАТЕЛЬ-ВЛАДЕЛЕЦ</h3>
+        <div class="field"><span class="label">ФИО:</span> ' . htmlspecialchars($data['buyerName'] ?? '') . '</div>
+        <div class="field"><span class="label">Адрес:</span> ' . htmlspecialchars($data['buyerAddress'] ?? '') . '</div>
+        <div class="field"><span class="label">Телефон:</span> ' . htmlspecialchars($data['buyerPhone'] ?? '') . '</div>
+        <div class="field"><span class="label">Email:</span> ' . htmlspecialchars($data['buyerEmail'] ?? '') . '</div>
+        <div class="field"><span class="label">Паспорт:</span> ' . 
+            htmlspecialchars($data['buyerPassportSeries'] ?? '') . ' ' . 
+            htmlspecialchars($data['buyerPassportNumber'] ?? '') . 
+            ', выдан ' . htmlspecialchars($data['buyerPassportIssuedBy'] ?? '') . 
+            ' ' . htmlspecialchars($data['buyerPassportIssuedDate'] ?? '') . '</div>
+    </div>
+    
+    <div class="section">
+        <h3>3. ПРЕДМЕТ ДОГОВОРА - ЩЕНОК</h3>
+        <div class="field"><span class="label">Кличка:</span> ' . htmlspecialchars($data['dogName'] ?? '') . '</div>
+        <div class="field"><span class="label">Порода:</span> ' . htmlspecialchars($data['dogBreed'] ?? 'Американский булли') . '</div>
+        <div class="field"><span class="label">Дата рождения:</span> ' . htmlspecialchars($data['dogBirthDate'] ?? '') . '</div>
+        <div class="field"><span class="label">Пол:</span> ' . htmlspecialchars($data['dogGender'] ?? '') . '</div>
+        <div class="field"><span class="label">Окрас:</span> ' . htmlspecialchars($data['dogColor'] ?? '') . '</div>
+        <div class="field"><span class="label">Номер чипа:</span> ' . htmlspecialchars($data['dogChipNumber'] ?? '') . '</div>
+        <div class="field"><span class="label">Щенячья карточка:</span> ' . htmlspecialchars($data['dogPuppyCard'] ?? '') . '</div>
+        
+        <p style="margin-top: 15px;"><span class="label">Родители:</span></p>
+        <div class="field">Отец: ' . htmlspecialchars($data['dogFatherName'] ?? '') . ' (рег. № ' . htmlspecialchars($data['dogFatherRegNumber'] ?? '') . ')</div>
+        <div class="field">Мать: ' . htmlspecialchars($data['dogMotherName'] ?? '') . ' (рег. № ' . htmlspecialchars($data['dogMotherRegNumber'] ?? '') . ')</div>
+        
+        <p style="margin-top: 15px;"><span class="label">Цель приобретения:</span></p>
+        <div class="field">
+            <input type="checkbox" class="checkbox" ' . (!empty($data['purposeBreeding']) ? 'checked' : '') . '> Для племенной работы (разведение)<br>
+            <input type="checkbox" class="checkbox" ' . (!empty($data['purposeCompanion']) ? 'checked' : '') . '> Компаньон (без разведения)<br>
+            <input type="checkbox" class="checkbox" ' . (!empty($data['purposeGeneral']) ? 'checked' : '') . '> Общение, не исключающее разведения
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3>5. ФИНАНСОВЫЕ УСЛОВИЯ</h3>
+        <div class="field"><span class="label">Полная стоимость:</span> ' . htmlspecialchars($data['price'] ?? '0') . ' руб.</div>
+        <div class="field"><span class="label">Сумма задатка:</span> ' . htmlspecialchars($data['depositAmount'] ?? '0') . ' руб. (внесена ' . htmlspecialchars($data['depositDate'] ?? '') . ')</div>
+        <div class="field"><span class="label">Остаток к оплате:</span> ' . htmlspecialchars($data['remainingAmount'] ?? '0') . ' руб.</div>
+        <div class="field"><span class="label">Срок окончательного расчета:</span> не позднее ' . htmlspecialchars($data['finalPaymentDate'] ?? '') . '</div>
+    </div>
+    
+    ' . (!empty($data['dewormingDate']) || !empty($data['vaccinationDates']) ? '
+    <div class="section">
+        <h3>ВАКЦИНАЦИЯ</h3>
+        <div class="field"><span class="label">Выгонка глистов:</span> ' . htmlspecialchars($data['dewormingDate'] ?? '') . '</div>
+        <div class="field"><span class="label">Прививки:</span> ' . htmlspecialchars($data['vaccinationDates'] ?? '') . '</div>
+        <div class="field"><span class="label">Вакцина:</span> ' . htmlspecialchars($data['vaccineName'] ?? '') . '</div>
+        <div class="field"><span class="label">Следующая обработка от глистов:</span> ' . htmlspecialchars($data['nextDewormingDate'] ?? '') . '</div>
+        <div class="field"><span class="label">Следующая вакцинация:</span> ' . htmlspecialchars($data['nextVaccinationDate'] ?? '') . '</div>
+    </div>
+    ' : '') . '
+    
+    ' . (!empty($data['specialFeatures']) || !empty($data['deliveryTerms']) ? '
+    <div class="section">
+        <h3>ДОПОЛНИТЕЛЬНЫЕ УСЛОВИЯ</h3>
+        ' . (!empty($data['specialFeatures']) ? '<div class="field"><span class="label">Индивидуальные особенности:</span><br>' . nl2br(htmlspecialchars($data['specialFeatures'])) . '</div>' : '') . '
+        ' . (!empty($data['deliveryTerms']) ? '<div class="field"><span class="label">Условия доставки:</span><br>' . nl2br(htmlspecialchars($data['deliveryTerms'])) . '</div>' : '') . '
+        ' . (!empty($data['recommendedFood']) ? '<div class="field"><span class="label">Рекомендуемый корм:</span><br>' . nl2br(htmlspecialchars($data['recommendedFood'])) . '</div>' : '') . '
+        ' . (!empty($data['additionalAgreements']) ? '<div class="field"><span class="label">Дополнительные соглашения:</span><br>' . nl2br(htmlspecialchars($data['additionalAgreements'])) . '</div>' : '') . '
+    </div>
+    ' : '') . '
+    
+    <div style="margin-top: 50px;">
+        <table width="100%">
+            <tr>
+                <td width="50%">
+                    <div style="border-top: 1px solid #000; width: 200px; display: inline-block;"></div><br>
+                    <small>ЗАВОДЧИК-ПРОДАВЕЦ</small>
+                </td>
+                <td width="50%" style="text-align: right;">
+                    <div style="border-top: 1px solid #000; width: 200px; display: inline-block;"></div><br>
+                    <small>ПОКУПАТЕЛЬ</small>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>';
+    
+    // Сохраняем HTML как временный файл
+    $previewDir = $uploadDir . 'previews/';
+    if (!is_dir($previewDir)) {
+        mkdir($previewDir, 0755, true);
+    }
+    
+    $previewFilename = 'contract_preview_' . time() . '.html';
+    $previewPath = $previewDir . $previewFilename;
+    file_put_contents($previewPath, $html);
+    
+    $previewUrl = '/uploads/previews/' . $previewFilename;
+    
+    echo json_encode(['success' => true, 'url' => $previewUrl, 'type' => 'html']);
+    exit;
+}
+
 // Отправка договора через Adobe Sign
 if ($action === 'sendcontractpdf') {
     // Отладка

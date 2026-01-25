@@ -374,116 +374,37 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
-  const generatePreview = () => {
-    const contractHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-          h1 { text-align: center; }
-          .section { margin: 20px 0; }
-          .field { margin: 10px 0; }
-          .label { font-weight: bold; }
-          .signature { margin-top: 50px; display: flex; justify-content: space-between; }
-          .signature-block { text-align: center; }
-        </style>
-      </head>
-      <body>
-        <h1>GREAT LEGACY BULLY</h1>
-        <h2>ДОГОВОР КУПЛИ-ПРОДАЖИ ЩЕНКА American Bully</h2>
-        <p style="text-align: center;">№ ____ от ${formData.contractDate}</p>
-        <p style="text-align: center;">${formData.contractPlace || ''}</p>
-        
-        <div class="section">
-          <h3>1. ЗАВОДЧИК-ПРОДАВЕЦ</h3>
-          <div class="field"><span class="label">ФИО:</span> ${formData.kennelOwner}</div>
-          <div class="field"><span class="label">Адрес:</span> ${formData.kennelAddress}</div>
-          <div class="field"><span class="label">Телефон:</span> ${formData.kennelPhone}</div>
-          <div class="field"><span class="label">Email:</span> ${formData.kennelEmail}</div>
-          ${formData.kennelPassportSeries ? `<div class="field"><span class="label">Паспорт:</span> ${formData.kennelPassportSeries} ${formData.kennelPassportNumber}</div>` : ''}
-        </div>
+  const generatePreview = async () => {
+    if (!pdfTemplate) {
+      toast.error("Загрузите PDF шаблон договора");
+      return;
+    }
 
-        <div class="section">
-          <h3>2. ПОКУПАТЕЛЬ-ВЛАДЕЛЕЦ</h3>
-          <div class="field"><span class="label">ФИО:</span> ${formData.buyerName}</div>
-          <div class="field"><span class="label">Адрес:</span> ${formData.buyerAddress}</div>
-          <div class="field"><span class="label">Телефон:</span> ${formData.buyerPhone}</div>
-          <div class="field"><span class="label">Email:</span> ${formData.buyerEmail}</div>
-          ${formData.buyerPassportSeries ? `<div class="field"><span class="label">Паспорт:</span> ${formData.buyerPassportSeries} ${formData.buyerPassportNumber}</div>` : ''}
-        </div>
+    try {
+      const response = await fetch("/api/api.php?action=generateFilledPdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          data: formData,
+          pdfTemplate: pdfTemplate,
+        }),
+      });
 
-        <div class="section">
-          <h3>3. ПРЕДМЕТ ДОГОВОРА - ЩЕНОК</h3>
-          ${formData.dogFatherName ? `
-          <p><strong>Родители:</strong></p>
-          <div class="field"><span class="label">Отец:</span> ${formData.dogFatherName} (${formData.dogFatherRegNumber || 'н/д'})</div>
-          <div class="field"><span class="label">Мать:</span> ${formData.dogMotherName} (${formData.dogMotherRegNumber || 'н/д'})</div>
-          ` : ''}
-          <p><strong>Данные щенка:</strong></p>
-          <div class="field"><span class="label">Кличка:</span> ${formData.dogName}</div>
-          <div class="field"><span class="label">Порода:</span> ${formData.dogBreed}</div>
-          <div class="field"><span class="label">Дата рождения:</span> ${formData.dogBirthDate}</div>
-          <div class="field"><span class="label">Пол:</span> ${formData.dogGender}</div>
-          <div class="field"><span class="label">Окрас:</span> ${formData.dogColor}</div>
-          ${formData.dogChipNumber ? `<div class="field"><span class="label">№ чипа:</span> ${formData.dogChipNumber}</div>` : ''}
-          ${formData.dogPuppyCard ? `<div class="field"><span class="label">Щенячья карточка:</span> ${formData.dogPuppyCard}</div>` : ''}
-          ${(formData.purposeBreeding || formData.purposeCompanion || formData.purposeGeneral) ? `
-          <p><strong>Цель приобретения:</strong></p>
-          ${formData.purposeBreeding ? '<div class="field">☑ Для племенной работы (разведение)</div>' : ''}
-          ${formData.purposeCompanion ? '<div class="field">☑ Компаньон (без разведения)</div>' : ''}
-          ${formData.purposeGeneral ? '<div class="field">☑ Общение, не исключающее разведения</div>' : ''}
-          ` : ''}
-        </div>
-
-        ${formData.vaccinationDates || formData.dewormingDate ? `
-        <div class="section">
-          <h3>4. ВАКЦИНАЦИЯ</h3>
-          ${formData.dewormingDate ? `<div class="field"><span class="label">Выгонка глистов:</span> ${formData.dewormingDate}</div>` : ''}
-          ${formData.vaccinationDates ? `<div class="field"><span class="label">Прививки:</span> ${formData.vaccinationDates}</div>` : ''}
-          ${formData.vaccineName ? `<div class="field"><span class="label">Вакцина:</span> ${formData.vaccineName}</div>` : ''}
-        </div>
-        ` : ''}
-
-        <div class="section">
-          <h3>5. ФИНАНСОВЫЕ УСЛОВИЯ</h3>
-          <div class="field"><span class="label">Полная стоимость:</span> ${formData.price} руб.</div>
-          ${formData.depositAmount ? `<div class="field"><span class="label">Сумма задатка:</span> ${formData.depositAmount} руб. (внесен ${formData.depositDate || ''})</div>` : ''}
-          ${formData.remainingAmount ? `<div class="field"><span class="label">Остаток к оплате:</span> ${formData.remainingAmount} руб.</div>` : ''}
-          ${formData.finalPaymentDate ? `<div class="field"><span class="label">Срок оплаты:</span> не позднее ${formData.finalPaymentDate}</div>` : ''}
-        </div>
-
-        ${formData.additionalAgreements || formData.deliveryTerms || formData.specialFeatures ? `
-        <div class="section">
-          <h3>6. ДОПОЛНИТЕЛЬНЫЕ УСЛОВИЯ</h3>
-          ${formData.specialFeatures ? `<p><strong>Особенности щенка:</strong><br>${formData.specialFeatures}</p>` : ''}
-          ${formData.deliveryTerms ? `<p><strong>Условия доставки:</strong><br>${formData.deliveryTerms}</p>` : ''}
-          ${formData.additionalAgreements ? `<p><strong>Доп. соглашения:</strong><br>${formData.additionalAgreements}</p>` : ''}
-        </div>
-        ` : ''}
-
-        <div class="signature">
-          <div class="signature-block">
-            <p>ЗАВОДЧИК-ПРОДАВЕЦ</p>
-            <p>_________________</p>
-            <p>${formData.kennelOwner}</p>
-            <p>Дата: _____________</p>
-          </div>
-          <div class="signature-block">
-            <p>ПОКУПАТЕЛЬ</p>
-            <p>_________________</p>
-            <p>${formData.buyerName}</p>
-            <p>Дата: _____________</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const blob = new Blob([contractHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+      const data = await response.json();
+      if (data.success) {
+        // Открываем заполненный PDF/HTML в новом окне
+        window.open(data.url, '_blank');
+        toast.success("Предпросмотр готов");
+      } else {
+        toast.error(data.message || "Ошибка генерации");
+      }
+    } catch (error) {
+      console.error('Preview error:', error);
+      toast.error("Ошибка сети");
+    }
   };
 
   if (loading) {
