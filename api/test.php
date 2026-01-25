@@ -87,6 +87,7 @@ echo "<h2>7. Логи</h2>";
 $logs = [
     __DIR__ . '/../data/upload_debug.log' => 'Upload Debug',
     __DIR__ . '/../data/sendcontract_debug.log' => 'Send Contract Debug',
+    __DIR__ . '/../data/pdf_generation.log' => 'PDF Generation',
     __DIR__ . '/../data/mail.log' => 'Mail Log'
 ];
 

@@ -9,15 +9,28 @@ require_once __DIR__ . '/vendor/autoload.php';
 use setasign\Fpdi\Fpdi;
 
 function generateContractPdf($templatePath, $data, $outputPath) {
+    $logFile = __DIR__ . '/../data/pdf_generation.log';
+    file_put_contents($logFile, "\n=== PDF GENERATION === " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
+    file_put_contents($logFile, "Template: $templatePath\n", FILE_APPEND);
+    file_put_contents($logFile, "Output: $outputPath\n", FILE_APPEND);
+    
     try {
+        file_put_contents($logFile, "Creating FPDI instance...\n", FILE_APPEND);
         $pdf = new Fpdi();
+        file_put_contents($logFile, "FPDI created OK\n", FILE_APPEND);
         
         // Импортируем страницы из шаблона
+        file_put_contents($logFile, "Setting source file...\n", FILE_APPEND);
         $pageCount = $pdf->setSourceFile($templatePath);
+        file_put_contents($logFile, "Page count: $pageCount\n", FILE_APPEND);
         
         // Настройки шрифта
-        $pdf->AddFont('DejaVu', '', 'DejaVuSansCondensed.ttf', true);
+        file_put_contents($logFile, "Adding font...\n", FILE_APPEND);
+        $fontPath = __DIR__ . '/DejaVuSansCondensed.ttf';
+        file_put_contents($logFile, "Font path: $fontPath (exists: " . (file_exists($fontPath) ? 'YES' : 'NO') . ")\n", FILE_APPEND);
+        $pdf->AddFont('DejaVu', '', $fontPath, true);
         $pdf->SetFont('DejaVu', '', 10);
+        file_put_contents($logFile, "Font set OK\n", FILE_APPEND);
         
         // Обрабатываем каждую страницу
         for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
@@ -100,10 +113,18 @@ function generateContractPdf($templatePath, $data, $outputPath) {
         }
         
         // Сохраняем PDF
+        file_put_contents($logFile, "Saving PDF to: $outputPath\n", FILE_APPEND);
         $pdf->Output('F', $outputPath);
-        return true;
+        
+        $fileExists = file_exists($outputPath);
+        $fileSize = $fileExists ? filesize($outputPath) : 0;
+        file_put_contents($logFile, "PDF saved: " . ($fileExists ? "YES" : "NO") . " | Size: $fileSize bytes\n", FILE_APPEND);
+        
+        return $fileExists;
         
     } catch (Exception $e) {
+        file_put_contents($logFile, "ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
+        file_put_contents($logFile, "Stack trace: " . $e->getTraceAsString() . "\n", FILE_APPEND);
         error_log("PDF Generation Error: " . $e->getMessage());
         return false;
     }
