@@ -682,13 +682,28 @@ if ($action === 'sendcontractpdf') {
         $outputFilename = 'contract_' . $contractNumber . '.pdf';
         $outputPath = $outputDir . $outputFilename;
         
+        // Если клиент прислал уже заполненный PDF (base64)
+        $filledPdfBase64 = $jsonInput['filledPdfBase64'] ?? '';
+        if (!empty($filledPdfBase64)) {
+            $decoded = base64_decode($filledPdfBase64, true);
+            if ($decoded === false) {
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - ERROR: Invalid filledPdfBase64\n", FILE_APPEND);
+            } else {
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Received filledPdfBase64, size: " . strlen($decoded) . " bytes\n", FILE_APPEND);
+                file_put_contents($outputPath, $decoded);
+            }
+        }
+        
         // Добавляем номер договора в данные
         $data['contractNumber'] = $contractNumber;
         $data['contractDate'] = date('d.m.Y');
         
         // Генерируем PDF (пытаемся)
         $pdfGenerated = false;
-        if (file_exists($templatePath)) {
+        if (file_exists($outputPath) && filesize($outputPath) > 0) {
+            $pdfGenerated = true;
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Using client-filled PDF\n", FILE_APPEND);
+        } elseif (file_exists($templatePath)) {
             file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Template exists, generating PDF...\n", FILE_APPEND);
             try {
                 // ПОПЫТКА 1: Попробуем с импортом шаблона (FPDI)

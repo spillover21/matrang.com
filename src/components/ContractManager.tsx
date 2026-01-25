@@ -289,6 +289,112 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
+  const buildFieldMap = () => ({
+    contractNumber: `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
+    contractDate: formData.contractDate || new Date().toLocaleDateString('ru-RU'),
+    contractPlace: formData.contractPlace || '',
+
+    kennelName: formData.kennelName || '',
+    kennelOwner: formData.kennelOwner || '',
+    kennelAddress: formData.kennelAddress || '',
+    kennelPhone: formData.kennelPhone || '',
+    kennelEmail: formData.kennelEmail || '',
+    kennelPassportSeries: formData.kennelPassportSeries || '',
+    kennelPassportNumber: formData.kennelPassportNumber || '',
+    kennelPassportIssuedBy: formData.kennelPassportIssuedBy || '',
+    kennelPassportIssuedDate: formData.kennelPassportIssuedDate || '',
+
+    buyerName: formData.buyerName || '',
+    buyerAddress: formData.buyerAddress || '',
+    buyerPhone: formData.buyerPhone || '',
+    buyerEmail: formData.buyerEmail || '',
+    buyerPassportSeries: formData.buyerPassportSeries || '',
+    buyerPassportNumber: formData.buyerPassportNumber || '',
+    buyerPassportIssuedBy: formData.buyerPassportIssuedBy || '',
+    buyerPassportIssuedDate: formData.buyerPassportIssuedDate || '',
+
+    dogFatherName: formData.dogFatherName || '',
+    dogFatherRegNumber: formData.dogFatherRegNumber || '',
+    dogMotherName: formData.dogMotherName || '',
+    dogMotherRegNumber: formData.dogMotherRegNumber || '',
+
+    dogName: formData.dogName || '',
+    dogBreed: formData.dogBreed || 'Американский булли',
+    dogBirthDate: formData.dogBirthDate || '',
+    dogGender: formData.dogGender || '',
+    dogColor: formData.dogColor || '',
+    dogChipNumber: formData.dogChipNumber || '',
+    dogPuppyCard: formData.dogPuppyCard || '',
+
+    purposeBreeding: formData.purposeBreeding || false,
+    purposeCompanion: formData.purposeCompanion || false,
+    purposeGeneral: formData.purposeGeneral || false,
+
+    price: formData.price || '',
+    depositAmount: formData.depositAmount || '',
+    depositDate: formData.depositDate || '',
+    remainingAmount: formData.remainingAmount || '',
+    finalPaymentDate: formData.finalPaymentDate || '',
+
+    dewormingDate: formData.dewormingDate || '',
+    vaccinationDates: formData.vaccinationDates || '',
+    vaccineName: formData.vaccineName || '',
+    nextDewormingDate: formData.nextDewormingDate || '',
+    nextVaccinationDate: formData.nextVaccinationDate || '',
+
+    specialFeatures: formData.specialFeatures || '',
+    deliveryTerms: formData.deliveryTerms || '',
+    additionalAgreements: formData.additionalAgreements || '',
+    recommendedFood: formData.recommendedFood || ''
+  });
+
+  const bytesToBase64 = (bytes: Uint8Array) => {
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+  };
+
+  const buildFilledPdfBytes = async () => {
+    if (!pdfTemplate) return null;
+
+    const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const form = pdfDoc.getForm();
+    const fields = form.getFields();
+
+    if (fields.length === 0) {
+      return { bytes: null, filledCount: 0, notFoundCount: 0, hasFields: false };
+    }
+
+    const fieldMap = buildFieldMap();
+    let filledCount = 0;
+    let notFoundCount = 0;
+
+    Object.entries(fieldMap).forEach(([fieldName, value]) => {
+      try {
+        if (typeof value === 'boolean') {
+          const checkbox = form.getCheckBox(fieldName);
+          if (value) checkbox.check();
+          else checkbox.uncheck();
+          filledCount++;
+        } else {
+          const textField = form.getTextField(fieldName);
+          textField.setText(String(value));
+          filledCount++;
+        }
+      } catch (e) {
+        notFoundCount++;
+        console.log(`Field '${fieldName}' not found in PDF`);
+      }
+    });
+
+    const filledPdfBytes = await pdfDoc.save();
+    return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true };
+  };
+
   const sendContract = async () => {
     // Валидация обязательных полей
     if (!formData.buyerName || !formData.buyerEmail || !formData.dogName || !formData.price) {
@@ -303,6 +409,19 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
     setSending(true);
     try {
+      let filledPdfBase64: string | null = null;
+      try {
+        const filledResult = await buildFilledPdfBytes();
+        if (filledResult?.bytes && filledResult.hasFields) {
+          filledPdfBase64 = bytesToBase64(filledResult.bytes);
+          console.log(`Filled PDF bytes: ${filledResult.bytes.length}`);
+        } else if (filledResult && !filledResult.hasFields) {
+          toast.warning("В PDF нет заполняемых полей. Отправка без заполнения.");
+        }
+      } catch (e) {
+        console.error('Filled PDF generation error:', e);
+      }
+
       const response = await fetch("/api/api.php?action=sendContractPdf", {
         method: "POST",
         headers: {
@@ -312,6 +431,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         body: JSON.stringify({
           data: formData,
           pdfTemplate: pdfTemplate,
+          filledPdfBase64: filledPdfBase64,
         }),
       });
 
@@ -387,129 +507,22 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     try {
       toast.info("Генерация PDF...");
       
-      // Загружаем PDF шаблон
-      const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      
-      // Получаем форму PDF
-      const form = pdfDoc.getForm();
-      const fields = form.getFields();
-      
-      console.log('=== PDF FIELDS DEBUG ===');
-      console.log('Total fields found:', fields.length);
-      console.log('Field names:', fields.map(f => f.getName()));
-      
-      if (fields.length === 0) {
+      const filledResult = await buildFilledPdfBytes();
+      if (!filledResult || !filledResult.hasFields) {
         toast.error("В PDF шаблоне нет заполняемых полей! Создайте поля в Foxit PDF Editor.");
-        
-        // Открываем оригинальный PDF для просмотра
         window.open(pdfTemplate, '_blank');
         return;
       }
-      
-      // Заполняем поля (используем точные имена из вашего PDF)
-      const fieldMap: Record<string, string | boolean> = {
-        contractNumber: `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
-        contractDate: formData.contractDate || new Date().toLocaleDateString('ru-RU'),
-        contractPlace: formData.contractPlace || '',
-        
-        kennelName: formData.kennelName || '',
-        kennelOwner: formData.kennelOwner || '',
-        kennelAddress: formData.kennelAddress || '',
-        kennelPhone: formData.kennelPhone || '',
-        kennelEmail: formData.kennelEmail || '',
-        kennelPassportSeries: formData.kennelPassportSeries || '',
-        kennelPassportNumber: formData.kennelPassportNumber || '',
-        kennelPassportIssuedBy: formData.kennelPassportIssuedBy || '',
-        kennelPassportIssuedDate: formData.kennelPassportIssuedDate || '',
-        
-        buyerName: formData.buyerName || '',
-        buyerAddress: formData.buyerAddress || '',
-        buyerPhone: formData.buyerPhone || '',
-        buyerEmail: formData.buyerEmail || '',
-        buyerPassportSeries: formData.buyerPassportSeries || '',
-        buyerPassportNumber: formData.buyerPassportNumber || '',
-        buyerPassportIssuedBy: formData.buyerPassportIssuedBy || '',
-        buyerPassportIssuedDate: formData.buyerPassportIssuedDate || '',
-        
-        dogFatherName: formData.dogFatherName || '',
-        dogFatherRegNumber: formData.dogFatherRegNumber || '',
-        dogMotherName: formData.dogMotherName || '',
-        dogMotherRegNumber: formData.dogMotherRegNumber || '',
-        
-        dogName: formData.dogName || '',
-        dogBreed: formData.dogBreed || 'Американский булли',
-        dogBirthDate: formData.dogBirthDate || '',
-        dogGender: formData.dogGender || '',
-        dogColor: formData.dogColor || '',
-        dogChipNumber: formData.dogChipNumber || '',
-        dogPuppyCard: formData.dogPuppyCard || '',
-        
-        purposeBreeding: formData.purposeBreeding || false,
-        purposeCompanion: formData.purposeCompanion || false,
-        purposeGeneral: formData.purposeGeneral || false,
-        
-        price: formData.price || '',
-        depositAmount: formData.depositAmount || '',
-        depositDate: formData.depositDate || '',
-        remainingAmount: formData.remainingAmount || '',
-        finalPaymentDate: formData.finalPaymentDate || '',
-        
-        dewormingDate: formData.dewormingDate || '',
-        vaccinationDates: formData.vaccinationDates || '',
-        vaccineName: formData.vaccineName || '',
-        nextDewormingDate: formData.nextDewormingDate || '',
-        nextVaccinationDate: formData.nextVaccinationDate || '',
-        
-        specialFeatures: formData.specialFeatures || '',
-        deliveryTerms: formData.deliveryTerms || '',
-        additionalAgreements: formData.additionalAgreements || '',
-        recommendedFood: formData.recommendedFood || ''
-      };
-      
-      let filledCount = 0;
-      let notFoundCount = 0;
-      
-      // Заполняем все поля
-      Object.entries(fieldMap).forEach(([fieldName, value]) => {
-        try {
-          const field = form.getField(fieldName);
-          
-          if (typeof value === 'boolean') {
-            // Для чекбоксов
-            const checkbox = form.getCheckBox(fieldName);
-            if (value) {
-              checkbox.check();
-            } else {
-              checkbox.uncheck();
-            }
-            filledCount++;
-          } else {
-            // Для текстовых полей
-            const textField = form.getTextField(fieldName);
-            textField.setText(String(value));
-            filledCount++;
-          }
-        } catch (e) {
-          // Поле не найдено в PDF
-          notFoundCount++;
-          console.log(`Field '${fieldName}' not found in PDF`);
-        }
-      });
-      
-      console.log(`Filled ${filledCount} fields, ${notFoundCount} fields not found in PDF`);
-      
-      if (filledCount === 0) {
+
+      console.log(`Filled ${filledResult.filledCount} fields, ${filledResult.notFoundCount} fields not found in PDF`);
+
+      if (filledResult.filledCount === 0) {
         toast.warning(`Ни одно поле не заполнено! Проверьте названия полей в PDF.`);
       } else {
-        toast.success(`Заполнено полей: ${filledCount}`);
+        toast.success(`Заполнено полей: ${filledResult.filledCount}`);
       }
       
-      // Сохраняем заполненный PDF
-      const filledPdfBytes = await pdfDoc.save();
-      
-      // Создаем blob и открываем в новом окне
-      const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
+      const blob = new Blob([filledResult.bytes!], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       
