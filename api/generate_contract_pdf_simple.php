@@ -6,15 +6,19 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use setasign\Fpdi\Fpdf\Fpdf;
-
 function generateContractPdfSimple($data, $outputPath) {
     $logFile = __DIR__ . '/../data/pdf_generation_simple.log';
     file_put_contents($logFile, "\n=== SIMPLE PDF GENERATION === " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
     
     try {
-        $pdf = new Fpdf();
+        file_put_contents($logFile, "Creating FPDF instance...\n", FILE_APPEND);
+        
+        // Используем класс FPDF напрямую
+        $pdf = new \setasign\Fpdi\Fpdf\Fpdf();
+        
+        file_put_contents($logFile, "FPDF created OK\n", FILE_APPEND);
         $pdf->AddPage();
+        file_put_contents($logFile, "Page added\n", FILE_APPEND);
         
         // Добавляем шрифт для русского текста
         $fontPath = __DIR__ . '/DejaVuSansCondensed.ttf';
