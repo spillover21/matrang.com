@@ -105,6 +105,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [pdfTemplate, setPdfTemplate] = useState<string>("");
+  const [pdfFieldInfo, setPdfFieldInfo] = useState<{ count: number; names: string[]; lastChecked?: string; error?: string }>({
+    count: 0,
+    names: []
+  });
   
   const [formData, setFormData] = useState<ContractData>({
     // Данные питомника
@@ -369,7 +373,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     console.log('Field names:', fields.map(f => f.getName()));
 
     if (fields.length === 0) {
-      return { bytes: null, filledCount: 0, notFoundCount: 0, hasFields: false };
+      return { bytes: null, filledCount: 0, notFoundCount: 0, hasFields: false, fieldNames: [] };
     }
 
     const fieldMap = buildFieldMap();
@@ -395,7 +399,39 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     });
 
     const filledPdfBytes = await pdfDoc.save();
-    return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true };
+    return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
+  };
+
+  const checkPdfFields = async () => {
+    if (!pdfTemplate) {
+      toast.error("Загрузите PDF шаблон договора");
+      return;
+    }
+
+    try {
+      const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const form = pdfDoc.getForm();
+      const fields = form.getFields();
+      const names = fields.map(f => f.getName());
+
+      setPdfFieldInfo({
+        count: fields.length,
+        names,
+        lastChecked: new Date().toLocaleTimeString(),
+        error: undefined
+      });
+
+      if (fields.length === 0) {
+        toast.error("В PDF нет AcroForm полей. Скорее всего это XFA/плоский PDF.");
+      } else {
+        toast.success(`Найдено полей: ${fields.length}`);
+      }
+    } catch (error) {
+      const message = (error as Error).message || "Ошибка проверки PDF";
+      setPdfFieldInfo({ count: 0, names: [], lastChecked: new Date().toLocaleTimeString(), error: message });
+      toast.error("Ошибка проверки PDF: " + message);
+    }
   };
 
   const sendContract = async () => {
@@ -569,6 +605,17 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     <a href={pdfTemplate} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                       Просмотреть PDF
                     </a>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Поля формы: {pdfFieldInfo.count} {pdfFieldInfo.lastChecked ? `• проверено ${pdfFieldInfo.lastChecked}` : ''}
+                      {pdfFieldInfo.error ? ` • ошибка: ${pdfFieldInfo.error}` : ''}
+                    </div>
+                    {pdfFieldInfo.names.length > 0 && (
+                      <div className="mt-1 max-h-24 overflow-auto text-xs">
+                        {pdfFieldInfo.names.map((name) => (
+                          <div key={name}>{name}</div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <label className="cursor-pointer">
                     <Button variant="outline" size="sm" asChild>
@@ -587,6 +634,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                       className="hidden"
                     />
                   </label>
+                  <Button variant="secondary" size="sm" onClick={checkPdfFields}>
+                    Проверить поля
+                  </Button>
                 </div>
               ) : (
                 <label className="flex items-center justify-center gap-2 p-8 border-2 border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors">
