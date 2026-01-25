@@ -615,6 +615,9 @@ if ($action === 'sendcontractpdf') {
     // Получаем входные данные
     $jsonInput = json_decode(file_get_contents('php://input'), true);
     file_put_contents($debugLog, date('Y-m-d H:i:s') . " - JSON input keys: " . implode(', ', array_keys($jsonInput ?? [])) . "\n", FILE_APPEND);
+    if (!empty($jsonInput['filledPdfBase64'])) {
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - filledPdfBase64 length: " . strlen($jsonInput['filledPdfBase64']) . "\n", FILE_APPEND);
+    }
     file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Full JSON: " . substr(json_encode($jsonInput, JSON_UNESCAPED_UNICODE), 0, 500) . "...\n", FILE_APPEND);
     
     // Загружаем конфигурацию Adobe Sign
