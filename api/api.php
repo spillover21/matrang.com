@@ -660,100 +660,122 @@ if ($action === 'sendcontractpdf') {
         $contracts[] = $newContract;
         file_put_contents($contractsFile, json_encode($contracts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         
-        // Отправка email с PDF (упрощенная версия)
+        // Генерируем PDF с данными
+        require_once __DIR__ . '/generate_contract_pdf.php';
+        
+        $templatePath = __DIR__ . '/..' . $pdfTemplate;
+        $outputDir = $uploadDir . 'contracts/filled/';
+        if (!is_dir($outputDir)) {
+            mkdir($outputDir, 0755, true);
+        }
+        
+        $outputFilename = 'contract_' . $contractNumber . '.pdf';
+        $outputPath = $outputDir . $outputFilename;
+        
+        // Добавляем номер договора в данные
+        $data['contractNumber'] = $contractNumber;
+        $data['contractDate'] = date('d.m.Y');
+        
+        // Генерируем PDF (пытаемся)
+        $pdfGenerated = false;
+        if (file_exists($templatePath)) {
+            try {
+                $pdfGenerated = generateContractPdf($templatePath, $data, $outputPath);
+            } catch (Exception $e) {
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF generation failed: " . $e->getMessage() . "\n", FILE_APPEND);
+            }
+        }
+        
+        // Отправка email с PDF
         $buyerEmail = $data['buyerEmail'] ?? '';
         $buyerName = $data['buyerName'] ?? '';
         $dogName = $data['dogName'] ?? '';
+        $kennelEmail = $data['kennelEmail'] ?? 'info@matrang.com';
         
         if ($buyerEmail) {
             $subject = "Договор купли-продажи щенка - №{$contractNumber}";
             
-            // Создаем HTML письмо с данными договора
-            $htmlMessage = '
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        h1 { color: #2c3e50; text-align: center; }
-        .section { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; }
-        .field { margin: 8px 0; }
-        .label { font-weight: bold; color: #555; }
-        .note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>GREAT LEGACY BULLY</h1>
-        <h2>Договор купли-продажи щенка American Bully</h2>
-        <p style="text-align: center;"><strong>№ ' . htmlspecialchars($contractNumber) . '</strong> от ' . date('d.m.Y') . '</p>
-        
-        <div class="note">
-            <p><strong>Здравствуйте, ' . htmlspecialchars($buyerName) . '!</strong></p>
-            <p>Вам направлен договор купли-продажи щенка <strong>' . htmlspecialchars($dogName) . '</strong>.</p>
-            <p>Пожалуйста, ознакомьтесь с условиями договора ниже.</p>
-        </div>
-        
-        <div class="section">
-            <h3>1. ЗАВОДЧИК-ПРОДАВЕЦ</h3>
-            <div class="field"><span class="label">ФИО:</span> ' . htmlspecialchars($data['kennelOwner'] ?? '') . '</div>
-            <div class="field"><span class="label">Адрес:</span> ' . htmlspecialchars($data['kennelAddress'] ?? '') . '</div>
-            <div class="field"><span class="label">Телефон:</span> ' . htmlspecialchars($data['kennelPhone'] ?? '') . '</div>
-            <div class="field"><span class="label">Email:</span> ' . htmlspecialchars($data['kennelEmail'] ?? '') . '</div>
-        </div>
-        
-        <div class="section">
-            <h3>2. ПОКУПАТЕЛЬ-ВЛАДЕЛЕЦ</h3>
-            <div class="field"><span class="label">ФИО:</span> ' . htmlspecialchars($buyerName) . '</div>
-            <div class="field"><span class="label">Адрес:</span> ' . htmlspecialchars($data['buyerAddress'] ?? '') . '</div>
-            <div class="field"><span class="label">Телефон:</span> ' . htmlspecialchars($data['buyerPhone'] ?? '') . '</div>
-            <div class="field"><span class="label">Email:</span> ' . htmlspecialchars($buyerEmail) . '</div>
-        </div>
-        
-        <div class="section">
-            <h3>3. ПРЕДМЕТ ДОГОВОРА - ЩЕНОК</h3>
-            <div class="field"><span class="label">Кличка:</span> ' . htmlspecialchars($dogName) . '</div>
-            <div class="field"><span class="label">Порода:</span> ' . htmlspecialchars($data['dogBreed'] ?? 'Американский булли') . '</div>
-            <div class="field"><span class="label">Дата рождения:</span> ' . htmlspecialchars($data['dogBirthDate'] ?? '') . '</div>
-            <div class="field"><span class="label">Пол:</span> ' . htmlspecialchars($data['dogGender'] ?? '') . '</div>
-            <div class="field"><span class="label">Окрас:</span> ' . htmlspecialchars($data['dogColor'] ?? '') . '</div>
-            ' . (!empty($data['dogChipNumber']) ? '<div class="field"><span class="label">Номер чипа:</span> ' . htmlspecialchars($data['dogChipNumber']) . '</div>' : '') . '
-        </div>
-        
-        <div class="section">
-            <h3>5. ФИНАНСОВЫЕ УСЛОВИЯ</h3>
-            <div class="field"><span class="label">Полная стоимость:</span> <strong>' . htmlspecialchars($data['price'] ?? '0') . ' руб.</strong></div>
-            ' . (!empty($data['depositAmount']) ? '<div class="field"><span class="label">Задаток:</span> ' . htmlspecialchars($data['depositAmount']) . ' руб. (внесен ' . htmlspecialchars($data['depositDate'] ?? '') . ')</div>' : '') . '
-            ' . (!empty($data['remainingAmount']) ? '<div class="field"><span class="label">Остаток к оплате:</span> ' . htmlspecialchars($data['remainingAmount']) . ' руб.</div>' : '') . '
-        </div>
-        
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">
-            <p><strong>С уважением,<br>Питомник GREAT LEGACY BULLY</strong></p>
-            <p style="font-size: 12px; color: #666;">Для подписания договора, пожалуйста, свяжитесь с нами.</p>
-        </div>
-    </div>
-</body>
-</html>';
+            // Подготовка письма с вложением PDF
+            $boundary = md5(time());
             
             $headers = "From: noreply@matrang.com\r\n";
-            $headers .= "Reply-To: " . ($data['kennelEmail'] ?? 'info@matrang.com') . "\r\n";
-            $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $headers .= "Reply-To: {$kennelEmail}\r\n";
             $headers .= "MIME-Version: 1.0\r\n";
+            $headers .= "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n";
             
-            $mailSent = @mail($buyerEmail, $subject, $htmlMessage, $headers);
+            $message = "--{$boundary}\r\n";
+            $message .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+            
+            $message .= "
+<!DOCTYPE html>
+<html>
+<head><meta charset='UTF-8'></head>
+<body style='font-family: Arial, sans-serif; line-height: 1.6;'>
+    <h2>GREAT LEGACY BULLY</h2>
+    <h3>Договор купли-продажи щенка American Bully</h3>
+    
+    <p><strong>Здравствуйте, " . htmlspecialchars($buyerName) . "!</strong></p>
+    
+    <p>Вам направлен договор купли-продажи щенка <strong>" . htmlspecialchars($dogName) . "</strong>.</p>
+    <p>Номер договора: <strong>{$contractNumber}</strong></p>
+    
+    <p><strong>Во вложении находится PDF договор.</strong></p>
+    
+    <p>Пожалуйста:</p>
+    <ol>
+        <li>Откройте прикрепленный PDF файл</li>
+        <li>Ознакомьтесь с условиями договора</li>
+        <li>Распечатайте и подпишите договор</li>
+        <li>Отсканируйте подписанный договор и отправьте на {$kennelEmail}</li>
+    </ol>
+    
+    <hr>
+    <p><strong>Основная информация:</strong></p>
+    <ul>
+        <li><strong>Щенок:</strong> " . htmlspecialchars($dogName) . " (" . htmlspecialchars($data['dogBreed'] ?? 'Американский булли') . ")</li>
+        <li><strong>Стоимость:</strong> " . htmlspecialchars($data['price'] ?? '0') . " руб.</li>
+        <li><strong>Покупатель:</strong> " . htmlspecialchars($buyerName) . "</li>
+    </ul>
+    
+    <p>С уважением,<br><strong>Питомник GREAT LEGACY BULLY</strong></p>
+    <p style='font-size: 12px; color: #666;'>Телефон: " . htmlspecialchars($data['kennelPhone'] ?? '') . "<br>Email: {$kennelEmail}</p>
+</body>
+</html>\r\n";
+            
+            // Прикрепляем PDF если сгенерирован
+            if ($pdfGenerated && file_exists($outputPath)) {
+                $pdfContent = file_get_contents($outputPath);
+                $pdfContentEncoded = chunk_split(base64_encode($pdfContent));
+                
+                $message .= "--{$boundary}\r\n";
+                $message .= "Content-Type: application/pdf; name=\"{$outputFilename}\"\r\n";
+                $message .= "Content-Transfer-Encoding: base64\r\n";
+                $message .= "Content-Disposition: attachment; filename=\"{$outputFilename}\"\r\n\r\n";
+                $message .= $pdfContentEncoded . "\r\n";
+            }
+            
+            $message .= "--{$boundary}--";
+            
+            $mailSent = @mail($buyerEmail, $subject, $message, $headers);
             
             // Логируем отправку
             $mailLog = __DIR__ . '/../data/mail.log';
-            file_put_contents($mailLog, date('Y-m-d H:i:s') . " - Email to: {$buyerEmail} | Subject: {$subject} | Sent: " . ($mailSent ? 'YES' : 'NO') . "\n", FILE_APPEND);
+            file_put_contents($mailLog, date('Y-m-d H:i:s') . " - Email to: {$buyerEmail} | PDF: " . ($pdfGenerated ? 'YES' : 'NO') . " | Sent: " . ($mailSent ? 'YES' : 'NO') . "\n", FILE_APPEND);
+            
+            // Отправляем копию продавцу
+            if ($mailSent) {
+                @mail($kennelEmail, "Копия договора {$contractNumber}", $message, $headers);
+            }
         }
         
         echo json_encode([
             'success' => true, 
             'contract' => $newContract, 
-            'note' => 'Договор отправлен на email: ' . $buyerEmail,
-            'emailSent' => !empty($buyerEmail)
+            'note' => 'Договор отправлен на email: ' . $buyerEmail . ($pdfGenerated ? ' (с PDF вложением)' : ' (без PDF)'),
+            'emailSent' => !empty($buyerEmail),
+            'pdfGenerated' => $pdfGenerated,
+            'pdfUrl' => $pdfGenerated ? '/uploads/contracts/filled/' . $outputFilename : ''
         ]);
         exit;
     }
