@@ -13,8 +13,17 @@ function generateContractPdfSimple($data, $outputPath) {
     try {
         file_put_contents($logFile, "Creating FPDF instance...\n", FILE_APPEND);
         
-        // Используем класс FPDF напрямую
-        $pdf = new \setasign\Fpdi\Fpdf\Fpdf();
+        // Проверяем какие классы доступны
+        if (class_exists('FPDF')) {
+            file_put_contents($logFile, "Using FPDF class\n", FILE_APPEND);
+            $pdf = new \FPDF();
+        } elseif (class_exists('setasign\\Fpdi\\Fpdf\\Fpdf')) {
+            file_put_contents($logFile, "Using setasign FPDF class\n", FILE_APPEND);
+            $pdf = new \setasign\Fpdi\Fpdf\Fpdf();
+        } else {
+            file_put_contents($logFile, "ERROR: No FPDF class found!\n", FILE_APPEND);
+            return false;
+        }
         
         file_put_contents($logFile, "FPDF created OK\n", FILE_APPEND);
         $pdf->AddPage();
