@@ -14,20 +14,32 @@ interface ContractTemplate {
 }
 
 interface ContractData {
-  // Данные питомника
+  // Данные питомника/заводчика
   kennelName: string;
   kennelOwner: string;
   kennelAddress: string;
   kennelPhone: string;
   kennelEmail: string;
-  kennelInn?: string;
+  kennelPassportSeries?: string;
+  kennelPassportNumber?: string;
+  kennelPassportIssuedBy?: string;
+  kennelPassportIssuedDate?: string;
   
   // Данные покупателя
   buyerName: string;
-  buyerPassport: string;
   buyerAddress: string;
   buyerPhone: string;
   buyerEmail: string;
+  buyerPassportSeries?: string;
+  buyerPassportNumber?: string;
+  buyerPassportIssuedBy?: string;
+  buyerPassportIssuedDate?: string;
+  
+  // Данные о родителях щенка
+  dogFatherName?: string;
+  dogFatherRegNumber?: string;
+  dogMotherName?: string;
+  dogMotherRegNumber?: string;
   
   // Данные о щенке
   dogName: string;
@@ -36,18 +48,36 @@ interface ContractData {
   dogGender: string;
   dogColor: string;
   dogChipNumber?: string;
-  dogPedigree?: string;
+  dogPuppyCard?: string;
+  
+  // Цель приобретения
+  purposeBreeding?: boolean;
+  purposeCompanion?: boolean;
+  purposeGeneral?: boolean;
   
   // Финансовые условия
   price: string;
-  prepayment?: string;
-  paymentMethod: string;
+  depositAmount?: string;
+  depositDate?: string;
+  remainingAmount?: string;
+  finalPaymentDate?: string;
+  
+  // Вакцинация
+  dewormingDate?: string;
+  vaccinationDates?: string;
+  vaccineName?: string;
+  nextDewormingDate?: string;
+  nextVaccinationDate?: string;
   
   // Дополнительные условия
-  additionalTerms?: string;
+  specialFeatures?: string;
+  deliveryTerms?: string;
+  additionalAgreements?: string;
+  recommendedFood?: string;
   
-  // Дата договора
+  // Дата и место договора
   contractDate: string;
+  contractPlace?: string;
 }
 
 interface SignedContract {
@@ -76,29 +106,70 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   const [pdfTemplate, setPdfTemplate] = useState<string>("");
   
   const [formData, setFormData] = useState<ContractData>({
+    // Данные питомника
     kennelName: "GREAT LEGACY BULLY",
     kennelOwner: "",
     kennelAddress: "",
-    kennelPhone: "",
-    kennelEmail: "",
-    kennelInn: "",
+    kennelPhone: "+7 (900) 455-27-16",
+    kennelEmail: "greatlegacybully@gmail.com",
+    kennelPassportSeries: "",
+    kennelPassportNumber: "",
+    kennelPassportIssuedBy: "",
+    kennelPassportIssuedDate: "",
+    
+    // Данные покупателя
     buyerName: "",
-    buyerPassport: "",
     buyerAddress: "",
     buyerPhone: "",
     buyerEmail: "",
+    buyerPassportSeries: "",
+    buyerPassportNumber: "",
+    buyerPassportIssuedBy: "",
+    buyerPassportIssuedDate: "",
+    
+    // Родители щенка
+    dogFatherName: "",
+    dogFatherRegNumber: "",
+    dogMotherName: "",
+    dogMotherRegNumber: "",
+    
+    // Данные щенка
     dogName: "",
-    dogBreed: "American Bully",
+    dogBreed: "Американский булли",
     dogBirthDate: "",
     dogGender: "",
     dogColor: "",
     dogChipNumber: "",
-    dogPedigree: "",
+    dogPuppyCard: "",
+    
+    // Цель приобретения
+    purposeBreeding: false,
+    purposeCompanion: false,
+    purposeGeneral: false,
+    
+    // Финансовые условия
     price: "",
-    prepayment: "",
-    paymentMethod: "Наличные",
-    additionalTerms: "",
+    depositAmount: "",
+    depositDate: "",
+    remainingAmount: "",
+    finalPaymentDate: "",
+    
+    // Вакцинация
+    dewormingDate: "",
+    vaccinationDates: "",
+    vaccineName: "",
+    nextDewormingDate: "",
+    nextVaccinationDate: "",
+    
+    // Дополнительные условия
+    specialFeatures: "",
+    deliveryTerms: "",
+    additionalAgreements: "",
+    recommendedFood: "",
+    
+    // Дата и место договора
     contractDate: new Date().toISOString().split('T')[0],
+    contractPlace: "г. Каяани, Финляндия",
   });
 
   useEffect(() => {
@@ -147,7 +218,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
-  const handleChange = (field: keyof ContractData, value: string) => {
+  const handleChange = (field: keyof ContractData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -242,23 +313,50 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       if (data.success) {
         toast.success("Договор отправлен на подпись через Adobe Sign");
         loadData();
-        // Очистка формы
+        // Очистка формы - оставляем данные питомника, очищаем данные покупателя и щенка
         setFormData({
           ...formData,
+          // Очищаем данные покупателя
           buyerName: "",
-          buyerPassport: "",
           buyerAddress: "",
           buyerPhone: "",
           buyerEmail: "",
+          buyerPassportSeries: "",
+          buyerPassportNumber: "",
+          buyerPassportIssuedBy: "",
+          buyerPassportIssuedDate: "",
+          // Очищаем данные щенка (кроме породы)
+          dogFatherName: "",
+          dogFatherRegNumber: "",
+          dogMotherName: "",
+          dogMotherRegNumber: "",
           dogName: "",
           dogBirthDate: "",
           dogGender: "",
           dogColor: "",
           dogChipNumber: "",
-          dogPedigree: "",
+          dogPuppyCard: "",
+          // Очищаем цели
+          purposeBreeding: false,
+          purposeCompanion: false,
+          purposeGeneral: false,
+          // Очищаем финансы
           price: "",
-          prepayment: "",
-          additionalTerms: "",
+          depositAmount: "",
+          depositDate: "",
+          remainingAmount: "",
+          finalPaymentDate: "",
+          // Очищаем вакцинацию
+          dewormingDate: "",
+          vaccinationDates: "",
+          vaccineName: "",
+          nextDewormingDate: "",
+          nextVaccinationDate: "",
+          // Очищаем доп.поля
+          specialFeatures: "",
+          deliveryTerms: "",
+          additionalAgreements: "",
+          // Обновляем дату
           contractDate: new Date().toISOString().split('T')[0],
         });
       } else {
@@ -288,64 +386,90 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         </style>
       </head>
       <body>
-        <h1>ДОГОВОР КУПЛИ-ПРОДАЖИ ЩЕНКА</h1>
+        <h1>GREAT LEGACY BULLY</h1>
+        <h2>ДОГОВОР КУПЛИ-ПРОДАЖИ ЩЕНКА American Bully</h2>
         <p style="text-align: center;">№ ____ от ${formData.contractDate}</p>
+        <p style="text-align: center;">${formData.contractPlace || ''}</p>
         
         <div class="section">
-          <h3>1. ПРОДАВЕЦ (Питомник)</h3>
-          <div class="field"><span class="label">Название:</span> ${formData.kennelName}</div>
-          <div class="field"><span class="label">Владелец:</span> ${formData.kennelOwner}</div>
+          <h3>1. ЗАВОДЧИК-ПРОДАВЕЦ</h3>
+          <div class="field"><span class="label">ФИО:</span> ${formData.kennelOwner}</div>
           <div class="field"><span class="label">Адрес:</span> ${formData.kennelAddress}</div>
           <div class="field"><span class="label">Телефон:</span> ${formData.kennelPhone}</div>
           <div class="field"><span class="label">Email:</span> ${formData.kennelEmail}</div>
-          ${formData.kennelInn ? `<div class="field"><span class="label">ИНН:</span> ${formData.kennelInn}</div>` : ''}
+          ${formData.kennelPassportSeries ? `<div class="field"><span class="label">Паспорт:</span> ${formData.kennelPassportSeries} ${formData.kennelPassportNumber}</div>` : ''}
         </div>
 
         <div class="section">
-          <h3>2. ПОКУПАТЕЛЬ</h3>
+          <h3>2. ПОКУПАТЕЛЬ-ВЛАДЕЛЕЦ</h3>
           <div class="field"><span class="label">ФИО:</span> ${formData.buyerName}</div>
-          <div class="field"><span class="label">Паспорт:</span> ${formData.buyerPassport}</div>
           <div class="field"><span class="label">Адрес:</span> ${formData.buyerAddress}</div>
           <div class="field"><span class="label">Телефон:</span> ${formData.buyerPhone}</div>
           <div class="field"><span class="label">Email:</span> ${formData.buyerEmail}</div>
+          ${formData.buyerPassportSeries ? `<div class="field"><span class="label">Паспорт:</span> ${formData.buyerPassportSeries} ${formData.buyerPassportNumber}</div>` : ''}
         </div>
 
         <div class="section">
-          <h3>3. ПРЕДМЕТ ДОГОВОРА</h3>
-          <p>Продавец передает в собственность, а Покупатель принимает и оплачивает щенка со следующими характеристиками:</p>
+          <h3>3. ПРЕДМЕТ ДОГОВОРА - ЩЕНОК</h3>
+          ${formData.dogFatherName ? `
+          <p><strong>Родители:</strong></p>
+          <div class="field"><span class="label">Отец:</span> ${formData.dogFatherName} (${formData.dogFatherRegNumber || 'н/д'})</div>
+          <div class="field"><span class="label">Мать:</span> ${formData.dogMotherName} (${formData.dogMotherRegNumber || 'н/д'})</div>
+          ` : ''}
+          <p><strong>Данные щенка:</strong></p>
           <div class="field"><span class="label">Кличка:</span> ${formData.dogName}</div>
           <div class="field"><span class="label">Порода:</span> ${formData.dogBreed}</div>
           <div class="field"><span class="label">Дата рождения:</span> ${formData.dogBirthDate}</div>
           <div class="field"><span class="label">Пол:</span> ${formData.dogGender}</div>
           <div class="field"><span class="label">Окрас:</span> ${formData.dogColor}</div>
           ${formData.dogChipNumber ? `<div class="field"><span class="label">№ чипа:</span> ${formData.dogChipNumber}</div>` : ''}
-          ${formData.dogPedigree ? `<div class="field"><span class="label">Родословная:</span> ${formData.dogPedigree}</div>` : ''}
+          ${formData.dogPuppyCard ? `<div class="field"><span class="label">Щенячья карточка:</span> ${formData.dogPuppyCard}</div>` : ''}
+          ${(formData.purposeBreeding || formData.purposeCompanion || formData.purposeGeneral) ? `
+          <p><strong>Цель приобретения:</strong></p>
+          ${formData.purposeBreeding ? '<div class="field">☑ Для племенной работы (разведение)</div>' : ''}
+          ${formData.purposeCompanion ? '<div class="field">☑ Компаньон (без разведения)</div>' : ''}
+          ${formData.purposeGeneral ? '<div class="field">☑ Общение, не исключающее разведения</div>' : ''}
+          ` : ''}
         </div>
 
+        ${formData.vaccinationDates || formData.dewormingDate ? `
         <div class="section">
-          <h3>4. СТОИМОСТЬ И ПОРЯДОК ОПЛАТЫ</h3>
-          <div class="field"><span class="label">Стоимость щенка:</span> ${formData.price} руб.</div>
-          ${formData.prepayment ? `<div class="field"><span class="label">Предоплата:</span> ${formData.prepayment} руб.</div>` : ''}
-          <div class="field"><span class="label">Способ оплаты:</span> ${formData.paymentMethod}</div>
+          <h3>4. ВАКЦИНАЦИЯ</h3>
+          ${formData.dewormingDate ? `<div class="field"><span class="label">Выгонка глистов:</span> ${formData.dewormingDate}</div>` : ''}
+          ${formData.vaccinationDates ? `<div class="field"><span class="label">Прививки:</span> ${formData.vaccinationDates}</div>` : ''}
+          ${formData.vaccineName ? `<div class="field"><span class="label">Вакцина:</span> ${formData.vaccineName}</div>` : ''}
+        </div>
+        ` : ''}
+
+        <div class="section">
+          <h3>5. ФИНАНСОВЫЕ УСЛОВИЯ</h3>
+          <div class="field"><span class="label">Полная стоимость:</span> ${formData.price} руб.</div>
+          ${formData.depositAmount ? `<div class="field"><span class="label">Сумма задатка:</span> ${formData.depositAmount} руб. (внесен ${formData.depositDate || ''})</div>` : ''}
+          ${formData.remainingAmount ? `<div class="field"><span class="label">Остаток к оплате:</span> ${formData.remainingAmount} руб.</div>` : ''}
+          ${formData.finalPaymentDate ? `<div class="field"><span class="label">Срок оплаты:</span> не позднее ${formData.finalPaymentDate}</div>` : ''}
         </div>
 
-        ${formData.additionalTerms ? `
+        ${formData.additionalAgreements || formData.deliveryTerms || formData.specialFeatures ? `
         <div class="section">
-          <h3>5. ДОПОЛНИТЕЛЬНЫЕ УСЛОВИЯ</h3>
-          <p>${formData.additionalTerms}</p>
+          <h3>6. ДОПОЛНИТЕЛЬНЫЕ УСЛОВИЯ</h3>
+          ${formData.specialFeatures ? `<p><strong>Особенности щенка:</strong><br>${formData.specialFeatures}</p>` : ''}
+          ${formData.deliveryTerms ? `<p><strong>Условия доставки:</strong><br>${formData.deliveryTerms}</p>` : ''}
+          ${formData.additionalAgreements ? `<p><strong>Доп. соглашения:</strong><br>${formData.additionalAgreements}</p>` : ''}
         </div>
         ` : ''}
 
         <div class="signature">
           <div class="signature-block">
-            <p>ПРОДАВЕЦ</p>
+            <p>ЗАВОДЧИК-ПРОДАВЕЦ</p>
             <p>_________________</p>
             <p>${formData.kennelOwner}</p>
+            <p>Дата: _____________</p>
           </div>
           <div class="signature-block">
             <p>ПОКУПАТЕЛЬ</p>
             <p>_________________</p>
             <p>${formData.buyerName}</p>
+            <p>Дата: _____________</p>
           </div>
         </div>
       </body>
@@ -423,7 +547,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Данные питомника</h2>
+              <h2 className="text-xl font-semibold mb-4">Данные питомника / Заводчика</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Название питомника</label>
@@ -434,19 +558,19 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Владелец питомника *</label>
+                  <label className="block text-sm font-medium mb-1">Владелец питомника / ФИО Заводчика *</label>
                   <Input
                     value={formData.kennelOwner}
                     onChange={(e) => handleChange('kennelOwner', e.target.value)}
                     placeholder="Иванов Иван Иванович"
                   />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label className="block text-sm font-medium mb-1">Адрес</label>
                   <Input
                     value={formData.kennelAddress}
                     onChange={(e) => handleChange('kennelAddress', e.target.value)}
-                    placeholder="г. Москва, ул. ..."
+                    placeholder="г. Каяани, Финляндия"
                   />
                 </div>
                 <div>
@@ -454,7 +578,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   <Input
                     value={formData.kennelPhone}
                     onChange={(e) => handleChange('kennelPhone', e.target.value)}
-                    placeholder="+7 (___) ___-__-__"
+                    placeholder="+7 (900) 455-27-16"
                   />
                 </div>
                 <div>
@@ -462,24 +586,48 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   <Input
                     value={formData.kennelEmail}
                     onChange={(e) => handleChange('kennelEmail', e.target.value)}
-                    placeholder="info@kennel.ru"
+                    placeholder="greatlegacybully@gmail.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">ИНН (опционально)</label>
+                  <label className="block text-sm font-medium mb-1">Паспорт серия</label>
                   <Input
-                    value={formData.kennelInn}
-                    onChange={(e) => handleChange('kennelInn', e.target.value)}
-                    placeholder="1234567890"
+                    value={formData.kennelPassportSeries}
+                    onChange={(e) => handleChange('kennelPassportSeries', e.target.value)}
+                    placeholder="1234"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Паспорт номер</label>
+                  <Input
+                    value={formData.kennelPassportNumber}
+                    onChange={(e) => handleChange('kennelPassportNumber', e.target.value)}
+                    placeholder="567890"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Паспорт выдан</label>
+                  <Input
+                    value={formData.kennelPassportIssuedBy}
+                    onChange={(e) => handleChange('kennelPassportIssuedBy', e.target.value)}
+                    placeholder="УФМС..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Дата выдачи паспорта</label>
+                  <Input
+                    type="date"
+                    value={formData.kennelPassportIssuedDate}
+                    onChange={(e) => handleChange('kennelPassportIssuedDate', e.target.value)}
                   />
                 </div>
               </div>
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Данные покупателя</h2>
+              <h2 className="text-xl font-semibold mb-4">Данные покупателя / Владельца</h2>
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="col-span-2">
                   <label className="block text-sm font-medium mb-1">ФИО покупателя *</label>
                   <Input
                     value={formData.buyerName}
@@ -487,16 +635,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     placeholder="Петров Петр Петрович"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Паспортные данные</label>
-                  <Input
-                    value={formData.buyerPassport}
-                    onChange={(e) => handleChange('buyerPassport', e.target.value)}
-                    placeholder="1234 567890 выдан ..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Адрес</label>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium mb-1">Адрес регистрации</label>
                   <Input
                     value={formData.buyerAddress}
                     onChange={(e) => handleChange('buyerAddress', e.target.value)}
@@ -511,7 +651,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     placeholder="+7 (___) ___-__-__"
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium mb-1">Email покупателя *</label>
                   <Input
                     value={formData.buyerEmail}
@@ -519,14 +659,87 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     placeholder="buyer@email.com"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Паспорт серия</label>
+                  <Input
+                    value={formData.buyerPassportSeries}
+                    onChange={(e) => handleChange('buyerPassportSeries', e.target.value)}
+                    placeholder="1234"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Паспорт номер</label>
+                  <Input
+                    value={formData.buyerPassportNumber}
+                    onChange={(e) => handleChange('buyerPassportNumber', e.target.value)}
+                    placeholder="567890"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Паспорт выдан</label>
+                  <Input
+                    value={formData.buyerPassportIssuedBy}
+                    onChange={(e) => handleChange('buyerPassportIssuedBy', e.target.value)}
+                    placeholder="УФМС..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Дата выдачи паспорта</label>
+                  <Input
+                    type="date"
+                    value={formData.buyerPassportIssuedDate}
+                    onChange={(e) => handleChange('buyerPassportIssuedDate', e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Данные о щенке</h2>
+              
+              {/* Родители */}
+              <div className="mb-4 pb-4 border-b border-border">
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Родители щенка</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Кличка отца</label>
+                    <Input
+                      value={formData.dogFatherName}
+                      onChange={(e) => handleChange('dogFatherName', e.target.value)}
+                      placeholder="CHAMPION NAME"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Рег. номер отца</label>
+                    <Input
+                      value={formData.dogFatherRegNumber}
+                      onChange={(e) => handleChange('dogFatherRegNumber', e.target.value)}
+                      placeholder="ABKC/UKC..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Кличка матери</label>
+                    <Input
+                      value={formData.dogMotherName}
+                      onChange={(e) => handleChange('dogMotherName', e.target.value)}
+                      placeholder="CHAMPION NAME"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Рег. номер матери</label>
+                    <Input
+                      value={formData.dogMotherRegNumber}
+                      onChange={(e) => handleChange('dogMotherRegNumber', e.target.value)}
+                      placeholder="ABKC/UKC..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Данные щенка */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Кличка *</label>
+                  <label className="block text-sm font-medium mb-1">Кличка щенка *</label>
                   <Input
                     value={formData.dogName}
                     onChange={(e) => handleChange('dogName', e.target.value)}
@@ -538,7 +751,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   <Input
                     value={formData.dogBreed}
                     onChange={(e) => handleChange('dogBreed', e.target.value)}
-                    placeholder="American Bully"
+                    placeholder="Американский булли"
                   />
                 </div>
                 <div>
@@ -570,7 +783,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Номер чипа (опционально)</label>
+                  <label className="block text-sm font-medium mb-1">Номер чипа</label>
                   <Input
                     value={formData.dogChipNumber}
                     onChange={(e) => handleChange('dogChipNumber', e.target.value)}
@@ -578,12 +791,46 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1">Родословная (опционально)</label>
+                  <label className="block text-sm font-medium mb-1">Щенячья карточка ABKC</label>
                   <Input
-                    value={formData.dogPedigree}
-                    onChange={(e) => handleChange('dogPedigree', e.target.value)}
-                    placeholder="ABKC/UKC номер"
+                    value={formData.dogPuppyCard}
+                    onChange={(e) => handleChange('dogPuppyCard', e.target.value)}
+                    placeholder="ABKC номер"
                   />
+                </div>
+              </div>
+
+              {/* Цель приобретения */}
+              <div className="mt-4 pt-4 border-t border-border">
+                <h3 className="text-sm font-semibold mb-3">Цель приобретения</h3>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.purposeBreeding}
+                      onChange={(e) => handleChange('purposeBreeding', e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Для племенной работы (разведение)</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.purposeCompanion}
+                      onChange={(e) => handleChange('purposeCompanion', e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Компаньон (без разведения)</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.purposeGeneral}
+                      onChange={(e) => handleChange('purposeGeneral', e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Общение, не исключающее разведения</span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -592,7 +839,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
               <h2 className="text-xl font-semibold mb-4">Финансовые условия</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Стоимость (руб.) *</label>
+                  <label className="block text-sm font-medium mb-1">Полная стоимость (руб.) *</label>
                   <Input
                     type="number"
                     value={formData.price}
@@ -601,47 +848,150 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Предоплата (руб.)</label>
+                  <label className="block text-sm font-medium mb-1">Сумма задатка (руб.)</label>
                   <Input
                     type="number"
-                    value={formData.prepayment}
-                    onChange={(e) => handleChange('prepayment', e.target.value)}
+                    value={formData.depositAmount}
+                    onChange={(e) => handleChange('depositAmount', e.target.value)}
                     placeholder="30000"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Дата внесения задатка</label>
+                  <Input
+                    type="date"
+                    value={formData.depositDate}
+                    onChange={(e) => handleChange('depositDate', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Остаток к оплате (руб.)</label>
+                  <Input
+                    type="number"
+                    value={formData.remainingAmount}
+                    onChange={(e) => handleChange('remainingAmount', e.target.value)}
+                    placeholder={formData.price && formData.depositAmount ? 
+                      String(Number(formData.price) - Number(formData.depositAmount)) : "120000"}
+                  />
+                </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1">Способ оплаты</label>
-                  <select
-                    value={formData.paymentMethod}
-                    onChange={(e) => handleChange('paymentMethod', e.target.value)}
-                    className="w-full bg-background border border-border px-3 py-2 rounded"
-                  >
-                    <option value="Наличные">Наличные</option>
-                    <option value="Безналичный расчет">Безналичный расчет</option>
-                    <option value="Комбинированный">Комбинированный</option>
-                  </select>
+                  <label className="block text-sm font-medium mb-1">Срок окончательного расчета</label>
+                  <Input
+                    type="date"
+                    value={formData.finalPaymentDate}
+                    onChange={(e) => handleChange('finalPaymentDate', e.target.value)}
+                  />
                 </div>
               </div>
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Дополнительные условия</h2>
-              <Textarea
-                value={formData.additionalTerms}
-                onChange={(e) => handleChange('additionalTerms', e.target.value)}
-                placeholder="Укажите дополнительные условия договора, гарантии, особые требования..."
-                className="min-h-32"
-              />
+              <h2 className="text-xl font-semibold mb-4">Вакцинация и ветеринарные процедуры</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Дата выгонки глистов</label>
+                  <Input
+                    type="date"
+                    value={formData.dewormingDate}
+                    onChange={(e) => handleChange('dewormingDate', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Даты прививок</label>
+                  <Input
+                    value={formData.vaccinationDates}
+                    onChange={(e) => handleChange('vaccinationDates', e.target.value)}
+                    placeholder="01.01.2025, 15.01.2025"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Название вакцины</label>
+                  <Input
+                    value={formData.vaccineName}
+                    onChange={(e) => handleChange('vaccineName', e.target.value)}
+                    placeholder="Nobivac, Eurican..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Следующая обработка от глистов</label>
+                  <Input
+                    type="date"
+                    value={formData.nextDewormingDate}
+                    onChange={(e) => handleChange('nextDewormingDate', e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium mb-1">Следующая вакцинация</label>
+                  <Input
+                    type="date"
+                    value={formData.nextVaccinationDate}
+                    onChange={(e) => handleChange('nextVaccinationDate', e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Дата договора</h2>
-              <Input
-                type="date"
-                value={formData.contractDate}
-                onChange={(e) => handleChange('contractDate', e.target.value)}
-                className="max-w-xs"
-              />
+              <h2 className="text-xl font-semibold mb-4">Дополнительная информация</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Индивидуальные особенности щенка</label>
+                  <Textarea
+                    value={formData.specialFeatures}
+                    onChange={(e) => handleChange('specialFeatures', e.target.value)}
+                    placeholder="Особенности экстерьера, характера, нюансы здоровья..."
+                    className="min-h-24"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Условия доставки</label>
+                  <Textarea
+                    value={formData.deliveryTerms}
+                    onChange={(e) => handleChange('deliveryTerms', e.target.value)}
+                    placeholder="Способ доставки, стоимость, сроки..."
+                    className="min-h-20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Дополнительные соглашения</label>
+                  <Textarea
+                    value={formData.additionalAgreements}
+                    onChange={(e) => handleChange('additionalAgreements', e.target.value)}
+                    placeholder="Дополнительные условия договора, гарантии, особые требования..."
+                    className="min-h-24"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Рекомендуемый корм</label>
+                  <Input
+                    value={formData.recommendedFood}
+                    onChange={(e) => handleChange('recommendedFood', e.target.value)}
+                    placeholder="Royal Canin, Acana..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Дата и место договора</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Дата договора</label>
+                  <Input
+                    type="date"
+                    value={formData.contractDate}
+                    onChange={(e) => handleChange('contractDate', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Место составления</label>
+                  <Input
+                    value={formData.contractPlace}
+                    onChange={(e) => handleChange('contractPlace', e.target.value)}
+                    placeholder="г. Каяани, Финляндия"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-4">
