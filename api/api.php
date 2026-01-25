@@ -370,14 +370,29 @@ if ($action === 'deletecontracttemplate') {
 
 // Загрузка PDF шаблона
 if ($action === 'uploadpdftemplate') {
+    // Временно логируем данные для отладки
+    $debugLog = __DIR__ . '/../data/upload_debug.log';
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Headers: " . json_encode(getallheaders()) . "\n", FILE_APPEND);
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - FILES: " . json_encode($_FILES) . "\n", FILE_APPEND);
+    
     if (!checkAuth()) {
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Auth failed\n", FILE_APPEND);
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);
         http_response_code(401);
         exit;
     }
     
-    if (!isset($_FILES['pdf']) || $_FILES['pdf']['error'] !== UPLOAD_ERR_OK) {
-        echo json_encode(['success' => false, 'message' => 'No PDF file uploaded']);
+    if (!isset($_FILES['pdf'])) {
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - No pdf in FILES\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => 'No PDF file uploaded', 'debug' => 'FILES: ' . json_encode(array_keys($_FILES))]);
+        http_response_code(400);
+        exit;
+    }
+    
+    if ($_FILES['pdf']['error'] !== UPLOAD_ERR_OK) {
+        $errorMsg = 'Upload error: ' . $_FILES['pdf']['error'];
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - {$errorMsg}\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => $errorMsg]);
         http_response_code(400);
         exit;
     }
