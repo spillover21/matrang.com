@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save, Send, Download, FileText, Trash2, Plus, Archive, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PDFDocument } from 'pdf-lib';
 
 interface ContractTemplate {
   id: number;
@@ -381,29 +382,114 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
 
     try {
-      const response = await fetch("/api/api.php?action=generateFilledPdf", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          data: formData,
-          pdfTemplate: pdfTemplate,
-        }),
+      toast.info("Генерация PDF...");
+      
+      // Загружаем PDF шаблон
+      const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      
+      // Получаем форму PDF
+      const form = pdfDoc.getForm();
+      const fields = form.getFields();
+      
+      console.log('PDF Fields:', fields.map(f => f.getName())); // Отладка - покажет какие поля есть в PDF
+      
+      // Заполняем поля (используем точные имена из вашего PDF)
+      const fieldMap: Record<string, string | boolean> = {
+        contractNumber: `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
+        contractDate: formData.contractDate || new Date().toLocaleDateString('ru-RU'),
+        contractPlace: formData.contractPlace || '',
+        
+        kennelName: formData.kennelName || '',
+        kennelOwner: formData.kennelOwner || '',
+        kennelAddress: formData.kennelAddress || '',
+        kennelPhone: formData.kennelPhone || '',
+        kennelEmail: formData.kennelEmail || '',
+        kennelPassportSeries: formData.kennelPassportSeries || '',
+        kennelPassportNumber: formData.kennelPassportNumber || '',
+        kennelPassportIssuedBy: formData.kennelPassportIssuedBy || '',
+        kennelPassportIssuedDate: formData.kennelPassportIssuedDate || '',
+        
+        buyerName: formData.buyerName || '',
+        buyerAddress: formData.buyerAddress || '',
+        buyerPhone: formData.buyerPhone || '',
+        buyerEmail: formData.buyerEmail || '',
+        buyerPassportSeries: formData.buyerPassportSeries || '',
+        buyerPassportNumber: formData.buyerPassportNumber || '',
+        buyerPassportIssuedBy: formData.buyerPassportIssuedBy || '',
+        buyerPassportIssuedDate: formData.buyerPassportIssuedDate || '',
+        
+        dogFatherName: formData.dogFatherName || '',
+        dogFatherRegNumber: formData.dogFatherRegNumber || '',
+        dogMotherName: formData.dogMotherName || '',
+        dogMotherRegNumber: formData.dogMotherRegNumber || '',
+        
+        dogName: formData.dogName || '',
+        dogBreed: formData.dogBreed || 'Американский булли',
+        dogBirthDate: formData.dogBirthDate || '',
+        dogGender: formData.dogGender || '',
+        dogColor: formData.dogColor || '',
+        dogChipNumber: formData.dogChipNumber || '',
+        dogPuppyCard: formData.dogPuppyCard || '',
+        
+        purposeBreeding: formData.purposeBreeding || false,
+        purposeCompanion: formData.purposeCompanion || false,
+        purposeGeneral: formData.purposeGeneral || false,
+        
+        price: formData.price || '',
+        depositAmount: formData.depositAmount || '',
+        depositDate: formData.depositDate || '',
+        remainingAmount: formData.remainingAmount || '',
+        finalPaymentDate: formData.finalPaymentDate || '',
+        
+        dewormingDate: formData.dewormingDate || '',
+        vaccinationDates: formData.vaccinationDates || '',
+        vaccineName: formData.vaccineName || '',
+        nextDewormingDate: formData.nextDewormingDate || '',
+        nextVaccinationDate: formData.nextVaccinationDate || '',
+        
+        specialFeatures: formData.specialFeatures || '',
+        deliveryTerms: formData.deliveryTerms || '',
+        additionalAgreements: formData.additionalAgreements || '',
+        recommendedFood: formData.recommendedFood || ''
+      };
+      
+      // Заполняем все поля
+      Object.entries(fieldMap).forEach(([fieldName, value]) => {
+        try {
+          const field = form.getField(fieldName);
+          
+          if (typeof value === 'boolean') {
+            // Для чекбоксов
+            const checkbox = form.getCheckBox(fieldName);
+            if (value) {
+              checkbox.check();
+            } else {
+              checkbox.uncheck();
+            }
+          } else {
+            // Для текстовых полей
+            const textField = form.getTextField(fieldName);
+            textField.setText(String(value));
+          }
+        } catch (e) {
+          // Поле не найдено в PDF - это нормально, не все поля могут быть в шаблоне
+          console.log(`Field '${fieldName}' not found in PDF`);
+        }
       });
-
-      const data = await response.json();
-      if (data.success) {
-        // Открываем заполненный PDF/HTML в новом окне
-        window.open(data.url, '_blank');
-        toast.success("Предпросмотр готов");
-      } else {
-        toast.error(data.message || "Ошибка генерации");
-      }
+      
+      // Сохраняем заполненный PDF
+      const filledPdfBytes = await pdfDoc.save();
+      
+      // Создаем blob и открываем в новом окне
+      const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      
+      toast.success("PDF готов к просмотру");
     } catch (error) {
-      console.error('Preview error:', error);
-      toast.error("Ошибка сети");
+      console.error('PDF generation error:', error);
+      toast.error("Ошибка генерации PDF: " + (error as Error).message);
     }
   };
 
