@@ -691,13 +691,24 @@ if ($action === 'sendcontractpdf') {
         if (file_exists($templatePath)) {
             file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Template exists, generating PDF...\n", FILE_APPEND);
             try {
+                // ПОПЫТКА 1: Попробуем с импортом шаблона (FPDI)
+                require_once __DIR__ . '/generate_contract_pdf.php';
                 $pdfGenerated = generateContractPdf($templatePath, $data, $outputPath);
-                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF generated: " . ($pdfGenerated ? 'YES' : 'NO') . "\n", FILE_APPEND);
-                if ($pdfGenerated && file_exists($outputPath)) {
-                    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF file size: " . filesize($outputPath) . " bytes\n", FILE_APPEND);
-                }
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - FPDI PDF generated: " . ($pdfGenerated ? 'YES' : 'NO') . "\n", FILE_APPEND);
             } catch (Exception $e) {
-                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF generation failed: " . $e->getMessage() . "\n", FILE_APPEND);
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - FPDI failed: " . $e->getMessage() . "\n", FILE_APPEND);
+            }
+            
+            // ПОПЫТКА 2: Если FPDI не сработал - создаём простой PDF с данными
+            if (!$pdfGenerated) {
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Trying simple PDF generation...\n", FILE_APPEND);
+                require_once __DIR__ . '/generate_contract_pdf_simple.php';
+                $pdfGenerated = generateContractPdfSimple($data, $outputPath);
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Simple PDF generated: " . ($pdfGenerated ? 'YES' : 'NO') . "\n", FILE_APPEND);
+            }
+            
+            if ($pdfGenerated && file_exists($outputPath)) {
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF file size: " . filesize($outputPath) . " bytes\n", FILE_APPEND);
             }
         } else {
             file_put_contents($debugLog, date('Y-m-d H:i:s') . " - ERROR: Template not found at $templatePath\n", FILE_APPEND);
