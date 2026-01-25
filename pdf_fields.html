@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Fields Checker</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; }
+      .ok { color: #0a7; }
+      .err { color: #c00; }
+      pre { background: #f6f6f6; padding: 10px; max-height: 400px; overflow: auto; }
+      button { padding: 8px 12px; margin-top: 10px; }
+    </style>
+  </head>
+  <body>
+    <h1>Проверка полей PDF</h1>
+    <p>Файл: <a href="/uploads/contracts/contract_template.pdf" target="_blank">contract_template.pdf</a></p>
+    <button id="check">Проверить поля</button>
+    <div id="status"></div>
+    <pre id="output"></pre>
+
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script>
+      const statusEl = document.getElementById('status');
+      const outputEl = document.getElementById('output');
+      const btn = document.getElementById('check');
+
+      btn.addEventListener('click', async () => {
+        statusEl.textContent = 'Загрузка PDF...';
+        outputEl.textContent = '';
+        try {
+          const res = await fetch('/uploads/contracts/contract_template.pdf');
+          if (!res.ok) throw new Error('Не удалось загрузить PDF: ' + res.status);
+          const bytes = await res.arrayBuffer();
+          const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+          const form = pdfDoc.getForm();
+          const fields = form.getFields();
+          const names = fields.map(f => f.getName());
+
+          statusEl.innerHTML = fields.length > 0
+            ? `<span class="ok">Найдено полей: ${fields.length}</span>`
+            : `<span class="err">Поля НЕ найдены (AcroForm отсутствует)</span>`;
+
+          outputEl.textContent = names.join('\n');
+        } catch (e) {
+          statusEl.innerHTML = `<span class="err">Ошибка: ${e.message}</span>`;
+        }
+      });
+    </script>
+  </body>
+</html>
