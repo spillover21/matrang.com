@@ -612,6 +612,11 @@ if ($action === 'sendcontractpdf') {
     
     file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Auth OK\n", FILE_APPEND);
     
+    // Получаем входные данные
+    $jsonInput = json_decode(file_get_contents('php://input'), true);
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - JSON input keys: " . implode(', ', array_keys($jsonInput ?? [])) . "\n", FILE_APPEND);
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Full JSON: " . substr(json_encode($jsonInput, JSON_UNESCAPED_UNICODE), 0, 500) . "...\n", FILE_APPEND);
+    
     // Загружаем конфигурацию Adobe Sign
     $adobeSignConfigPath = __DIR__ . '/adobe_sign_config.php';
     
@@ -634,11 +639,16 @@ if ($action === 'sendcontractpdf') {
     $contracts = file_exists($contractsFile) ? json_decode(file_get_contents($contractsFile), true) : [];
     
     $contractNumber = 'DOG-' . date('Y') . '-' . str_pad(count($contracts) + 1, 4, '0', STR_PAD_LEFT);
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Generated contract number: $contractNumber\n", FILE_APPEND);
     
     $data = $jsonInput['data'] ?? [];
     $pdfTemplate = $jsonInput['pdfTemplate'] ?? '';
     
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF template: $pdfTemplate\n", FILE_APPEND);
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Buyer email: " . ($data['buyerEmail'] ?? 'NOT SET') . "\n", FILE_APPEND);
+    
     if (!$pdfTemplate) {
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - ERROR: No PDF template\n", FILE_APPEND);
         echo json_encode(['success' => false, 'message' => 'PDF template required']);
         http_response_code(400);
         exit;
@@ -679,11 +689,18 @@ if ($action === 'sendcontractpdf') {
         // Генерируем PDF (пытаемся)
         $pdfGenerated = false;
         if (file_exists($templatePath)) {
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Template exists, generating PDF...\n", FILE_APPEND);
             try {
                 $pdfGenerated = generateContractPdf($templatePath, $data, $outputPath);
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF generated: " . ($pdfGenerated ? 'YES' : 'NO') . "\n", FILE_APPEND);
+                if ($pdfGenerated && file_exists($outputPath)) {
+                    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF file size: " . filesize($outputPath) . " bytes\n", FILE_APPEND);
+                }
             } catch (Exception $e) {
                 file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF generation failed: " . $e->getMessage() . "\n", FILE_APPEND);
             }
+        } else {
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - ERROR: Template not found at $templatePath\n", FILE_APPEND);
         }
         
         // Отправка email с PDF
@@ -691,6 +708,9 @@ if ($action === 'sendcontractpdf') {
         $buyerName = $data['buyerName'] ?? '';
         $dogName = $data['dogName'] ?? '';
         $kennelEmail = $data['kennelEmail'] ?? 'info@matrang.com';
+        
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Buyer email: $buyerEmail\n", FILE_APPEND);
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Kennel email: $kennelEmail\n", FILE_APPEND);
         
         if ($buyerEmail) {
             $subject = "Договор купли-продажи щенка - №{$contractNumber}";
@@ -759,14 +779,19 @@ if ($action === 'sendcontractpdf') {
             
             $mailSent = @mail($buyerEmail, $subject, $message, $headers);
             
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Mail sent to buyer: " . ($mailSent ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
+            
             // Логируем отправку
             $mailLog = __DIR__ . '/../data/mail.log';
             file_put_contents($mailLog, date('Y-m-d H:i:s') . " - Email to: {$buyerEmail} | PDF: " . ($pdfGenerated ? 'YES' : 'NO') . " | Sent: " . ($mailSent ? 'YES' : 'NO') . "\n", FILE_APPEND);
             
             // Отправляем копию продавцу
             if ($mailSent) {
-                @mail($kennelEmail, "Копия договора {$contractNumber}", $message, $headers);
+                $sellerSent = @mail($kennelEmail, "Копия договора {$contractNumber}", $message, $headers);
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Mail sent to seller: " . ($sellerSent ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
             }
+        } else {
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - WARNING: No buyer email\n", FILE_APPEND);
         }
         
         echo json_encode([
