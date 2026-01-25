@@ -364,6 +364,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
     const fields = form.getFields();
+    console.log('=== PDF FIELDS DEBUG ===');
+    console.log('Total fields found:', fields.length);
+    console.log('Field names:', fields.map(f => f.getName()));
 
     if (fields.length === 0) {
       return { bytes: null, filledCount: 0, notFoundCount: 0, hasFields: false };
