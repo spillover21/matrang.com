@@ -109,6 +109,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     count: 0,
     names: []
   });
+  const [buildVersion, setBuildVersion] = useState<string>("");
   
   const [formData, setFormData] = useState<ContractData>({
     // Данные питомника
@@ -179,6 +180,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  useEffect(() => {
+    fetch(`/version.txt?ts=${Date.now()}`)
+      .then((res) => res.text())
+      .then((text) => setBuildVersion(text.trim()))
+      .catch(() => setBuildVersion(""));
   }, []);
 
   const loadData = async () => {
@@ -586,7 +594,12 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Управление договорами</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">Управление договорами</h1>
+          {buildVersion && (
+            <span className="text-xs text-muted-foreground">build: {buildVersion}</span>
+          )}
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
