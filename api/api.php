@@ -427,14 +427,36 @@ if ($action === 'uploadpdftemplate') {
 
 // Отправка договора через Adobe Sign
 if ($action === 'sendcontractpdf') {
+    // Отладка
+    $debugLog = __DIR__ . '/../data/sendcontract_debug.log';
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Starting sendContractPdf\n", FILE_APPEND);
+    
     if (!checkAuth()) {
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Auth failed\n", FILE_APPEND);
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);
         http_response_code(401);
         exit;
     }
     
+    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Auth OK\n", FILE_APPEND);
+    
     // Загружаем конфигурацию Adobe Sign
-    $adobeSignConfig = require __DIR__ . '/adobe_sign_config.php';
+    try {
+        $adobeSignConfigPath = __DIR__ . '/adobe_sign_config.php';
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config path: {$adobeSignConfigPath}\n", FILE_APPEND);
+        
+        if (!file_exists($adobeSignConfigPath)) {
+            throw new Exception('adobe_sign_config.php not found');
+        }
+        
+        $adobeSignConfig = require $adobeSignConfigPath;
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config loaded\n", FILE_APPEND);
+    } catch (Exception $e) {
+        file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Config error: " . $e->getMessage() . "\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => 'Config error: ' . $e->getMessage()]);
+        http_response_code(500);
+        exit;
+    }
     
     $contractsFile = __DIR__ . '/../data/contracts.json';
     $contracts = file_exists($contractsFile) ? json_decode(file_get_contents($contractsFile), true) : [];
