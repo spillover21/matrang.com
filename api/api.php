@@ -1,7 +1,15 @@
 <?php
 // api/api.php - главный API для админ панели
 
-header('Content-Type: application/json');
+// Отключаем вывод ошибок в JSON ответ
+error_reporting(0);
+ini_set('display_errors', '0');
+
+// Очищаем любой предыдущий вывод
+if (ob_get_level()) ob_clean();
+ob_start();
+
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -290,47 +298,6 @@ if ($action === 'login') {
         echo json_encode(['success' => false, 'message' => 'Invalid password']);
     }
     exit();
-}
-
-http_response_code(400);
-echo json_encode(['success' => false, 'message' => 'Invalid action']);
-
-function getDefaultContent() {
-    return [
-        'header' => [
-            'favicon' => '/favicon.ico',
-            'logo' => 'PITBULL ELITE',
-            'links' => ['О породе', 'Галерея', 'Контакты']
-        ],
-        'hero' => [
-            'title' => 'ПИТБУЛИ',
-            'subtitle' => 'Мощь и благородство',
-            'image' => '/assets/hero-pitbull.jpg'
-        ],
-        'about' => [
-            'title' => 'О породе',
-            'content' => 'Питбули - это мощные и преданные собаки...',
-            'image' => '/assets/pitbull-1.jpg'
-        ],
-        'gallery' => [
-            'title' => 'Галерея',
-            'images' => [
-                '/assets/pitbull-1.jpg',
-                '/assets/pitbull-2.jpg',
-                '/assets/pitbull-3.jpg'
-            ]
-        ],
-        'contact' => [
-            'title' => 'Контакты',
-            'email' => 'info@pitbull.com',
-            'phone' => '+7-900-000-00-00',
-            'address' => 'Город, улица'
-        ],
-        'footer' => [
-            'copyright' => '© 2025 PITBULL ELITE',
-            'links' => ['Главная', 'О нас', 'Контакты']
-        ]
-    ];
 }
 
 // ===== ENDPOINTS ДЛЯ ДОГОВОРОВ =====
@@ -705,4 +672,47 @@ if ($action === 'sendcontract') {
     
     echo json_encode(['success' => true, 'contract' => $newContract]);
     exit;
+}
+// Если не нашли подходящий action
+http_response_code(400);
+echo json_encode(['success' => false, 'message' => 'Invalid action: ' . $action]);
+exit;
+
+// Вспомогательные функции
+function getDefaultContent() {
+    return [
+        'header' => [
+            'favicon' => '/favicon.ico',
+            'logo' => 'PITBULL ELITE',
+            'links' => ['О породе', 'Галерея', 'Контакты']
+        ],
+        'hero' => [
+            'title' => 'ПИТБУЛИ',
+            'subtitle' => 'Мощь и благородство',
+            'image' => '/assets/hero-pitbull.jpg'
+        ],
+        'about' => [
+            'title' => 'О породе',
+            'content' => 'Питбули - это мощные и преданные собаки...',
+            'image' => '/assets/pitbull-1.jpg'
+        ],
+        'gallery' => [
+            'title' => 'Галерея',
+            'images' => [
+                '/assets/pitbull-1.jpg',
+                '/assets/pitbull-2.jpg',
+                '/assets/pitbull-3.jpg'
+            ]
+        ],
+        'contact' => [
+            'title' => 'Контакты',
+            'email' => 'info@pitbull.com',
+            'phone' => '+7-900-000-00-00',
+            'address' => 'Город, улица'
+        ],
+        'footer' => [
+            'copyright' => '© 2025 PITBULL ELITE',
+            'links' => ['Главная', 'О нас', 'Контакты']
+        ]
+    ];
 }
