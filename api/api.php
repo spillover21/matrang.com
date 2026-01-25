@@ -773,6 +773,41 @@ if ($action === 'sendcontractpdf') {
                 $message .= "Content-Transfer-Encoding: base64\r\n";
                 $message .= "Content-Disposition: attachment; filename=\"{$outputFilename}\"\r\n\r\n";
                 $message .= $pdfContentEncoded . "\r\n";
+            } else {
+                // Если PDF не сгенерирован - отправляем оригинальный шаблон с инструкцией заполнить вручную
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Sending original template as fallback\n", FILE_APPEND);
+                
+                if (file_exists($templatePath)) {
+                    $pdfContent = file_get_contents($templatePath);
+                    $pdfContentEncoded = chunk_split(base64_encode($pdfContent));
+                    
+                    $message .= "--{$boundary}\r\n";
+                    $message .= "Content-Type: application/pdf; name=\"contract_template.pdf\"\r\n";
+                    $message .= "Content-Transfer-Encoding: base64\r\n";
+                    $message .= "Content-Disposition: attachment; filename=\"contract_template.pdf\"\r\n\r\n";
+                    $message .= $pdfContentEncoded . "\r\n";
+                    
+                    // Добавляем предупреждение в письмо
+                    $message = str_replace(
+                        '<p><strong>Во вложении находится PDF договор.</strong></p>',
+                        '<p style="background:#fff3cd;padding:10px;border-left:4px solid #ffc107;"><strong>⚠️ ВНИМАНИЕ:</strong> Во вложении пустой шаблон договора. Пожалуйста, заполните его вручную следующими данными:</p>
+                        <table style="border-collapse:collapse;width:100%;margin:10px 0;">
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Номер договора:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($contractNumber) . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Дата:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['contractDate']) . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Владелец питомника:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['kennelOwner'] ?? '') . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Покупатель:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($buyerName) . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Адрес покупателя:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['buyerAddress'] ?? '') . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Телефон покупателя:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['buyerPhone'] ?? '') . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Кличка щенка:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($dogName) . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Порода:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogBreed'] ?? '') . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Окрас:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogColor'] ?? '') . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Дата рождения:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogBirthDate'] ?? '') . '</td></tr>
+                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Стоимость:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['price'] ?? '') . ' руб.</td></tr>
+                        </table>
+                        <p><strong>Во вложении находится PDF шаблон договора.</strong></p>',
+                        $message
+                    );
+                }
             }
             
             $message .= "--{$boundary}--";
