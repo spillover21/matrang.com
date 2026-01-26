@@ -17,7 +17,32 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@MATRANG" />
     <meta name="twitter:image" content="/assets/hero-pitbull.jpg" />
-
+    
+    <script>
+      // DEBUG: Перехват кликов на всех кнопках
+      window.addEventListener('DOMContentLoaded', function() {
+        console.error('🟢 DEBUG SCRIPT LOADED at ' + new Date().toISOString());
+        
+        setInterval(function() {
+          const sendButton = Array.from(document.querySelectorAll('button')).find(btn => 
+            btn.textContent && (btn.textContent.includes('Отправить на email') || btn.textContent.includes('Отправка'))
+          );
+          
+          if (sendButton && !sendButton.dataset.debugAttached) {
+            sendButton.dataset.debugAttached = 'true';
+            console.error('🔵 Found send button, attaching debug listener');
+            
+            sendButton.addEventListener('click', function(e) {
+              console.error('🔴🔴🔴 BUTTON CLICKED!', e);
+              alert('🔴 BUTTON CLICKED! Time: ' + Date.now());
+              window.__BUTTON_CLICKED = Date.now();
+            }, true); // capture phase
+          }
+        }, 1000);
+      });
+    </script>
+
+
     <script type="module" crossorigin src="/assets/index-DYa1ulwO.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-D35cW1RB.css">
   </head>
