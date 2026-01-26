@@ -58,6 +58,15 @@
         <h2>Шаг 2: Заполнить поля</h2>
         <button onclick="fillPDF()" id="fillBtn" disabled>Заполнить поля тестовыми данными</button>
         <button onclick="downloadPDF()" id="downloadBtn" disabled>Скачать заполненный PDF</button>
+        <button onclick="sendPDF()" id="sendBtn" disabled>📧 ОТПРАВИТЬ НА ПОЧТУ</button>
+    </div>
+
+    <div class="container">
+        <h2>Настройки отправки</h2>
+        <label>Email покупателя:</label>
+        <input type="email" id="buyerEmailInput" value="kharynadenis@gmail.com" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+        <label>Email питомника:</label>
+        <input type="email" id="kennelEmailInput" value="test@kennel.com" style="width: 100%; padding: 10px;">
     </div>
 
     <div class="container">
@@ -216,6 +225,7 @@
                 log(`\n💾 PDF сохранен, размер: ${filledPdfBytes.length} байт`, 'success');
                 
                 document.getElementById('downloadBtn').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
                 
             } catch (error) {
                 log(`❌ ОШИБКА ЗАПОЛНЕНИЯ: ${error.message}`, 'error');
@@ -238,6 +248,61 @@
             URL.revokeObjectURL(url);
             
             log(`📥 PDF скачан`, 'success');
+        }
+
+        async function sendPDF() {
+            if (!filledPdfBytes) {
+                alert('Сначала заполните PDF!');
+                return;
+            }
+
+            try {
+                log(`\n📧 Начинаем отправку на email...`);
+                
+                // Конвертируем в base64
+                const base64 = btoa(String.fromCharCode(...filledPdfBytes));
+                log(`✓ PDF конвертирован в base64: ${base64.length} символов`);
+
+                const buyerEmail = document.getElementById('buyerEmailInput').value;
+                const kennelEmail = document.getElementById('kennelEmailInput').value;
+
+                const payload = {
+                    data: {
+                        buyerEmail: buyerEmail,
+                        kennelEmail: kennelEmail,
+                        buyerName: 'Петр Петров',
+                        dogName: 'Рекс',
+                        contractNumber: 'DOG-2023-TEST-001'
+                    },
+                    pdfTemplate: '/uploads/contracts/contract_template.pdf',
+                    filledPdfBase64: base64
+                };
+
+                log(`✓ Отправляем запрос на /api/api.php?action=sendcontractpdf`);
+                
+                const response = await fetch('/api/api.php?action=sendcontractpdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(`\n✅ УСПЕХ! Email отправлен на ${buyerEmail}`, 'success');
+                    alert('✅ Договор успешно отправлен на email!');
+                } else {
+                    log(`\n❌ ОШИБКА: ${result.message}`, 'error');
+                    alert('❌ Ошибка: ' + result.message);
+                }
+
+            } catch (error) {
+                log(`\n❌ ОШИБКА ОТПРАВКИ: ${error.message}`, 'error');
+                console.error(error);
+                alert('❌ Ошибка отправки: ' + error.message);
+            }
         }
     </script>
 </body>
