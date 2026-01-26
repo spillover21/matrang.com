@@ -450,12 +450,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
-    (window as any).__SEND_CONTRACT_CALLED = Date.now();
-    console.error("🔴🔴🔴 SEND CONTRACT CALLED:", new Date().toISOString());
-    debugger; // Остановка отладчика
+    const t0 = performance.now();
+    console.error(`⏱️ [${t0.toFixed(0)}ms] sendContract START`);
     
-    toast.error("🔴 DEBUG: sendContract ВЫЗВАНА! Если видите - функция работает!", { duration: 10000 });
-    toast.info("🚀 Начинаем отправку договора...");
+    (window as any).__SEND_CONTRACT_CALLED = Date.now();
+    toast.error("🔴 DEBUG: sendContract ВЫЗВАНА!", { duration: 10000 });
+    
+    console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After toast`);
     
     // Валидация обязательных полей
     if (!formData.buyerName || !formData.buyerEmail || !formData.dogName || !formData.price) {
@@ -468,25 +469,31 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       return;
     }
 
-    toast.info("📄 Загружаем PDF шаблон...");
+    console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before setSending`);
     setSending(true);
+    console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After setSending`);
+    
     try {
       let filledPdfBase64: string | null = null;
       try {
-        toast.info("🔧 Заполняем поля PDF...");
+        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before buildFilledPdfBytes`);
         const filledResult = await buildFilledPdfBytes();
+        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After buildFilledPdfBytes - filled ${filledResult?.filledCount} fields`);
+        
         if (filledResult?.bytes) {
+          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before bytesToBase64`);
           filledPdfBase64 = bytesToBase64(filledResult.bytes);
-          console.log(`Filled PDF bytes: ${filledResult.bytes.length}`);
+          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After bytesToBase64 - ${filledPdfBase64.length} chars`);
           toast.success(`✅ PDF заполнен: ${filledResult.filledCount} полей`);
         } else {
-          toast.warning("⚠️ Не удалось заполнить PDF - отправляем оригинальный шаблон");
+          toast.warning("⚠️ Не удалось заполнить PDF");
         }
       } catch (e) {
-        console.error('Filled PDF generation error:', e);
-        toast.warning("⚠️ Ошибка заполнения PDF - отправляем оригинальный шаблон");
+        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] ERROR in PDF generation:`, e);
+        toast.warning("⚠️ Ошибка заполнения PDF");
       }
 
+      console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before fetch sendContractPdf`);
       const response = await fetch("/api/api.php?action=sendContractPdf", {
         method: "POST",
         headers: {
@@ -500,12 +507,16 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         }),
       });
 
+      console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After fetch, before json()`);
       const data = await response.json();
+      console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After json() - success: ${data.success}`);
+      
       if (data.success) {
         const message = data.emailSent 
           ? `Договор №${data.contract.contractNumber} отправлен на email ${formData.buyerEmail}` 
           : "Договор создан (email не отправлен)";
         toast.success(message);
+        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] SUCCESS - total time`);
         loadData();
         // Очистка формы - оставляем данные питомника, очищаем данные покупателя и щенка
         setFormData({
