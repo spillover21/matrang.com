@@ -219,14 +219,15 @@
                 log(`\n✅ ЗАПОЛНЕНО: ${filledCount} полей`, 'success');
                 log(`❌ НЕ НАЙДЕНО: ${notFoundCount} полей`, notFoundCount > 0 ? 'error' : 'info');
                 
-                // КРИТИЧНО: Flatten form - превращаем поля в статический текст
-                // Это позволит PDF reader самому отрендерить текст с кириллицей
-                log(`\n📋 Превращаем форму в статический документ (flatten)...`);
-                form.flatten();
-                log(`✓ Форма flatten - поля теперь статический текст`);
+                // КРИТИЧНО: Устанавливаем флаг needAppearances
+                // Это заставит PDF reader отрисовать поля самостоятельно
+                log(`\n🔧 Устанавливаем флаг needAppearances...`);
+                const acroForm = pdfDoc.catalog.lookup(PDFLib.PDFName.of('AcroForm'), PDFLib.PDFDict);
+                acroForm.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.True);
+                log(`✓ Флаг needAppearances установлен`);
                 
-                // Сохраняем заполненный PDF
-                filledPdfBytes = await pdfDoc.save();
+                // Сохраняем БЕЗ обновления внешнего вида (это вызовет ошибку с кириллицей)
+                filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
                 log(`\n💾 PDF сохранен, размер: ${filledPdfBytes.length} байт`, 'success');
                 
                 document.getElementById('downloadBtn').disabled = false;
