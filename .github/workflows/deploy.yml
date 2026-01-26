@@ -63,8 +63,8 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }} # ftp или sftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/
-          # Рабочий docroot: основной public_html (без вложенности)
-          server-dir: public_html/
+          # Деплой в корень (FTP уже открывается в public_html)
+          server-dir: ./
           # Не трогаем api/data/uploads, чтобы не потерять контент из админки
           dangerous-clean-slate: false
 
@@ -77,7 +77,7 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }}
           port: ${{ secrets.FTP_PORT }}
           local-dir: api/
-          server-dir: public_html/api/
+          server-dir: ./api/
           dangerous-clean-slate: false
 
       - name: Deploy Data
@@ -89,5 +89,5 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL }}
           port: ${{ secrets.FTP_PORT }}
           local-dir: data/
-          server-dir: public_html/data/
+          server-dir: ./data/
           dangerous-clean-slate: false
