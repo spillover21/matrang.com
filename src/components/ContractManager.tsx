@@ -303,62 +303,59 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const buildFieldMap = () => ({
-    contractNumber: `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
-    contractDate: formData.contractDate || new Date().toLocaleDateString('ru-RU'),
-    contractPlace: formData.contractPlace || '',
+    '`contractNumber`': `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
+    '`contractDate`': formData.contractDate || new Date().toLocaleDateString('ru-RU'),
+    '`contractPlace`': formData.contractPlace || '',
 
-    kennelName: formData.kennelName || '',
-    kennelOwner: formData.kennelOwner || '',
-    kennelAddress: formData.kennelAddress || '',
-    kennelPhone: formData.kennelPhone || '',
-    kennelEmail: formData.kennelEmail || '',
-    kennelPassportSeries: formData.kennelPassportSeries || '',
-    kennelPassportNumber: formData.kennelPassportNumber || '',
-    kennelPassportIssuedBy: formData.kennelPassportIssuedBy || '',
-    kennelPassportIssuedDate: formData.kennelPassportIssuedDate || '',
+    '`kennelOwner`': formData.kennelOwner || '',
+    '`kennelAddress`': formData.kennelAddress || '',
+    '`kennelPhone`': formData.kennelPhone || '',
+    '`kennelEmail`': formData.kennelEmail || '',
+    '`kennelPassportSeries`': formData.kennelPassportSeries || '',
+    '`kennelPassportNumber`': formData.kennelPassportNumber || '',
+    '`kennelPassportIssuedBy`': formData.kennelPassportIssuedBy || '',
+    '`kennelPassportIssuedDate`': formData.kennelPassportIssuedDate || '',
 
-    buyerName: formData.buyerName || '',
-    buyerAddress: formData.buyerAddress || '',
-    buyerPhone: formData.buyerPhone || '',
-    buyerEmail: formData.buyerEmail || '',
-    buyerPassportSeries: formData.buyerPassportSeries || '',
-    buyerPassportNumber: formData.buyerPassportNumber || '',
-    buyerPassportIssuedBy: formData.buyerPassportIssuedBy || '',
-    buyerPassportIssuedDate: formData.buyerPassportIssuedDate || '',
+    '`buyerName`': formData.buyerName || '',
+    '`buyerAddress`': formData.buyerAddress || '',
+    '`buyerPhone`': formData.buyerPhone || '',
+    '`buyerEmail`': formData.buyerEmail || '',
+    '`buyerPassportSeries`': formData.buyerPassportSeries || '',
+    '`buyerPassportNumber`': formData.buyerPassportNumber || '',
+    '`buyerPassportIssuedBy`': formData.buyerPassportIssuedBy || '',
+    '`buyerPassportIssuedDate`': formData.buyerPassportIssuedDate || '',
 
-    dogFatherName: formData.dogFatherName || '',
-    dogFatherRegNumber: formData.dogFatherRegNumber || '',
-    dogMotherName: formData.dogMotherName || '',
-    dogMotherRegNumber: formData.dogMotherRegNumber || '',
+    '`dogFatherName`': formData.dogFatherName || '',
+    '`dogFatherRegNumber`': formData.dogFatherRegNumber || '',
+    '`dogMotherName`': formData.dogMotherName || '',
+    '`dogMotherRegNumber`': formData.dogMotherRegNumber || '',
 
-    dogName: formData.dogName || '',
-    dogBreed: formData.dogBreed || 'Американский булли',
-    dogBirthDate: formData.dogBirthDate || '',
-    dogGender: formData.dogGender || '',
-    dogColor: formData.dogColor || '',
-    dogChipNumber: formData.dogChipNumber || '',
-    dogPuppyCard: formData.dogPuppyCard || '',
+    '`dogName`': formData.dogName || '',
+    '`dogBirthDate`': formData.dogBirthDate || '',
+    '`dogColor`': formData.dogColor || '',
+    '`dogChipNumber`': formData.dogChipNumber || '',
+    '`dogPuppyCard`': formData.dogPuppyCard || '',
 
-    purposeBreeding: formData.purposeBreeding || false,
-    purposeCompanion: formData.purposeCompanion || false,
-    purposeGeneral: formData.purposeGeneral || false,
+    '`purposeBreeding`': formData.purposeBreeding || false,
+    '`purposeCompanion`': formData.purposeCompanion || false,
+    '`purposeGeneral`': formData.purposeGeneral || false,
 
-    price: formData.price || '',
-    depositAmount: formData.depositAmount || '',
-    depositDate: formData.depositDate || '',
-    remainingAmount: formData.remainingAmount || '',
-    finalPaymentDate: formData.finalPaymentDate || '',
+    '`price`': formData.price || '',
+    '`depositAmount`': formData.depositAmount || '',
+    '`depositDate`': formData.depositDate || '',
+    '`remainingAmount`': formData.remainingAmount || '',
+    '`finalPaymentDate`': formData.finalPaymentDate || '',
 
-    dewormingDate: formData.dewormingDate || '',
-    vaccinationDates: formData.vaccinationDates || '',
-    vaccineName: formData.vaccineName || '',
-    nextDewormingDate: formData.nextDewormingDate || '',
-    nextVaccinationDate: formData.nextVaccinationDate || '',
+    '`dewormingDate`': formData.dewormingDate || '',
+    '`vaccinationDates`': formData.vaccinationDates || '',
+    '`vaccineName`': formData.vaccineName || '',
+    '`nextDewormingDate`': formData.nextDewormingDate || '',
+    '`nextVaccinationDate`': formData.nextVaccinationDate || '',
 
-    specialFeatures: formData.specialFeatures || '',
-    deliveryTerms: formData.deliveryTerms || '',
-    additionalAgreements: formData.additionalAgreements || '',
-    recommendedFood: formData.recommendedFood || ''
+    '`specialFeatures`': formData.specialFeatures || '',
+    '`deliveryTerms`': formData.deliveryTerms || '',
+    '`additionalAgreements`': formData.additionalAgreements || '',
+    '`recommendedFood`': formData.recommendedFood || ''
   });
 
   const bytesToBase64 = (bytes: Uint8Array) => {
@@ -408,6 +405,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         notFoundCount++;
       }
     });
+
+    // КРИТИЧЕСКИ ВАЖНО: обновить внешний вид полей для поддержки кириллицы
+    try {
+      form.updateFieldAppearances();
+    } catch (e) {
+      console.warn('Failed to update field appearances:', e);
+    }
 
     toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
