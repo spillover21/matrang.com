@@ -389,7 +389,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     let notFoundCount = 0;
     const existingFieldNames = fields.map(f => f.getName());
 
-    window.alert(`PDF Fields: ${fields.length}, Will fill: ${Object.keys(fieldMap).length}`);
+    toast.info(`🔍 PDF: ${fields.length} полей найдено, заполняем ${Object.keys(fieldMap).length}`);
 
     Object.entries(fieldMap).forEach(([fieldName, value]) => {
       try {
@@ -407,6 +407,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         notFoundCount++;
       }
     });
+
+    toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
     const filledPdfBytes = await pdfDoc.save();
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
