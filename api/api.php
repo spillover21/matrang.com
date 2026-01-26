@@ -694,6 +694,21 @@ if ($action === 'sendcontractpdf') {
             } else {
                 file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Received filledPdfBase64, size: " . strlen($decoded) . " bytes\n", FILE_APPEND);
                 file_put_contents($outputPath, $decoded);
+                
+                // Проверяем наличие значений в PDF
+                $hasValues = (strpos($decoded, '/V (') !== false || strpos($decoded, '/V(') !== false);
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - PDF contains field values: " . ($hasValues ? 'YES' : 'NO') . "\n", FILE_APPEND);
+                
+                // Ищем первые несколько значений для отладки
+                preg_match_all('/\/V\s*\(([^\)]+)\)/', $decoded, $matches, PREG_SET_ORDER, 0, 1000);
+                if (!empty($matches)) {
+                    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Sample values found: " . count($matches) . "\n", FILE_APPEND);
+                    foreach (array_slice($matches, 0, 5) as $match) {
+                        file_put_contents($debugLog, date('Y-m-d H:i:s') . " -   Value: " . substr($match[1], 0, 50) . "\n", FILE_APPEND);
+                    }
+                } else {
+                    file_put_contents($debugLog, date('Y-m-d H:i:s') . " - WARNING: No field values found in PDF - fields NOT FILLED!\n", FILE_APPEND);
+                }
             }
         }
         
