@@ -7,7 +7,9 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PDFDocument } from 'pdf-lib';
 
-// Version: 2026-01-26-v2
+// Version: 2026-01-26-v3-DEBUG-MODULE-LOAD
+alert("🚨 ContractManager.tsx ЗАГРУЖЕН! Timestamp: " + Date.now());
+console.error("🚨 MODULE LOAD: ContractManager.tsx loaded at " + new Date().toISOString());
 interface ContractTemplate {
   id: number;
   name: string;
