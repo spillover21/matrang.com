@@ -476,21 +476,22 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     try {
       let filledPdfBase64: string | null = null;
       try {
-        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before buildFilledPdfBytes`);
+        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before buildFilledPdfBytes, pdfTemplate:`, pdfTemplate);
         const filledResult = await buildFilledPdfBytes();
-        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After buildFilledPdfBytes - filled ${filledResult?.filledCount} fields`);
+        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After buildFilledPdfBytes - result:`, filledResult);
         
         if (filledResult?.bytes) {
-          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before bytesToBase64`);
+          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before bytesToBase64, bytes length: ${filledResult.bytes.length}`);
           filledPdfBase64 = bytesToBase64(filledResult.bytes);
           console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After bytesToBase64 - ${filledPdfBase64.length} chars`);
           toast.success(`✅ PDF заполнен: ${filledResult.filledCount} полей`);
         } else {
-          toast.warning("⚠️ Не удалось заполнить PDF");
+          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] filledResult.bytes is NULL or undefined`);
+          toast.error("❌ ОШИБКА: buildFilledPdfBytes вернул null!");
         }
       } catch (e) {
-        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] ERROR in PDF generation:`, e);
-        toast.warning("⚠️ Ошибка заполнения PDF");
+        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] EXCEPTION in PDF generation:`, e);
+        toast.error("❌ ОШИБКА заполнения PDF: " + (e as Error).message);
       }
 
       console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before fetch sendContractPdf`);
