@@ -53,99 +53,166 @@
   <body>
     <div id="root"></div>
     
-    <!-- VANILLA JS ИНТЕРФЕЙС КАК test_pdf_fill.html -->
-    <div id="vanilla-contract-ui" style="position: fixed; top: 100px; right: 20px; z-index: 9999; background: #fef3c7; border: 3px solid #f59e0b; padding: 20px; border-radius: 10px; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-      <h2 style="margin: 0 0 15px 0; color: #92400e; font-size: 18px; font-weight: bold;">📋 ОТПРАВКА ДОГОВОРА</h2>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+      #vanilla-contract-ui input, #vanilla-contract-ui button { transition: all 0.2s; }
+      #vanilla-contract-ui button:active { transform: scale(0.95); }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    
+    <!-- VANILLA JS BRIDGE - SCRAPES REACT DOM AND FILLS PDF -->
+    <div id="vanilla-contract-ui" style="position: fixed; top: 80px; right: 20px; z-index: 9999; background: #fffbeb; border: 3px solid #d97706; padding: 20px; border-radius: 12px; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); font-family: sans-serif;">
+      <h2 style="margin: 0 0 10px 0; color: #92400e; font-size: 16px; font-weight: 800; text-transform: uppercase;">⚡ PDF КОНСТРУКТОР</h2>
       
-      <div style="margin-bottom: 10px;">
-        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #92400e;">PDF:</label>
-        <input type="file" id="vanilla-pdf-template" accept=".pdf" style="width: 100%; padding: 8px; border: 2px solid #f59e0b; border-radius: 5px;">
+      <div id="vanilla-pdf-status" style="margin-bottom: 10px; font-size: 12px; padding: 5px; background: #fef3c7; border-radius: 4px; border: 1px solid #fcd34d;">
+        ⏳ Поиск шаблона...
       </div>
       
-      <div style="margin-bottom: 10px;">
-        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #92400e;">Email:</label>
-        <input type="email" id="vanilla-email" placeholder="test@example.com" style="width: 100%; padding: 8px; border: 2px solid #f59e0b; border-radius: 5px;">
-      </div>
+      <button id="vanilla-fill-btn" style="width: 100%; padding: 14px; margin-bottom: 8px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+        1. 🔧 ЗАПОЛНИТЬ ИЗ ФОРМЫ
+      </button>
       
-      <button id="vanilla-fill-btn" style="width: 100%; padding: 12px; margin-bottom: 8px; background: #3b82f6; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">🔧 Заполнить</button>
-      <button id="vanilla-download-btn" style="width: 100%; padding: 12px; margin-bottom: 8px; background: #10b981; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Скачать</button>
-      <button id="vanilla-send-btn" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">📧 ОТПРАВИТЬ</button>
+      <button id="vanilla-download-btn" style="width: 100%; padding: 14px; margin-bottom: 8px; background: #059669; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+        2. 💾 СКАЧАТЬ И ПРОВЕРИТЬ
+      </button>
       
-      <p id="vanilla-status" style="margin: 10px 0 0 0; font-size: 12px; color: #92400e;">💡 Загрузите PDF</p>
+      <button id="vanilla-send-btn" style="width: 100%; padding: 14px; background: #dc2626; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+        3. 📧 ОТПРАВИТЬ КЛИЕНТУ
+      </button>
+      
+      <p id="vanilla-status" style="margin: 10px 0 0 0; font-size: 11px; color: #78350f; font-weight: bold; min-height: 1.2em;">...</p>
     </div>
     
     <script>
     (function() {
       const { PDFDocument } = PDFLib;
       let filledPdfBytes = null;
-      let pdfTemplate = null;
+      let pdfTemplatePath = null;
       
-      const status = document.getElementById('vanilla-status');
-      const setStatus = (msg) => { status.textContent = msg; };
+      const statusEl = document.getElementById('vanilla-status');
+      const setStatus = (msg) => { statusEl.textContent = msg; console.log('[VANILLA]', msg); };
       
-      document.getElementById('vanilla-pdf-template').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          pdfTemplate = ev.target.result;
-          setStatus('✅ PDF: ' + file.name);
-        };
-        reader.readAsDataURL(file);
-      });
+      const getValByPlaceholder = (ph) => {
+        const el = document.querySelector(`input[placeholder="${ph}"]`);
+        return el ? el.value : '';
+      };
       
+      async function checkPdfTemplate() {
+        try {
+          const res = await fetch('/api/api.php?action=getContracts');
+          const data = await res.json();
+          const statusDiv = document.getElementById('vanilla-pdf-status');
+          
+          if (data.success && data.pdfTemplate) {
+            pdfTemplatePath = data.pdfTemplate;
+            statusDiv.innerHTML = '✅ <b>Шаблон найден!</b><br>Можно заполнять.';
+            statusDiv.style.background = '#d1fae5';
+            statusDiv.style.borderColor = '#34d399';
+          } else {
+            statusDiv.innerHTML = '⚠️ <b>Шаблон не найден.</b><br>Загрузите PDF в админке.';
+            statusDiv.style.background = '#fee2e2';
+            statusDiv.style.borderColor = '#f87171';
+          }
+        } catch (e) { console.error(e); }
+      }
+      setInterval(checkPdfTemplate, 3000);
+      checkPdfTemplate();
+
       document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
-        if (!pdfTemplate) { alert('Загрузите PDF!'); return; }
+        if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
         
         try {
-          setStatus('⏳ Заполнение...');
-          const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+          setStatus('⏳ Загрузка и заполнение...');
+          
+          const data = {
+            kennelName: getValByPlaceholder('GREAT LEGACY BULLY'),
+            kennelOwner: getValByPlaceholder('Иванов Иван Иванович'),
+            kennelAddress: getValByPlaceholder('г. Каяани, Финляндия'),
+            kennelPhone: getValByPlaceholder('+7 (900) 455-27-16'),
+            kennelEmail: getValByPlaceholder('greatlegacybully@gmail.com'),
+            
+            buyerName: getValByPlaceholder('Петров Петр Петрович'),
+            buyerAddress: getValByPlaceholder('г. Москва, ул. ...'),
+            buyerPhone: getValByPlaceholder('+7 (___) ___-__-__'),
+            buyerEmail: getValByPlaceholder('buyer@email.com'),
+            
+            dogName: getValByPlaceholder('MATRANG'),
+            dogBreed: getValByPlaceholder('Американский булли'),
+            dogColor: getValByPlaceholder('Blue Fawn'),
+            dogPrice: getValByPlaceholder('150000'),
+            
+            contractDate: new Date().toLocaleDateString('ru-RU')
+          };
+          
+          console.log('[VANILLA] Scraped Data:', data);
+          if(!data.buyerEmail) { alert('⚠️ Email покупателя не найден! Проверьте поле.'); }
+
+          const pdfBytes = await fetch(pdfTemplatePath).then(res => res.arrayBuffer());
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const form = pdfDoc.getForm();
           
           const fieldMap = {
-            '`kennelName`': 'MATRANG',
-            '`kennelAddress`': 'Москва',
-            '`buyerName`': 'Тест',
-            '`buyerEmail`': document.getElementById('vanilla-email').value || 'test@test.com',
-            '`contractNumber`': '001',
-            '`contractDate`': new Date().toLocaleDateString('ru-RU'),
-            '`dogName`': 'СОБАКА',
-            '`totalPrice`': '50000'
+            '`kennelName`': data.kennelName,
+            '`kennelOwner`': data.kennelOwner,
+            '`kennelAddress`': data.kennelAddress,
+            '`kennelPhone`': data.kennelPhone,
+            '`kennelEmail`': data.kennelEmail,
+            '`buyerName`': data.buyerName,
+            '`buyerAddress`': data.buyerAddress,
+            '`buyerPhone`': data.buyerPhone,
+            '`buyerEmail`': data.buyerEmail,
+            '`dogName`': data.dogName,
+            '`dogBreed`': data.dogBreed,
+            '`dogColor`': data.dogColor,
+            '`totalPrice`': data.dogPrice,
+            '`contractDate`': data.contractDate,
+            '`contractPlace`': 'г. Москва'
           };
-          
-          let filled = 0;
+
+          let filledCount = 0;
           for (const [name, val] of Object.entries(fieldMap)) {
             try {
-              form.getTextField(name).setText(String(val));
-              filled++;
-            } catch {}
+              form.getTextField(name).setText(String(val || ''));
+              filledCount++;
+            } catch (e) {
+               try {
+                 const cleanName = name.replace(/`/g, '');
+                 form.getTextField(cleanName).setText(String(val || ''));
+                 filledCount++;
+               } catch (e2) {}
+            }
           }
-          
+
           filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
-          setStatus(`✅ Заполнено: ${filled}`);
-          alert(`✅ ${filled} полей`);
+          setStatus(`✅ Заполнено полей: ${filledCount}`);
+          alert(`✅ Успешно! Заполнено ${filledCount} полей.\nНажмите "Скачать" для проверки.`);
+          
         } catch (err) {
-          setStatus('❌ ' + err.message);
-          alert('❌ ' + err.message);
+          setStatus('❌ Ошибка: ' + err.message);
+          alert('Ошибка: ' + err.message);
         }
       });
       
       document.getElementById('vanilla-download-btn').addEventListener('click', () => {
-        if (!filledPdfBytes) { alert('Сначала заполните!'); return; }
+        if (!filledPdfBytes) { alert('Сначала нажмите "Заполнить"!'); return; }
         const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `contract_${Date.now()}.pdf`;
         a.click();
-        setStatus('✅ Скачан');
       });
       
       document.getElementById('vanilla-send-btn').addEventListener('click', async () => {
-        if (!filledPdfBytes) { alert('Сначала заполните!'); return; }
-        const email = document.getElementById('vanilla-email').value;
-        if (!email) { alert('Укажите email!'); return; }
+        if (!filledPdfBytes) { alert('Сначала нажмите "Заполнить"!'); return; }
+        
+        const email = getValByPlaceholder('buyer@email.com');
+        if (!email) { alert('❌ Не найден Email покупателя в форме!'); return; }
+        
+        if(!confirm(`Отправить договор на ${email}?`)) return;
         
         try {
           setStatus('⏳ Отправка...');
@@ -162,7 +229,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              data: { buyerEmail: email },
+              data: { buyerEmail: email }, 
               pdfTemplate: upData.path,
               useUploadedPdf: true
             })
@@ -170,17 +237,19 @@
           
           const emailData = await emailRes.json();
           if (emailData.success) {
-            setStatus(`✅ Отправлено на ${email}`);
-            alert(`✅ Отправлено!`);
+            setStatus(`✅ Отправлено!`);
+            alert(`✅ Договор успешно отправлен на ${email}`);
           } else {
             throw new Error(emailData.message);
           }
         } catch (err) {
           setStatus('❌ ' + err.message);
-          alert('❌ ' + err.message);
+          alert('❌ Ошибка отправки: ' + err.message);
         }
       });
     })();
     </script>
+  </body>
+</html>
   </body>
 </html>
