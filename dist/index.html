@@ -204,7 +204,19 @@
             }
           }
 
+          // Force NeedAppearances - ABSOLUTELY CRITICAL
+          try {
+             const acroForm = pdfDoc.catalog.lookup(PDFLib.PDFName.of('AcroForm'));
+             if (acroForm) {
+                acroForm.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.True);
+                console.log('[DEBUG] NeedAppearances set to TRUE');
+             }
+          } catch(e) { console.error('[DEBUG] NeedAppearances error:', e); }
+
+          // Validate filled PDF bytes
           filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+          console.log('[DEBUG] PDF saved, bytes:', filledPdfBytes.byteLength);
+          
           setStatus(`✅ Заполнено полей: ${filledCount}`);
           alert(`✅ Успешно! Заполнено ${filledCount} полей.\nНажмите "Скачать" для проверки.`);
           
