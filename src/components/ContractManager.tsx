@@ -457,6 +457,11 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
+    alert("DEBUG: sendContract вызвана!");
+    console.log("=== SEND CONTRACT START ===");
+    console.log("Form data:", formData);
+    console.log("PDF template:", pdfTemplate);
+    
     toast.info("🚀 Начинаем отправку договора...");
     
     // Валидация обязательных полей
