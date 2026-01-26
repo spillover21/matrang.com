@@ -408,28 +408,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
     toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
-    // КРИТИЧЕСКИ ВАЖНО: Устанавливаем флаг needAppearances через прямой доступ к PDF структуре
-    // Это заставит PDF reader отрисовать поля самостоятельно с правильным шрифтом
-    try {
-      // Получаем сырой PDF документ
-      const pdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
-      const modifiedPdf = await PDFDocument.load(pdfBytes);
-      
-      // Устанавливаем needAppearances напрямую через context (внутренний API)
-      const context = modifiedPdf.context;
-      const acroForm = context.lookup(modifiedPdf.catalog.get(context.obj('AcroForm')));
-      if (acroForm) {
-        acroForm.set(context.obj('NeedAppearances'), context.obj(true));
-      }
-      
-      const finalBytes = await modifiedPdf.save();
-      return { bytes: new Uint8Array(finalBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
-    } catch (e) {
-      console.warn('Failed to set NeedAppearances, using default save:', e);
-      // Fallback: сохраняем как есть
-      const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
-      return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
-    }
+    // Сохраняем БЕЗ обновления внешнего вида (избегаем ошибок с кириллицей)
+    const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+    return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
   };
 
   const checkPdfFields = async () => {
