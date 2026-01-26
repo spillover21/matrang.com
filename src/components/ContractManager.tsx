@@ -448,6 +448,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
+    toast.info("🚀 Начинаем отправку договора...");
+    
     // Валидация обязательных полей
     if (!formData.buyerName || !formData.buyerEmail || !formData.dogName || !formData.price) {
       toast.error("Заполните все обязательные поля");
@@ -459,10 +461,12 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       return;
     }
 
+    toast.info("📄 Загружаем PDF шаблон...");
     setSending(true);
     try {
       let filledPdfBase64: string | null = null;
       try {
+        toast.info("🔧 Заполняем поля PDF...");
         const filledResult = await buildFilledPdfBytes();
         if (filledResult?.bytes && filledResult.hasFields) {
           filledPdfBase64 = bytesToBase64(filledResult.bytes);
