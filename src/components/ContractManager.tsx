@@ -451,12 +451,12 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
   const sendContract = async () => {
     const t0 = performance.now();
-    console.error(`⏱️ [${t0.toFixed(0)}ms] sendContract START`);
+    toast.info(`⏱️ START at ${t0.toFixed(0)}ms`, { duration: 3000 });
     
     (window as any).__SEND_CONTRACT_CALLED = Date.now();
-    toast.error("🔴 DEBUG: sendContract ВЫЗВАНА!", { duration: 10000 });
+    toast.error("🔴 sendContract вызвана!", { duration: 5000 });
     
-    console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After toast`);
+    toast.info(`⏱️ After initial toasts`, { duration: 2000 });
     
     // Валидация обязательных полей
     if (!formData.buyerName || !formData.buyerEmail || !formData.dogName || !formData.price) {
@@ -469,32 +469,29 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       return;
     }
 
-    console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before setSending`);
+    toast.info(`⏱️ Before setSending at ${(performance.now()-t0).toFixed(0)}ms`, { duration: 2000 });
     setSending(true);
-    console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After setSending`);
     
     try {
       let filledPdfBase64: string | null = null;
       try {
-        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before buildFilledPdfBytes, pdfTemplate:`, pdfTemplate);
+        toast.info(`⏱️ Before buildFilledPdfBytes at ${(performance.now()-t0).toFixed(0)}ms\nTemplate: ${pdfTemplate}`, { duration: 3000 });
         const filledResult = await buildFilledPdfBytes();
-        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After buildFilledPdfBytes - result:`, filledResult);
+        toast.success(`⏱️ After buildFilledPdfBytes at ${(performance.now()-t0).toFixed(0)}ms\nFilled: ${filledResult?.filledCount}`, { duration: 3000 });
         
         if (filledResult?.bytes) {
-          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before bytesToBase64, bytes length: ${filledResult.bytes.length}`);
+          toast.info(`⏱️ bytesToBase64 START, bytes: ${filledResult.bytes.length}`, { duration: 2000 });
           filledPdfBase64 = bytesToBase64(filledResult.bytes);
-          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After bytesToBase64 - ${filledPdfBase64.length} chars`);
+          toast.success(`⏱️ bytesToBase64 DONE at ${(performance.now()-t0).toFixed(0)}ms\nBase64 length: ${filledPdfBase64.length}`, { duration: 3000 });
           toast.success(`✅ PDF заполнен: ${filledResult.filledCount} полей`);
         } else {
-          console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] filledResult.bytes is NULL or undefined`);
-          toast.error("❌ ОШИБКА: buildFilledPdfBytes вернул null!");
+          toast.error("❌ buildFilledPdfBytes вернул null!");
         }
       } catch (e) {
-        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] EXCEPTION in PDF generation:`, e);
-        toast.error("❌ ОШИБКА заполнения PDF: " + (e as Error).message);
+        toast.error(`❌ EXCEPTION: ${(e as Error).message}`, { duration: 5000 });
       }
 
-      console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] Before fetch sendContractPdf`);
+      toast.info(`⏱️ Before fetch at ${(performance.now()-t0).toFixed(0)}ms`, { duration: 2000 });
       const response = await fetch("/api/api.php?action=sendContractPdf", {
         method: "POST",
         headers: {
@@ -508,16 +505,16 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         }),
       });
 
-      console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After fetch, before json()`);
+      toast.success(`⏱️ After fetch at ${(performance.now()-t0).toFixed(0)}ms`, { duration: 2000 });
       const data = await response.json();
-      console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] After json() - success: ${data.success}`);
+      toast.success(`⏱️ After json() at ${(performance.now()-t0).toFixed(0)}ms\nSuccess: ${data.success}`, { duration: 3000 });
       
       if (data.success) {
         const message = data.emailSent 
           ? `Договор №${data.contract.contractNumber} отправлен на email ${formData.buyerEmail}` 
           : "Договор создан (email не отправлен)";
         toast.success(message);
-        console.error(`⏱️ [${(performance.now()-t0).toFixed(0)}ms] SUCCESS - total time`);
+        toast.success(`⏱️ TOTAL TIME: ${(performance.now()-t0).toFixed(0)}ms`, { duration: 5000 });
         loadData();
         // Очистка формы - оставляем данные питомника, очищаем данные покупателя и щенка
         setFormData({
