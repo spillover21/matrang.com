@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PDFDocument } from 'pdf-lib';
 
-// Version: 2026-01-26-v3-DEBUG-MODULE-LOAD
-alert("🚨 ContractManager.tsx ЗАГРУЖЕН! Timestamp: " + Date.now());
-console.error("🚨 MODULE LOAD: ContractManager.tsx loaded at " + new Date().toISOString());
+// Version: 2026-01-26-v4-DEBUGGER
+if (typeof window !== 'undefined') {
+  (window as any).__CONTRACT_MANAGER_LOADED = Date.now();
+  console.error("🚨 ContractManager module loaded:", new Date().toISOString());
+}
 interface ContractTemplate {
   id: number;
   name: string;
@@ -448,11 +450,11 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
-    alert("🔴 ALERT: sendContract вызвана!");
-    window.location.hash = '#sendContract-called-' + Date.now();
-    toast.error("🔴 DEBUG: sendContract ВЫЗВАНА! Если видите - функция работает!", { duration: 10000 });
-    console.error("🔴 DEBUG: sendContract вызвана! Если видите это - функция работает!");
+    (window as any).__SEND_CONTRACT_CALLED = Date.now();
+    console.error("🔴🔴🔴 SEND CONTRACT CALLED:", new Date().toISOString());
+    debugger; // Остановка отладчика
     
+    toast.error("🔴 DEBUG: sendContract ВЫЗВАНА! Если видите - функция работает!", { duration: 10000 });
     toast.info("🚀 Начинаем отправку договора...");
     
     // Валидация обязательных полей
