@@ -4,6 +4,7 @@
   "require": {
     "php": ">=7.4",
     "setasign/fpdf": "^1.8",
-    "setasign/fpdi": "^2.6"
+    "setasign/fpdi": "^2.6",
+    "phpmailer/phpmailer": "^7.0"
   }
 }

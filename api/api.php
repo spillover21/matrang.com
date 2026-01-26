@@ -733,6 +733,8 @@ if ($action === 'sendcontractpdf') {
         }
         
         // Отправка email с PDF
+        require_once __DIR__ . '/send_email.php';
+        
         $buyerEmail = $data['buyerEmail'] ?? '';
         $buyerName = $data['buyerName'] ?? '';
         $dogName = $data['dogName'] ?? '';
@@ -744,19 +746,8 @@ if ($action === 'sendcontractpdf') {
         if ($buyerEmail) {
             $subject = "Договор купли-продажи щенка - №{$contractNumber}";
             
-            // Подготовка письма с вложением PDF
-            $boundary = md5(time());
-            
-            $headers = "From: noreply@matrang.com\r\n";
-            $headers .= "Reply-To: {$kennelEmail}\r\n";
-            $headers .= "MIME-Version: 1.0\r\n";
-            $headers .= "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n";
-            
-            $message = "--{$boundary}\r\n";
-            $message .= "Content-Type: text/html; charset=UTF-8\r\n";
-            $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-            
-            $message .= "
+            // HTML содержимое письма
+            $htmlBody = "
 <!DOCTYPE html>
 <html>
 <head><meta charset='UTF-8'></head>
@@ -790,69 +781,57 @@ if ($action === 'sendcontractpdf') {
     <p>С уважением,<br><strong>Питомник GREAT LEGACY BULLY</strong></p>
     <p style='font-size: 12px; color: #666;'>Телефон: " . htmlspecialchars($data['kennelPhone'] ?? '') . "<br>Email: {$kennelEmail}</p>
 </body>
-</html>\r\n";
+</html>";
             
-            // Прикрепляем PDF если сгенерирован
+            // Подготовка вложений
+            $attachments = [];
             if ($pdfGenerated && file_exists($outputPath)) {
-                $pdfContent = file_get_contents($outputPath);
-                $pdfContentEncoded = chunk_split(base64_encode($pdfContent));
-                
-                $message .= "--{$boundary}\r\n";
-                $message .= "Content-Type: application/pdf; name=\"{$outputFilename}\"\r\n";
-                $message .= "Content-Transfer-Encoding: base64\r\n";
-                $message .= "Content-Disposition: attachment; filename=\"{$outputFilename}\"\r\n\r\n";
-                $message .= $pdfContentEncoded . "\r\n";
-            } else {
-                // Если PDF не сгенерирован - отправляем оригинальный шаблон с инструкцией заполнить вручную
+                $attachments[] = [
+                    'path' => $outputPath,
+                    'name' => $outputFilename
+                ];
+            } elseif (file_exists($templatePath)) {
+                // Если PDF не сгенерирован - отправляем оригинальный шаблон
                 file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Sending original template as fallback\n", FILE_APPEND);
                 
-                if (file_exists($templatePath)) {
-                    $pdfContent = file_get_contents($templatePath);
-                    $pdfContentEncoded = chunk_split(base64_encode($pdfContent));
-                    
-                    $message .= "--{$boundary}\r\n";
-                    $message .= "Content-Type: application/pdf; name=\"contract_template.pdf\"\r\n";
-                    $message .= "Content-Transfer-Encoding: base64\r\n";
-                    $message .= "Content-Disposition: attachment; filename=\"contract_template.pdf\"\r\n\r\n";
-                    $message .= $pdfContentEncoded . "\r\n";
-                    
-                    // Добавляем предупреждение в письмо
-                    $message = str_replace(
-                        '<p><strong>Во вложении находится PDF договор.</strong></p>',
-                        '<p style="background:#fff3cd;padding:10px;border-left:4px solid #ffc107;"><strong>⚠️ ВНИМАНИЕ:</strong> Во вложении пустой шаблон договора. Пожалуйста, заполните его вручную следующими данными:</p>
-                        <table style="border-collapse:collapse;width:100%;margin:10px 0;">
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Номер договора:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($contractNumber) . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Дата:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['contractDate']) . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Владелец питомника:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['kennelOwner'] ?? '') . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Покупатель:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($buyerName) . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Адрес покупателя:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['buyerAddress'] ?? '') . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Телефон покупателя:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['buyerPhone'] ?? '') . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Кличка щенка:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($dogName) . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Порода:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogBreed'] ?? '') . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Окрас:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogColor'] ?? '') . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Дата рождения:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogBirthDate'] ?? '') . '</td></tr>
-                            <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Стоимость:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['price'] ?? '') . ' руб.</td></tr>
-                        </table>
-                        <p><strong>Во вложении находится PDF шаблон договора.</strong></p>',
-                        $message
-                    );
-                }
+                $attachments[] = [
+                    'path' => $templatePath,
+                    'name' => 'contract_template.pdf'
+                ];
+                
+                // Добавляем предупреждение в письмо
+                $htmlBody = str_replace(
+                    '<p><strong>Во вложении находится PDF договор.</strong></p>',
+                    '<p style="background:#fff3cd;padding:10px;border-left:4px solid #ffc107;"><strong>⚠️ ВНИМАНИЕ:</strong> Во вложении пустой шаблон договора. Пожалуйста, заполните его вручную следующими данными:</p>
+                    <table style="border-collapse:collapse;width:100%;margin:10px 0;">
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Номер договора:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($contractNumber) . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Дата:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['contractDate']) . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Владелец питомника:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['kennelOwner'] ?? '') . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Покупатель:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($buyerName) . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Адрес покупателя:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['buyerAddress'] ?? '') . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Телефон покупателя:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['buyerPhone'] ?? '') . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Кличка щенка:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($dogName) . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Порода:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogBreed'] ?? '') . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Окрас:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogColor'] ?? '') . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Дата рождения:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['dogBirthDate'] ?? '') . '</td></tr>
+                        <tr><td style="padding:5px;border:1px solid #ddd;"><strong>Стоимость:</strong></td><td style="padding:5px;border:1px solid #ddd;">' . htmlspecialchars($data['price'] ?? '') . ' руб.</td></tr>
+                    </table>
+                    <p><strong>Во вложении находится PDF шаблон договора.</strong></p>',
+                    $htmlBody
+                );
             }
             
-            $message .= "--{$boundary}--";
+            // Отправка через SMTP
+            $mailSent = sendEmailSMTP($buyerEmail, $subject, $htmlBody, $attachments, $kennelEmail);
             
-            $mailSent = @mail($buyerEmail, $subject, $message, $headers);
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Mail sent to buyer (SMTP): " . ($mailSent ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
             
-            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Mail sent to buyer: " . ($mailSent ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
-            
-            // Логируем отправку
-            $mailLog = __DIR__ . '/../data/mail.log';
-            file_put_contents($mailLog, date('Y-m-d H:i:s') . " - Email to: {$buyerEmail} | PDF: " . ($pdfGenerated ? 'YES' : 'NO') . " | Sent: " . ($mailSent ? 'YES' : 'NO') . "\n", FILE_APPEND);
-            
-            // Отправляем копию продавцу
-            if ($mailSent) {
-                $sellerSent = @mail($kennelEmail, "Копия договора {$contractNumber}", $message, $headers);
-                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Mail sent to seller: " . ($sellerSent ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
+            // Отправляем копию продавцу через SMTP
+            if ($mailSent && $kennelEmail) {
+                $sellerSubject = "Копия договора {$contractNumber}";
+                $sellerBody = str_replace($buyerName, $buyerName . " (копия для питомника)", $htmlBody);
+                $sellerSent = sendEmailSMTP($kennelEmail, $sellerSubject, $sellerBody, $attachments);
+                file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Mail sent to seller (SMTP): " . ($sellerSent ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
             }
         } else {
             file_put_contents($debugLog, date('Y-m-d H:i:s') . " - WARNING: No buyer email\n", FILE_APPEND);
