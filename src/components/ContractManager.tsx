@@ -406,16 +406,11 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       }
     });
 
-    // КРИТИЧЕСКИ ВАЖНО: обновить внешний вид полей для поддержки кириллицы
-    try {
-      form.updateFieldAppearances();
-    } catch (e) {
-      console.warn('Failed to update field appearances:', e);
-    }
-
     toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
-    const filledPdfBytes = await pdfDoc.save();
+    // КРИТИЧЕСКИ ВАЖНО: НЕ обновлять внешний вид полей при сохранении
+    // Это позволит PDF reader самому отрендерить поля с правильным шрифтом для кириллицы
+    const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
   };
 

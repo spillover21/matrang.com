@@ -210,8 +210,9 @@
                 log(`\n✅ ЗАПОЛНЕНО: ${filledCount} полей`, 'success');
                 log(`❌ НЕ НАЙДЕНО: ${notFoundCount} полей`, notFoundCount > 0 ? 'error' : 'info');
                 
-                // Сохраняем заполненный PDF
-                filledPdfBytes = await pdfDoc.save();
+                // Сохраняем заполненный PDF БЕЗ обновления внешнего вида
+                // Это позволит избежать ошибок кодировки с кириллицей
+                filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
                 log(`\n💾 PDF сохранен, размер: ${filledPdfBytes.length} байт`, 'success');
                 
                 document.getElementById('downloadBtn').disabled = false;
