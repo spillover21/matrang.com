@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест заполнения PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 2px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Тест заполнения PDF полей</h1>
+    
+    <div class="container">
+        <h2>Шаг 1: Загрузить PDF шаблон</h2>
+        <p>Укажите URL вашего PDF шаблона:</p>
+        <input type="text" id="pdfUrl" value="/uploads/contracts/contract_template.pdf" style="width: 100%; padding: 10px;">
+        <button onclick="loadPDF()">Загрузить PDF</button>
+    </div>
+
+    <div class="container">
+        <h2>Шаг 2: Заполнить поля</h2>
+        <button onclick="fillPDF()" id="fillBtn" disabled>Заполнить поля тестовыми данными</button>
+        <button onclick="downloadPDF()" id="downloadBtn" disabled>Скачать заполненный PDF</button>
+    </div>
+
+    <div class="container">
+        <h2>Лог операций</h2>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let pdfDoc = null;
+        let filledPdfBytes = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            logDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function loadPDF() {
+            try {
+                const url = document.getElementById('pdfUrl').value;
+                log(`📄 Загружаем PDF: ${url}`);
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                log(`✓ PDF загружен, размер: ${arrayBuffer.byteLength} байт`);
+                
+                pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                log(`✓ PDF распарсен успешно`);
+                
+                const form = pdfDoc.getForm();
+                const fields = form.getFields();
+                
+                log(`✓ Найдено полей: ${fields.length}`, 'success');
+                
+                if (fields.length > 0) {
+                    log(`\nСписок полей:`);
+                    fields.forEach((field, index) => {
+                        const name = field.getName();
+                        const type = field.constructor.name;
+                        log(`  ${index + 1}. ${name} (${type})`);
+                    });
+                    document.getElementById('fillBtn').disabled = false;
+                } else {
+                    log(`⚠️ В PDF нет AcroForm полей!`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ ОШИБКА: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function fillPDF() {
+            try {
+                log(`\n🔧 Начинаем заполнение полей...`);
+                
+                const form = pdfDoc.getForm();
+                
+                // Тестовые данные
+                const testData = {
+                    kennelAddress: 'Тестовый адрес питомника 123',
+                    kennelPassportSeries: '1234',
+                    kennelPassportNumber: '567890',
+                    kennelPassportIssuedBy: 'Тестовый орган',
+                    kennelPassportIssuedDate: '01.01.2020',
+                    kennelPhone: '+7 900 123 45 67',
+                    kennelEmail: 'test@kennel.com',
+                    kennelOwner: 'Иван Иванов',
+                    
+                    buyerName: 'Петр Петров',
+                    buyerAddress: 'Тестовый адрес покупателя 456',
+                    buyerPassportSeries: '9876',
+                    buyerPassportNumber: '543210',
+                    buyerPassportIssuedBy: 'Тестовый орган 2',
+                    buyerPassportIssuedDate: '02.02.2021',
+                    buyerPhone: '+7 900 987 65 43',
+                    buyerEmail: 'buyer@test.com',
+                    
+                    dogName: 'Рекс',
+                    dogBirthDate: '15.05.2023',
+                    dogColor: 'Черный',
+                    dogChipNumber: '123456789012345',
+                    dogPuppyCard: 'PUPPY-2023-001',
+                    
+                    dogFatherName: 'Чемпион Отец',
+                    dogFatherRegNumber: 'REG-FATHER-001',
+                    dogMotherName: 'Чемпион Мать',
+                    dogMotherRegNumber: 'REG-MOTHER-001',
+                    
+                    price: '100000',
+                    depositAmount: '30000',
+                    depositDate: '01.06.2023',
+                    remainingAmount: '70000',
+                    finalPaymentDate: '15.06.2023',
+                    
+                    dewormingDate: '10.05.2023',
+                    vaccinationDates: '20.05.2023, 10.06.2023',
+                    vaccineName: 'Nobivac DHPPi',
+                    nextDewormingDate: '10.07.2023',
+                    nextVaccinationDate: '20.07.2023',
+                    
+                    specialFeatures: 'Особые приметы отсутствуют',
+                    deliveryTerms: 'Самовывоз',
+                    additionalAgreements: 'Дополнительные условия',
+                    recommendedFood: 'Royal Canin',
+                    
+                    contractDate: '01.06.2023',
+                    contractPlace: 'г. Москва',
+                    contractNumber: 'DOG-2023-TEST-001'
+                };
+                
+                let filledCount = 0;
+                let notFoundCount = 0;
+                
+                for (const [fieldName, value] of Object.entries(testData)) {
+                    try {
+                        // Пробуем как текстовое поле
+                        if (typeof value === 'boolean') {
+                            const checkbox = form.getCheckBox(fieldName);
+                            if (value) checkbox.check();
+                            else checkbox.uncheck();
+                            log(`  ✓ ${fieldName} = ${value}`);
+                            filledCount++;
+                        } else {
+                            const textField = form.getTextField(fieldName);
+                            textField.setText(String(value));
+                            log(`  ✓ ${fieldName} = ${value}`);
+                            filledCount++;
+                        }
+                    } catch (e) {
+                        log(`  ✗ ${fieldName} - поле не найдено`, 'error');
+                        notFoundCount++;
+                    }
+                }
+                
+                // Заполняем чекбоксы
+                try {
+                    const purposeBreeding = form.getCheckBox('purposeBreeding');
+                    purposeBreeding.check();
+                    log(`  ✓ purposeBreeding = checked`);
+                    filledCount++;
+                } catch (e) {}
+                
+                log(`\n✅ ЗАПОЛНЕНО: ${filledCount} полей`, 'success');
+                log(`❌ НЕ НАЙДЕНО: ${notFoundCount} полей`, notFoundCount > 0 ? 'error' : 'info');
+                
+                // Сохраняем заполненный PDF
+                filledPdfBytes = await pdfDoc.save();
+                log(`\n💾 PDF сохранен, размер: ${filledPdfBytes.length} байт`, 'success');
+                
+                document.getElementById('downloadBtn').disabled = false;
+                
+            } catch (error) {
+                log(`❌ ОШИБКА ЗАПОЛНЕНИЯ: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function downloadPDF() {
+            if (!filledPdfBytes) {
+                alert('Сначала заполните PDF!');
+                return;
+            }
+            
+            const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'filled_contract.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log(`📥 PDF скачан`, 'success');
+        }
+    </script>
+</body>
+</html>
