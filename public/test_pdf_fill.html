@@ -259,8 +259,14 @@
             try {
                 log(`\n📧 Начинаем отправку на email...`);
                 
-                // Конвертируем в base64
-                const base64 = btoa(String.fromCharCode(...filledPdfBytes));
+                // Конвертируем в base64 ЧАСТЯМИ (большой файл)
+                log(`✓ Конвертируем PDF в base64...`);
+                let binary = '';
+                const chunkSize = 0x8000; // 32KB chunks
+                for (let i = 0; i < filledPdfBytes.length; i += chunkSize) {
+                    binary += String.fromCharCode(...filledPdfBytes.subarray(i, i + chunkSize));
+                }
+                const base64 = btoa(binary);
                 log(`✓ PDF конвертирован в base64: ${base64.length} символов`);
 
                 const buyerEmail = document.getElementById('buyerEmailInput').value;
