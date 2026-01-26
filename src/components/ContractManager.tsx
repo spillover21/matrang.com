@@ -779,115 +779,118 @@ const ContractManager = ({ token }: ContractManagerProps) => {
               </p>
             </div>
 
-            {/* ПОШАГОВЫЙ ИНТЕРФЕЙС КАК НА TEST_PDF_FILL.HTML */}
-            {pdfTemplate && (
-              <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-6 space-y-4">
-                <h2 className="text-2xl font-bold text-yellow-800">📋 Шаг 2: Заполнить и отправить PDF</h2>
+            {/* ПОШАГОВЫЙ ИНТЕРФЕЙС - ВСЕГДА ПОКАЗАН */}
+            <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-6 space-y-4">
+              <h2 className="text-2xl font-bold text-yellow-800">📋 Заполнить и отправить PDF</h2>
+              
+              <div className="flex gap-4">
+                <button
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
+                  onClick={async () => {
+                    alert("🔵 Кнопка ЗАПОЛНИТЬ нажата!");
+                    if (!pdfTemplate) {
+                      alert("Сначала загрузите PDF шаблон!");
+                      return;
+                    }
+                    try {
+                      const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+                      const pdfDoc = await PDFDocument.load(pdfBytes);
+                      const form = pdfDoc.getForm();
+                      const fieldMap = buildFieldMap();
+                      let filled = 0;
+                      for (const [name, val] of Object.entries(fieldMap)) {
+                        try {
+                          if (typeof val === 'boolean') {
+                            const cb = form.getCheckBox(name);
+                            val ? cb.check() : cb.uncheck();
+                          } else {
+                            form.getTextField(name).setText(String(val));
+                          }
+                          filled++;
+                        } catch {}
+                      }
+                      const saved = await pdfDoc.save({ updateFieldAppearances: false });
+                      (window as any).filledPdfBytes = saved;
+                      alert(`✅ PDF заполнен! Полей: ${filled}`);
+                      toast.success(`Заполнено ${filled} полей`);
+                    } catch (err) {
+                      alert("Ошибка: " + (err as Error).message);
+                    }
+                  }}
+                >
+                  🔧 Заполнить поля
+                </button>
                 
-                <div className="flex gap-4">
-                  <button
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
-                    onClick={async () => {
-                      try {
-                        const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
-                        const pdfDoc = await PDFDocument.load(pdfBytes);
-                        const form = pdfDoc.getForm();
-                        const fieldMap = buildFieldMap();
-                        let filled = 0;
-                        for (const [name, val] of Object.entries(fieldMap)) {
-                          try {
-                            if (typeof val === 'boolean') {
-                              const cb = form.getCheckBox(name);
-                              val ? cb.check() : cb.uncheck();
-                            } else {
-                              form.getTextField(name).setText(String(val));
-                            }
-                            filled++;
-                          } catch {}
-                        }
-                        const saved = await pdfDoc.save({ updateFieldAppearances: false });
-                        (window as any).filledPdfBytes = saved;
-                        alert(`✅ PDF заполнен! Заполнено полей: ${filled}`);
-                        toast.success(`Заполнено ${filled} полей`);
-                      } catch (err) {
-                        alert("Ошибка: " + (err as Error).message);
-                      }
-                    }}
-                  >
-                    🔧 Заполнить поля данными из формы
-                  </button>
-                  
-                  <button
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
-                    onClick={() => {
-                      if (!(window as any).filledPdfBytes) {
-                        alert("Сначала заполните PDF!");
-                        return;
-                      }
+                <button
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
+                  onClick={() => {
+                    alert("🟢 Кнопка СКАЧАТЬ нажата!");
+                    if (!(window as any).filledPdfBytes) {
+                      alert("Сначала заполните PDF!");
+                      return;
+                    }
+                    const blob = new Blob([(window as any).filledPdfBytes], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `contract_${Date.now()}.pdf`;
+                    a.click();
+                    toast.success("PDF скачан!");
+                  }}
+                >
+                  💾 Скачать PDF
+                </button>
+                
+                <button
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
+                  disabled={sending}
+                  onClick={async () => {
+                    alert("🔴 Кнопка ОТПРАВИТЬ нажата!");
+                    if (!(window as any).filledPdfBytes) {
+                      alert("Сначала заполните PDF!");
+                      return;
+                    }
+                    if (!formData.buyerEmail) {
+                      alert("Укажите email!");
+                      return;
+                    }
+                    
+                    setSending(true);
+                    try {
                       const blob = new Blob([(window as any).filledPdfBytes], { type: 'application/pdf' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `contract_${Date.now()}.pdf`;
-                      a.click();
-                      toast.success("PDF скачан!");
-                    }}
-                  >
-                    💾 Скачать заполненный PDF
-                  </button>
-                  
-                  <button
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
-                    disabled={sending}
-                    onClick={async () => {
-                      if (!(window as any).filledPdfBytes) {
-                        alert("Сначала заполните PDF!");
-                        return;
-                      }
-                      if (!formData.buyerEmail) {
-                        alert("Укажите email покупателя!");
-                        return;
-                      }
+                      const fd = new FormData();
+                      fd.append('file', blob, 'contract.pdf');
                       
-                      setSending(true);
-                      try {
-                        const blob = new Blob([(window as any).filledPdfBytes], { type: 'application/pdf' });
-                        const fd = new FormData();
-                        fd.append('file', blob, 'contract.pdf');
-                        
-                        const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd });
-                        const upData = await upRes.json();
-                        
-                        const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                          body: JSON.stringify({ data: formData, pdfTemplate: upData.path, useUploadedPdf: true })
-                        });
-                        
-                        const emailData = await emailRes.json();
-                        if (emailData.success) {
-                          alert(`✅ Договор отправлен на ${formData.buyerEmail}!`);
-                          toast.success("Договор отправлен!");
-                          loadData();
-                        } else {
-                          alert("Ошибка: " + emailData.message);
-                        }
-                      } catch (err) {
-                        alert("Ошибка: " + (err as Error).message);
-                      } finally {
-                        setSending(false);
+                      const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd });
+                      const upData = await upRes.json();
+                      
+                      const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ data: formData, pdfTemplate: upData.path, useUploadedPdf: true })
+                      });
+                      
+                      const emailData = await emailRes.json();
+                      alert(emailData.success ? `✅ Отправлено на ${formData.buyerEmail}!` : "❌ " + emailData.message);
+                      if (emailData.success) {
+                        toast.success("Отправлено!");
+                        loadData();
                       }
-                    }}
-                  >
-                    {sending ? "⏳ Отправка..." : "📧 ОТПРАВИТЬ НА ПОЧТУ"}
-                  </button>
-                </div>
-                
-                <p className="text-sm text-yellow-800">
-                  💡 1. Нажмите "Заполнить" → 2. Скачайте для проверки → 3. Отправьте на email
-                </p>
+                    } catch (err) {
+                      alert("Ошибка: " + (err as Error).message);
+                    } finally {
+                      setSending(false);
+                    }
+                  }}
+                >
+                  {sending ? "⏳ Отправка..." : "📧 ОТПРАВИТЬ"}
+                </button>
               </div>
-            )}
+              
+              <p className="text-sm text-yellow-800">
+                💡 1. Заполнить → 2. Скачать для проверки → 3. Отправить на email
+              </p>
+            </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Данные питомника / Заводчика</h2>
