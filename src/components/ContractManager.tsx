@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save, Send, Download, FileText, Trash2, Plus, Archive, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFDict, PDFBool } from 'pdf-lib';
 
 // Version: 2026-01-26-v2
 interface ContractTemplate {
@@ -408,8 +408,18 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
     toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
-    // КРИТИЧЕСКИ ВАЖНО: НЕ обновлять внешний вид полей при сохранении
-    // Это позволит PDF reader самому отрендерить поля с правильным шрифтом для кириллицы
+    // КРИТИЧЕСКИ ВАЖНО: Устанавливаем флаг needAppearances
+    // Это заставит PDF reader отрисовать поля самостоятельно с правильным шрифтом
+    try {
+      const acroForm = pdfDoc.catalog.lookup(PDFName.of('AcroForm'), PDFDict);
+      if (acroForm) {
+        acroForm.set(PDFName.of('NeedAppearances'), PDFBool.True);
+      }
+    } catch (e) {
+      console.warn('Failed to set NeedAppearances:', e);
+    }
+
+    // Сохраняем БЕЗ обновления внешнего вида (чтобы избежать ошибок с кириллицей)
     const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
   };
