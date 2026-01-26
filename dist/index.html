@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MATRANG DOGS</title>
+    <meta name="description" content="питомник американских булли Great Legacy bully" />
+    <meta name="author" content="MATRANG Kennel" />
+
+    <meta property="og:title" content="MATRANG" />
+    <meta property="og:description" content="питомник американских булли Great Legacy bully" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://matrang.com/" />
+    <meta property="og:image" content="https://matrang.com/uploads/1767891439_85337ea8.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@MATRANG" />
+    <meta name="twitter:image" content="/assets/hero-pitbull.jpg" />
+    
+    <script>
+      // DEBUG: Перехват кликов на всех кнопках
+      window.addEventListener('DOMContentLoaded', function() {
+        console.error('🟢 DEBUG SCRIPT LOADED at ' + new Date().toISOString());
+        
+        setInterval(function() {
+          const sendButton = Array.from(document.querySelectorAll('button')).find(btn => 
+            btn.textContent && (btn.textContent.includes('Отправить на email') || btn.textContent.includes('Отправка'))
+          );
+          
+          if (sendButton && !sendButton.dataset.debugAttached) {
+            sendButton.dataset.debugAttached = 'true';
+            console.error('🔵 Found send button, attaching debug listener');
+            
+            sendButton.addEventListener('click', function(e) {
+              console.error('🔴🔴🔴 BUTTON CLICKED!', e);
+              alert('🔴 BUTTON CLICKED! Time: ' + Date.now());
+              window.__BUTTON_CLICKED = Date.now();
+            }, true); // capture phase
+          }
+        }, 1000);
+      });
+    </script>
+
+
+    <script type="module" crossorigin src="/assets/index-sKnweAqN-1769462016478.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D35cW1RB.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
