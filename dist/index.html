@@ -100,9 +100,22 @@
         return el ? el.value : '';
       };
       
+      const getHeaders = () => {
+        const token = localStorage.getItem("admin_token");
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+      };
+      
       async function checkPdfTemplate() {
         try {
-          const res = await fetch('/api/api.php?action=getContracts');
+          const headers = getHeaders();
+          if (!headers.Authorization) {
+            const statusDiv = document.getElementById('vanilla-pdf-status');
+            statusDiv.innerHTML = '🔒 <b>Войдите в админку</b>';
+            statusDiv.style.background = '#f3f4f6';
+            return;
+          }
+          
+          const res = await fetch('/api/api.php?action=getContracts', { headers });
           const data = await res.json();
           const statusDiv = document.getElementById('vanilla-pdf-status');
           
@@ -220,14 +233,15 @@
           const fd = new FormData();
           fd.append('file', blob, 'contract.pdf');
           
-          const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd });
+          const headers = getHeaders();
+          const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd, headers });
           const upData = await upRes.json();
           
           if (!upData.success) throw new Error(upData.message);
           
           const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...headers },
             body: JSON.stringify({
               data: { buyerEmail: email }, 
               pdfTemplate: upData.path,
