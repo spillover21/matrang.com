@@ -597,6 +597,46 @@ if ($action === 'generatefilledpdf') {
     exit;
 }
 
+// === ЗАГРУЗКА ЗАПОЛНЕННОГО ДОГОВОРА ===
+if ($action === 'uploadcontract') {
+    $debugLog = __DIR__ . '/../data/pdf_debug.log';
+    file_put_contents($debugLog, "\n=== UPLOAD CONTRACT " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
+    
+    if (!isset($_FILES['file'])) {
+        echo json_encode(['success' => false, 'message' => 'No file uploaded']);
+        exit();
+    }
+    
+    $file = $_FILES['file'];
+    file_put_contents($debugLog, "File name: {$file['name']}, size: {$file['size']}, type: {$file['type']}\n", FILE_APPEND);
+    
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode(['success' => false, 'message' => 'Upload error: ' . $file['error']]);
+        exit();
+    }
+    
+    // Создаем уникальное имя файла
+    $uploadDir = __DIR__ . '/../uploads/contracts/filled/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    
+    $filename = 'contract_' . time() . '_' . uniqid() . '.pdf';
+    $targetPath = $uploadDir . $filename;
+    
+    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+        echo json_encode(['success' => false, 'message' => 'Failed to save file']);
+        exit();
+    }
+    
+    file_put_contents($debugLog, "✓ Uploaded to: $targetPath\n", FILE_APPEND);
+    
+    // Возвращаем относительный путь
+    $relativePath = '/uploads/contracts/filled/' . $filename;
+    echo json_encode(['success' => true, 'path' => $relativePath, 'filename' => $filename]);
+    exit();
+}
+
 // Отправка договора через Adobe Sign
 if ($action === 'sendcontractpdf') {
     // Отладка
@@ -685,9 +725,23 @@ if ($action === 'sendcontractpdf') {
         $outputFilename = 'contract_' . $contractNumber . '.pdf';
         $outputPath = $outputDir . $outputFilename;
         
-        // Если клиент прислал уже заполненный PDF (base64)
-        $filledPdfBase64 = $jsonInput['filledPdfBase64'] ?? '';
-        if (!empty($filledPdfBase64)) {
+        // Проверяем флаг useUploadedPdf - если true, то pdfTemplate это уже заполненный PDF
+        $useUploadedPdf = $jsonInput['useUploadedPdf'] ?? false;
+        if ($useUploadedPdf) {
+            // Используем загруженный заполненный PDF
+            $uploadedPath = __DIR__ . '/..' . $pdfTemplate;
+            if (!file_exists($uploadedPath)) {
+                echo json_encode(['success' => false, 'message' => 'Uploaded PDF not found: ' . $uploadedPath]);
+                exit;
+            }
+            copy($uploadedPath, $outputPath);
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - Using uploaded filled PDF: $uploadedPath\n", FILE_APPEND);
+        }
+        // Иначе проверяем filledPdfBase64
+        else {
+            // Если клиент прислал уже заполненный PDF (base64)
+            $filledPdfBase64 = $jsonInput['filledPdfBase64'] ?? '';
+            if (!empty($filledPdfBase64)) {
             $decoded = base64_decode($filledPdfBase64, true);
             if ($decoded === false) {
                 file_put_contents($debugLog, date('Y-m-d H:i:s') . " - ERROR: Invalid filledPdfBase64\n", FILE_APPEND);
@@ -710,6 +764,13 @@ if ($action === 'sendcontractpdf') {
                     file_put_contents($debugLog, date('Y-m-d H:i:s') . " - WARNING: No field values found in PDF - fields NOT FILLED!\n", FILE_APPEND);
                 }
             }
+        } else {
+            // Если не прислали base64 - используем оригинальный шаблон
+            file_put_contents($debugLog, date('Y-m-d H:i:s') . " - WARNING: Frontend did not send filledPdfBase64! Sending original template.\n", FILE_APPEND);
+            if (file_exists($templatePath)) {
+                copy($templatePath, $outputPath);
+            }
+        }
         }
         
         // Добавляем номер договора в данные

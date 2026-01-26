@@ -259,16 +259,28 @@
             try {
                 log(`\n📧 Начинаем отправку на email...`);
                 
-                // Конвертируем в base64 ЧАСТЯМИ (большой файл)
-                log(`✓ Конвертируем PDF в base64...`);
-                let binary = '';
-                const chunkSize = 0x8000; // 32KB chunks
-                for (let i = 0; i < filledPdfBytes.length; i += chunkSize) {
-                    binary += String.fromCharCode(...filledPdfBytes.subarray(i, i + chunkSize));
+                // ШАГ 1: Загружаем PDF на сервер
+                log(`📤 Загружаем заполненный PDF на сервер...`);
+                
+                const formData = new FormData();
+                const pdfBlob = new Blob([filledPdfBytes], { type: 'application/pdf' });
+                formData.append('file', pdfBlob, 'filled_contract.pdf');
+                
+                const uploadResponse = await fetch('/api/api.php?action=uploadcontract', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const uploadResult = await uploadResponse.json();
+                
+                if (!uploadResult.success) {
+                    throw new Error('Upload failed: ' + uploadResult.message);
                 }
-                const base64 = btoa(binary);
-                log(`✓ PDF конвертирован в base64: ${base64.length} символов`);
+                
+                const uploadedPath = uploadResult.path;
+                log(`✓ PDF загружен: ${uploadedPath}`);
 
+                // ШАГ 2: Отправляем email со ссылкой на загруженный PDF
                 const buyerEmail = document.getElementById('buyerEmailInput').value;
                 const kennelEmail = document.getElementById('kennelEmailInput').value;
 
@@ -280,11 +292,11 @@
                         dogName: 'Рекс',
                         contractNumber: 'DOG-2023-TEST-001'
                     },
-                    pdfTemplate: '/uploads/contracts/contract_template.pdf',
-                    filledPdfBase64: base64
+                    pdfTemplate: uploadedPath, // используем загруженный заполненный PDF
+                    useUploadedPdf: true // флаг что это уже заполненный PDF
                 };
 
-                log(`✓ Отправляем запрос на /api/api.php?action=sendcontractpdf`);
+                log(`✓ Отправляем email с PDF: ${uploadedPath}`);
                 
                 const response = await fetch('/api/api.php?action=sendcontractpdf', {
                     method: 'POST',
@@ -295,14 +307,14 @@
                 });
 
                 const responseText = await response.text();
-                log(`✓ Получен ответ (${response.status}): ${responseText.substring(0, 500)}...`);
+                log(`✓ Получен ответ (${response.status})`);
 
                 let result;
                 try {
                     result = JSON.parse(responseText);
                 } catch (e) {
-                    log(`❌ Ответ не JSON! Полный текст:\n${responseText}`, 'error');
-                    throw new Error('Server returned non-JSON response: ' + responseText.substring(0, 200));
+                    log(`❌ Ответ не JSON: ${responseText.substring(0, 500)}`, 'error');
+                    throw new Error('Server returned non-JSON response');
                 }
                 
                 if (result.success) {
