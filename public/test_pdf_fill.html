@@ -122,57 +122,57 @@
                 
                 const form = pdfDoc.getForm();
                 
-                // Тестовые данные
+                // Тестовые данные - ВАЖНО: имена полей с обратными кавычками!
                 const testData = {
-                    kennelAddress: 'Тестовый адрес питомника 123',
-                    kennelPassportSeries: '1234',
-                    kennelPassportNumber: '567890',
-                    kennelPassportIssuedBy: 'Тестовый орган',
-                    kennelPassportIssuedDate: '01.01.2020',
-                    kennelPhone: '+7 900 123 45 67',
-                    kennelEmail: 'test@kennel.com',
-                    kennelOwner: 'Иван Иванов',
+                    '`kennelAddress`': 'Тестовый адрес питомника 123',
+                    '`kennelPassportSeries`': '1234',
+                    '`kennelPassportNumber`': '567890',
+                    '`kennelPassportIssuedBy`': 'Тестовый орган',
+                    '`kennelPassportIssuedDate`': '01.01.2020',
+                    '`kennelPhone`': '+7 900 123 45 67',
+                    '`kennelEmail`': 'test@kennel.com',
+                    '`kennelOwner`': 'Иван Иванов',
                     
-                    buyerName: 'Петр Петров',
-                    buyerAddress: 'Тестовый адрес покупателя 456',
-                    buyerPassportSeries: '9876',
-                    buyerPassportNumber: '543210',
-                    buyerPassportIssuedBy: 'Тестовый орган 2',
-                    buyerPassportIssuedDate: '02.02.2021',
-                    buyerPhone: '+7 900 987 65 43',
-                    buyerEmail: 'buyer@test.com',
+                    '`buyerName`': 'Петр Петров',
+                    '`buyerAddress`': 'Тестовый адрес покупателя 456',
+                    '`buyerPassportSeries`': '9876',
+                    '`buyerPassportNumber`': '543210',
+                    '`buyerPassportIssuedBy`': 'Тестовый орган 2',
+                    '`buyerPassportIssuedDate`': '02.02.2021',
+                    '`buyerPhone`': '+7 900 987 65 43',
+                    '`buyerEmail`': 'buyer@test.com',
                     
-                    dogName: 'Рекс',
-                    dogBirthDate: '15.05.2023',
-                    dogColor: 'Черный',
-                    dogChipNumber: '123456789012345',
-                    dogPuppyCard: 'PUPPY-2023-001',
+                    '`dogName`': 'Рекс',
+                    '`dogBirthDate`': '15.05.2023',
+                    '`dogColor`': 'Черный',
+                    '`dogChipNumber`': '123456789012345',
+                    '`dogPuppyCard`': 'PUPPY-2023-001',
                     
-                    dogFatherName: 'Чемпион Отец',
-                    dogFatherRegNumber: 'REG-FATHER-001',
-                    dogMotherName: 'Чемпион Мать',
-                    dogMotherRegNumber: 'REG-MOTHER-001',
+                    '`dogFatherName`': 'Чемпион Отец',
+                    '`dogFatherRegNumber`': 'REG-FATHER-001',
+                    '`dogMotherName`': 'Чемпион Мать',
+                    '`dogMotherRegNumber`': 'REG-MOTHER-001',
                     
-                    price: '100000',
-                    depositAmount: '30000',
-                    depositDate: '01.06.2023',
-                    remainingAmount: '70000',
-                    finalPaymentDate: '15.06.2023',
+                    '`price`': '100000',
+                    '`depositAmount`': '30000',
+                    '`depositDate`': '01.06.2023',
+                    '`remainingAmount`': '70000',
+                    '`finalPaymentDate`': '15.06.2023',
                     
-                    dewormingDate: '10.05.2023',
-                    vaccinationDates: '20.05.2023, 10.06.2023',
-                    vaccineName: 'Nobivac DHPPi',
-                    nextDewormingDate: '10.07.2023',
-                    nextVaccinationDate: '20.07.2023',
+                    '`dewormingDate`': '10.05.2023',
+                    '`vaccinationDates`': '20.05.2023, 10.06.2023',
+                    '`vaccineName`': 'Nobivac DHPPi',
+                    '`nextDewormingDate`': '10.07.2023',
+                    '`nextVaccinationDate`': '20.07.2023',
                     
-                    specialFeatures: 'Особые приметы отсутствуют',
-                    deliveryTerms: 'Самовывоз',
-                    additionalAgreements: 'Дополнительные условия',
-                    recommendedFood: 'Royal Canin',
+                    '`specialFeatures`': 'Особые приметы отсутствуют',
+                    '`deliveryTerms`': 'Самовывоз',
+                    '`additionalAgreements`': 'Дополнительные условия',
+                    '`recommendedFood`': 'Royal Canin',
                     
-                    contractDate: '01.06.2023',
-                    contractPlace: 'г. Москва',
-                    contractNumber: 'DOG-2023-TEST-001'
+                    '`contractDate`': '01.06.2023',
+                    '`contractPlace`': 'г. Москва',
+                    '`contractNumber`': 'DOG-2023-TEST-001'
                 };
                 
                 let filledCount = 0;
@@ -201,7 +201,7 @@
                 
                 // Заполняем чекбоксы
                 try {
-                    const purposeBreeding = form.getCheckBox('purposeBreeding');
+                    const purposeBreeding = form.getCheckBox('`purposeBreeding`');
                     purposeBreeding.check();
                     log(`  ✓ purposeBreeding = checked`);
                     filledCount++;
