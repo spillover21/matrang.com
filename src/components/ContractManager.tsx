@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PDFDocument } from 'pdf-lib';
 
+// Version: 2026-01-26-v2
 interface ContractTemplate {
   id: number;
   name: string;
