@@ -450,34 +450,41 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
+    document.title = "🔴 sendContract CALLED!";
     const t0 = performance.now();
-    toast.info(`⏱️ START at ${t0.toFixed(0)}ms`, { duration: 3000 });
-    
     (window as any).__SEND_CONTRACT_CALLED = Date.now();
-    toast.error("🔴 sendContract вызвана!", { duration: 5000 });
+    (window as any).__SEND_CONTRACT_STEP = "START";
     
-    toast.info(`⏱️ After initial toasts`, { duration: 2000 });
+    toast.error("🔴 sendContract вызвана!", { duration: 5000 });
     
     // Валидация обязательных полей
     if (!formData.buyerName || !formData.buyerEmail || !formData.dogName || !formData.price) {
+      document.title = "❌ Validation failed";
       toast.error("Заполните все обязательные поля");
       return;
     }
 
     if (!pdfTemplate) {
+      document.title = "❌ No PDF template";
       toast.error("Загрузите PDF шаблон договора");
       return;
     }
 
-    toast.info(`⏱️ Before setSending at ${(performance.now()-t0).toFixed(0)}ms`, { duration: 2000 });
+    document.title = "⏱️ Setting sending...";
+    (window as any).__SEND_CONTRACT_STEP = "BEFORE_SET_SENDING";
     setSending(true);
+    (window as any).__SEND_CONTRACT_STEP = "AFTER_SET_SENDING";
     
     try {
       let filledPdfBase64: string | null = null;
       try {
-        toast.info(`⏱️ Before buildFilledPdfBytes at ${(performance.now()-t0).toFixed(0)}ms\nTemplate: ${pdfTemplate}`, { duration: 3000 });
+        document.title = "⏱️ Building PDF...";
+        (window as any).__SEND_CONTRACT_STEP = "BEFORE_BUILD_PDF";
+        toast.info(`Building PDF from: ${pdfTemplate}`, { duration: 3000 });
         const filledResult = await buildFilledPdfBytes();
-        toast.success(`⏱️ After buildFilledPdfBytes at ${(performance.now()-t0).toFixed(0)}ms\nFilled: ${filledResult?.filledCount}`, { duration: 3000 });
+        document.title = `⏱️ PDF built: ${filledResult?.filledCount} fields`;
+        (window as any).__SEND_CONTRACT_STEP = "AFTER_BUILD_PDF";
+        toast.success(`PDF filled: ${filledResult?.filledCount} fields`, { duration: 3000 });
         
         if (filledResult?.bytes) {
           toast.info(`⏱️ bytesToBase64 START, bytes: ${filledResult.bytes.length}`, { duration: 2000 });
