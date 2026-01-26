@@ -219,28 +219,14 @@
                 log(`\n✅ ЗАПОЛНЕНО: ${filledCount} полей`, 'success');
                 log(`❌ НЕ НАЙДЕНО: ${notFoundCount} полей`, notFoundCount > 0 ? 'error' : 'info');
                 
-                // КРИТИЧНО: Встраиваем стандартный шрифт для всех полей
-                log(`\n🔤 Встраиваем шрифт Helvetica для всех полей...`);
-                const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                // КРИТИЧНО: Flatten form - превращаем поля в статический текст
+                // Это позволит PDF reader самому отрендерить текст с кириллицей
+                log(`\n📋 Превращаем форму в статический документ (flatten)...`);
+                form.flatten();
+                log(`✓ Форма flatten - поля теперь статический текст`);
                 
-                const formFields = form.getFields();
-                let fontEmbedCount = 0;
-                formFields.forEach(field => {
-                    try {
-                        if (field.constructor.name === 'PDFTextField') {
-                            const textField = field;
-                            // Устанавливаем шрифт для каждого текстового поля
-                            textField.defaultUpdateAppearances(helveticaFont);
-                            fontEmbedCount++;
-                        }
-                    } catch (e) {
-                        // Игнорируем ошибки для нетекстовых полей
-                    }
-                });
-                log(`✓ Шрифт встроен для ${fontEmbedCount} полей`);
-                
-                // Сохраняем заполненный PDF С обновлением внешнего вида
-                filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: true });
+                // Сохраняем заполненный PDF
+                filledPdfBytes = await pdfDoc.save();
                 log(`\n💾 PDF сохранен, размер: ${filledPdfBytes.length} байт`, 'success');
                 
                 document.getElementById('downloadBtn').disabled = false;
