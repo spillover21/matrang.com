@@ -389,9 +389,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     let notFoundCount = 0;
     const existingFieldNames = fields.map(f => f.getName());
 
-    console.log('=== FILLING PDF ===');
-    console.log('Fields in PDF:', existingFieldNames);
-    console.log('Fields to fill:', Object.keys(fieldMap));
+    window.alert(`PDF Fields: ${fields.length}, Will fill: ${Object.keys(fieldMap).length}`);
 
     Object.entries(fieldMap).forEach(([fieldName, value]) => {
       try {
@@ -400,20 +398,15 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           if (value) checkbox.check();
           else checkbox.uncheck();
           filledCount++;
-          console.log(`✓ Filled checkbox: ${fieldName} = ${value}`);
         } else {
           const textField = form.getTextField(fieldName);
           textField.setText(String(value));
           filledCount++;
-          console.log(`✓ Filled text: ${fieldName} = ${value}`);
         }
       } catch (e) {
         notFoundCount++;
-        console.log(`✗ Field '${fieldName}' not found in PDF (value: ${value})`);
       }
     });
-
-    console.log(`=== SUMMARY: Filled ${filledCount}, Not found ${notFoundCount} ===`);
 
     const filledPdfBytes = await pdfDoc.save();
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
