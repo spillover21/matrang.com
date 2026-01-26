@@ -446,6 +446,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
+    alert("🔴 ALERT: sendContract вызвана!");
+    window.location.hash = '#sendContract-called-' + Date.now();
     toast.error("🔴 DEBUG: sendContract ВЫЗВАНА! Если видите - функция работает!", { duration: 10000 });
     console.error("🔴 DEBUG: sendContract вызвана! Если видите это - функция работает!");
     
