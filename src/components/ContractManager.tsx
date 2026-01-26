@@ -465,6 +465,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
+    toast.error("🔴 DEBUG: sendContract ВЫЗВАНА! Если видите - функция работает!", { duration: 10000 });
     console.error("🔴 DEBUG: sendContract вызвана! Если видите это - функция работает!");
     
     toast.info("🚀 Начинаем отправку договора...");
