@@ -450,41 +450,120 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
-    document.title = "🔴 sendContract CALLED!";
-    const t0 = performance.now();
-    (window as any).__SEND_CONTRACT_CALLED = Date.now();
-    (window as any).__SEND_CONTRACT_STEP = "START";
+    document.title = "🔴 START sendContract";
     
-    toast.error("🔴 sendContract вызвана!", { duration: 5000 });
-    
-    // Валидация обязательных полей
+    // Валидация
     if (!formData.buyerName || !formData.buyerEmail || !formData.dogName || !formData.price) {
-      document.title = "❌ Validation failed";
       toast.error("Заполните все обязательные поля");
       return;
     }
-
     if (!pdfTemplate) {
-      document.title = "❌ No PDF template";
-      toast.error("Загрузите PDF шаблон договора");
+      toast.error("Загрузите PDF шаблон");
       return;
     }
 
-    document.title = "⏱️ Setting sending...";
-    (window as any).__SEND_CONTRACT_STEP = "BEFORE_SET_SENDING";
     setSending(true);
-    (window as any).__SEND_CONTRACT_STEP = "AFTER_SET_SENDING";
+    document.title = "⏱️ Loading PDF...";
     
     try {
-      let filledPdfBase64: string | null = null;
-      try {
-        document.title = "⏱️ Building PDF...";
-        (window as any).__SEND_CONTRACT_STEP = "BEFORE_BUILD_PDF";
-        toast.info(`Building PDF from: ${pdfTemplate}`, { duration: 3000 });
-        const filledResult = await buildFilledPdfBytes();
-        document.title = `⏱️ PDF built: ${filledResult?.filledCount} fields`;
-        (window as any).__SEND_CONTRACT_STEP = "AFTER_BUILD_PDF";
-        toast.success(`PDF filled: ${filledResult?.filledCount} fields`, { duration: 3000 });
+      // 1. Загружаем PDF
+      const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+      document.title = "⏱️ Parsing PDF...";
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const form = pdfDoc.getForm();
+      const fields = form.getFields();
+      
+      toast.info(`PDF: ${fields.length} полей найдено`);
+      document.title = `⏱️ Found ${fields.length} fields`;
+      
+      // 2. Заполняем поля (используем ту же логику что в test_pdf_fill.html)
+      const fieldMap = buildFieldMap();
+      let filled = 0;
+      
+      for (const [fieldName, value] of Object.entries(fieldMap)) {
+        try {
+          if (typeof value === 'boolean') {
+            const checkbox = form.getCheckBox(fieldName);
+            value ? checkbox.check() : checkbox.uncheck();
+          } else {
+            const textField = form.getTextField(fieldName);
+            textField.setText(String(value));
+          }
+          filled++;
+        } catch (e) {
+          // Поле не найдено - пропускаем
+        }
+      }
+      
+      document.title = `⏱️ Filled ${filled} fields`;
+      toast.success(`✅ Заполнено: ${filled} полей`);
+      
+      // 3. Сохраняем PDF (БЕЗ updateFieldAppearances)
+      document.title = "⏱️ Saving PDF...";
+      const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+      toast.info(`PDF saved: ${filledPdfBytes.length} bytes`);
+      
+      // 4. Upload PDF (как в test_pdf_fill.html)
+      document.title = "⏱️ Uploading PDF...";
+      const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
+      const formData2 = new FormData();
+      formData2.append('file', blob, 'contract.pdf');
+      
+      const uploadRes = await fetch('/api/api.php?action=uploadcontract', {
+        method: 'POST',
+        body: formData2
+      });
+      const uploadData = await uploadRes.json();
+      
+      if (!uploadData.success) {
+        throw new Error('Upload failed: ' + uploadData.message);
+      }
+      
+      document.title = "⏱️ Sending email...";
+      toast.info(`Uploaded to: ${uploadData.path}`);
+      
+      // 5. Отправляем email с загруженным PDF
+      const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          data: formData,
+          pdfTemplate: uploadData.path,
+          useUploadedPdf: true
+        })
+      });
+      
+      const emailData = await emailRes.json();
+      document.title = "✅ DONE!";
+      
+      if (emailData.success) {
+        toast.success(`Договор отправлен на ${formData.buyerEmail}!`);
+        loadData();
+        // Очистка формы...
+        setFormData({
+          ...formData,
+          buyerName: "", buyerAddress: "", buyerPhone: "", buyerEmail: "",
+          buyerPassportSeries: "", buyerPassportNumber: "", buyerPassportIssuedBy: "", buyerPassportIssuedDate: "",
+          dogFatherName: "", dogFatherRegNumber: "", dogMotherName: "", dogMotherRegNumber: "",
+          dogName: "", dogBirthDate: "", dogGender: "", dogColor: "", dogChipNumber: "", dogPuppyCard: "",
+          purposeBreeding: false, purposeCompanion: false, purposeGeneral: false,
+          price: "", depositAmount: "", depositDate: "", remainingAmount: "", finalPaymentDate: "",
+          dewormingDate: "", vaccinationDates: "", vaccineName: "", nextDewormingDate: "", nextVaccinationDate: "",
+          specialFeatures: "", deliveryTerms: "", additionalAgreements: "", recommendedFood: ""
+        });
+      } else {
+        toast.error("Ошибка: " + emailData.message);
+      }
+      
+    } catch (error) {
+      document.title = "❌ ERROR";
+      toast.error("Ошибка: " + (error as Error).message);
+      console.error(error);
+    } finally {
+      setSending(false);
+      document.title = "Админ Панель - MATRANG";
+    }
+  };
         
         if (filledResult?.bytes) {
           toast.info(`⏱️ bytesToBase64 START, bytes: ${filledResult.bytes.length}`, { duration: 2000 });
@@ -698,6 +777,67 @@ const ContractManager = ({ token }: ContractManagerProps) => {
               <p className="text-xs text-muted-foreground mt-2">
                 💡 Загрузите PDF договора с заполняемыми полями (созданный в Adobe Acrobat)
               </p>
+            </div>
+
+            {/* ЭКСТРЕННАЯ КНОПКА ОТПРАВКИ - ВСЕГДА ВИДНА */}
+            <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
+              <h2 className="text-xl font-bold text-red-600 mb-4">🚀 НОВАЯ КНОПКА ОТПРАВКИ (ТЕСТ)</h2>
+              <button
+                id="emergency-send-btn"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-red-600 px-8 py-4 text-lg font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                disabled={sending}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert("🔴 EMERGENCY BUTTON CLICKED!");
+                  
+                  if (!formData.buyerEmail || !pdfTemplate) {
+                    alert("Нет email или PDF шаблона!");
+                    return;
+                  }
+                  
+                  setSending(true);
+                  try {
+                    const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+                    const pdfDoc = await PDFDocument.load(pdfBytes);
+                    const form = pdfDoc.getForm();
+                    const fieldMap = buildFieldMap();
+                    let filled = 0;
+                    for (const [name, val] of Object.entries(fieldMap)) {
+                      try {
+                        if (typeof val === 'boolean') {
+                          const cb = form.getCheckBox(name);
+                          val ? cb.check() : cb.uncheck();
+                        } else {
+                          form.getTextField(name).setText(String(val));
+                        }
+                        filled++;
+                      } catch {}
+                    }
+                    const saved = await pdfDoc.save({ updateFieldAppearances: false });
+                    const blob = new Blob([saved], { type: 'application/pdf' });
+                    const fd = new FormData();
+                    fd.append('file', blob, 'contract.pdf');
+                    const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd });
+                    const upData = await upRes.json();
+                    const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ data: formData, pdfTemplate: upData.path, useUploadedPdf: true })
+                    });
+                    const emailData = await emailRes.json();
+                    alert(emailData.success ? `✅ ОТПРАВЛЕНО! Заполнено ${filled} полей` : "❌ " + emailData.message);
+                    if (emailData.success) loadData();
+                  } catch (err) {
+                    alert("❌ ОШИБКА: " + (err as Error).message);
+                  } finally {
+                    setSending(false);
+                  }
+                }}
+              >
+                {sending ? "⏳ ОТПРАВКА..." : "🚀 ОТПРАВИТЬ ДОГОВОР (EMERGENCY)"}
+              </button>
+              <p className="text-sm text-red-600 mt-2">Эта кнопка использует тот же код что и test_pdf_fill.html</p>
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
@@ -1157,10 +1297,89 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 <FileText className="w-4 h-4 mr-2" />
                 Предпросмотр
               </Button>
-              <Button onClick={sendContract} disabled={sending}>
-                <Send className="w-4 h-4 mr-2" />
-                {sending ? "Отправка..." : "Отправить на email"}
-              </Button>
+              
+              {/* НОВАЯ КНОПКА - ТЕСТОВАЯ */}
+              <button
+                id="send-contract-btn-new"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-red-600 px-6 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                disabled={sending}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert("🔴 НОВАЯ КНОПКА РАБОТАЕТ!");
+                  document.title = "🔴 NEW BUTTON CLICKED!";
+                  
+                  if (!formData.buyerName || !formData.buyerEmail || !pdfTemplate) {
+                    alert("Заполните поля!");
+                    return;
+                  }
+                  
+                  setSending(true);
+                  try {
+                    // Загружаем PDF
+                    const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+                    const pdfDoc = await PDFDocument.load(pdfBytes);
+                    const form = pdfDoc.getForm();
+                    
+                    // Заполняем
+                    const fieldMap = buildFieldMap();
+                    let filled = 0;
+                    for (const [name, val] of Object.entries(fieldMap)) {
+                      try {
+                        if (typeof val === 'boolean') {
+                          const cb = form.getCheckBox(name);
+                          val ? cb.check() : cb.uncheck();
+                        } else {
+                          form.getTextField(name).setText(String(val));
+                        }
+                        filled++;
+                      } catch {}
+                    }
+                    
+                    alert(`Заполнено ${filled} полей!`);
+                    
+                    // Сохраняем
+                    const saved = await pdfDoc.save({ updateFieldAppearances: false });
+                    
+                    // Upload
+                    const blob = new Blob([saved], { type: 'application/pdf' });
+                    const fd = new FormData();
+                    fd.append('file', blob, 'contract.pdf');
+                    
+                    const upRes = await fetch('/api/api.php?action=uploadcontract', {
+                      method: 'POST',
+                      body: fd
+                    });
+                    const upData = await upRes.json();
+                    
+                    // Send email
+                    const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({
+                        data: formData,
+                        pdfTemplate: upData.path,
+                        useUploadedPdf: true
+                      })
+                    });
+                    
+                    const emailData = await emailRes.json();
+                    if (emailData.success) {
+                      alert("✅ ОТПРАВЛЕНО НА EMAIL!");
+                      loadData();
+                    } else {
+                      alert("Ошибка: " + emailData.message);
+                    }
+                  } catch (err) {
+                    alert("Ошибка: " + (err as Error).message);
+                  } finally {
+                    setSending(false);
+                    document.title = "Админ Панель - MATRANG";
+                  }
+                }}
+              >
+                {sending ? "⏳ Отправка..." : "🚀 ОТПРАВИТЬ НОВАЯ КНОПКА"}
+              </button>
             </div>
           </TabsContent>
 
