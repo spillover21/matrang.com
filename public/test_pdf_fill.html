@@ -294,7 +294,16 @@
                     body: JSON.stringify(payload)
                 });
 
-                const result = await response.json();
+                const responseText = await response.text();
+                log(`✓ Получен ответ (${response.status}): ${responseText.substring(0, 500)}...`);
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    log(`❌ Ответ не JSON! Полный текст:\n${responseText}`, 'error');
+                    throw new Error('Server returned non-JSON response: ' + responseText.substring(0, 200));
+                }
                 
                 if (result.success) {
                     log(`\n✅ УСПЕХ! Email отправлен на ${buyerEmail}`, 'success');
