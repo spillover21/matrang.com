@@ -809,34 +809,57 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 <button
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
                   onClick={async () => {
+                    console.log("🔵 Кнопка ЗАПОЛНИТЬ нажата!");
                     alert("🔵 Кнопка ЗАПОЛНИТЬ нажата!");
                     if (!pdfTemplate) {
+                      console.log("❌ Нет PDF шаблона");
                       alert("Сначала загрузите PDF шаблон!");
                       return;
                     }
                     try {
+                      console.log("🔵 Загружаем PDF:", pdfTemplate);
                       const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+                      console.log("🔵 PDF загружен, размер:", pdfBytes.byteLength);
+                      
                       const pdfDoc = await PDFDocument.load(pdfBytes);
                       const form = pdfDoc.getForm();
+                      const fields = form.getFields();
+                      console.log("🔵 Полей в PDF:", fields.length);
+                      console.log("🔵 Имена полей:", fields.map(f => f.getName()));
+                      
                       const fieldMap = buildFieldMap();
+                      console.log("🔵 Полей для заполнения:", Object.keys(fieldMap).length);
+                      console.log("🔵 Названия полей для заполнения:", Object.keys(fieldMap));
+                      
                       let filled = 0;
                       for (const [name, val] of Object.entries(fieldMap)) {
                         try {
                           if (typeof val === 'boolean') {
                             const cb = form.getCheckBox(name);
                             val ? cb.check() : cb.uncheck();
+                            console.log(`✅ Чекбокс заполнен: ${name} = ${val}`);
                           } else {
                             form.getTextField(name).setText(String(val));
+                            console.log(`✅ Текст заполнен: ${name} = ${val}`);
                           }
                           filled++;
-                        } catch {}
+                        } catch (e) {
+                          console.log(`❌ Поле не найдено: ${name}`, e);
+                        }
                       }
-                      form.updateFieldAppearances(); // Обновляем внешний вид полей
+                      
+                      console.log("🔵 Обновляем внешний вид полей...");
+                      form.updateFieldAppearances();
+                      
+                      console.log("🔵 Сохраняем PDF...");
                       const saved = await pdfDoc.save();
                       (window as any).filledPdfBytes = saved;
+                      
+                      console.log(`✅ PDF заполнен! Полей: ${filled}`);
                       alert(`✅ PDF заполнен! Полей: ${filled}`);
                       toast.success(`Заполнено ${filled} полей`);
                     } catch (err) {
+                      console.error("❌ Ошибка:", err);
                       alert("Ошибка: " + (err as Error).message);
                     }
                   }}
