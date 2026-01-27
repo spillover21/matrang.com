@@ -372,9 +372,18 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const buildFilledPdfBytes = async () => {
-    if (!pdfTemplate) return null;
+    console.log('🔵 buildFilledPdfBytes called');
+    console.log('pdfTemplate:', pdfTemplate);
+    
+    if (!pdfTemplate) {
+      console.log('❌ No PDF template');
+      return null;
+    }
 
+    console.log('🔵 Fetching PDF...');
     const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+    console.log('🔵 PDF loaded, size:', pdfBytes.byteLength);
+    
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
     const fields = form.getFields();
@@ -467,14 +476,17 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const sendContract = async () => {
+    console.log('🔴 sendContract called');
     document.title = "🔴 START sendContract";
     
     // Валидация
     if (!formData.buyerName || !formData.buyerEmail || !formData.dogName || !formData.price) {
+      console.log('❌ Validation failed');
       toast.error("Заполните все обязательные поля");
       return;
     }
     if (!pdfTemplate) {
+      console.log('❌ No PDF template');
       toast.error("Загрузите PDF шаблон");
       return;
     }
@@ -666,12 +678,15 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const generatePreview = async () => {
+    console.log('🟢 generatePreview called');
     if (!pdfTemplate) {
+      console.log('❌ No PDF template');
       toast.error("Загрузите PDF шаблон договора");
       return;
     }
 
     try {
+      console.log('🟢 Starting PDF generation...');
       toast.info("Генерация PDF...");
       
       const filledResult = await buildFilledPdfBytes();
