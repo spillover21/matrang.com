@@ -427,8 +427,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
     toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
-    // Сохраняем БЕЗ обновления внешнего вида (избегаем ошибок с кириллицей)
-    const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+    // Включаем обновление внешнего вида полей для отображения текста
+    form.updateFieldAppearances();
+    
+    const filledPdfBytes = await pdfDoc.save();
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
   };
 
@@ -513,9 +515,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       document.title = `⏱️ Filled ${filled} fields`;
       toast.success(`✅ Заполнено: ${filled} полей`);
       
-      // 3. Сохраняем PDF (БЕЗ updateFieldAppearances)
+      // 3. Сохраняем PDF с обновлением внешнего вида
       document.title = "⏱️ Saving PDF...";
-      const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+      form.updateFieldAppearances();
+      const filledPdfBytes = await pdfDoc.save();
       toast.info(`PDF saved: ${filledPdfBytes.length} bytes`);
       
       // 4. Upload PDF (как в test_pdf_fill.html)
@@ -813,7 +816,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                           filled++;
                         } catch {}
                       }
-                      const saved = await pdfDoc.save({ updateFieldAppearances: false });
+                      form.updateFieldAppearances(); // Обновляем внешний вид полей
+                      const saved = await pdfDoc.save();
                       (window as any).filledPdfBytes = saved;
                       alert(`✅ PDF заполнен! Полей: ${filled}`);
                       toast.success(`Заполнено ${filled} полей`);
