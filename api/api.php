@@ -369,9 +369,16 @@ if ($action === 'uploadPdfTemplate') {
 
 // Загрузка заполненного PDF контракта
 if ($action === 'uploadcontract') {
+    // DEBUG: логируем заголовки
+    error_log('uploadcontract - HTTP_AUTHORIZATION: ' . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'NOT SET'));
+    error_log('uploadcontract - All headers: ' . json_encode(getallheaders()));
+    
     if (!checkAuth()) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized', 'debug' => [
+            'auth_header' => $_SERVER['HTTP_AUTHORIZATION'] ?? 'NOT SET',
+            'headers' => getallheaders()
+        ]]);
         exit();
     }
 
