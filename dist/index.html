@@ -303,6 +303,10 @@
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const form = pdfDoc.getForm();
           
+          // DEBUG: Log ALL available PDF fields to find the correct name
+          const pFields = form.getFields().map(f => f.getName());
+          console.log('[DEBUG] AVAILABLE PDF FIELDS:', pFields);
+
           const fieldMap = {
             '`contractNumber`': data.contractNumber, // Added
             
@@ -385,7 +389,9 @@
                     form.getTextField(cleanName).setText(String(val || ''));
                  }
                  filledCount++;
-               } catch (e2) {}
+               } catch (e2) {
+                   console.warn(`[DEBUG] ⚠️ НЕ НАЙДЕНО ПОЛЕ В PDF: "${name}" (пытались записать: "${val}")`);
+               }
             }
           }
 
