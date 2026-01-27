@@ -107,9 +107,11 @@
       };
 
       // Helper to find input/select/textarea by Label text
-      const getValByLabel = (labelText, type = 'text') => {
-        const labels = Array.from(document.querySelectorAll('label'));
-        const labelEl = labels.find(l => l.innerText.includes(labelText)); // innerText is safer for visible text
+      const getValByLabel = (labelText, type = 'text', index = 0) => {
+        const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText.includes(labelText)); // All matching labels
+        
+        const labelEl = labels[index]; 
         if (!labelEl) return '';
         
         const parent = labelEl.parentElement;
@@ -192,21 +194,24 @@
             kennelAddress: getValByPlaceholder('г. Каяани, Финляндия', 0), 
             kennelPhone: getValByPlaceholder('+7 (900) 455-27-16'),
             kennelEmail: getValByPlaceholder('greatlegacybully@gmail.com'),
-            // Attempt to find Kennel Passport info (likely missing on screen, so defaults or added later)
-            kennelPassportSeries: '', 
-            kennelPassportNumber: '',
-            kennelPassportIssuedBy: '',
-            kennelPassportIssuedDate: '',
+            
+            // Kennel Passport - Fixed dual lookups
+            kennelPassportSeries: getValByPlaceholder('1234', 0), 
+            kennelPassportNumber: getValByPlaceholder('567890', 0),
+            kennelPassportIssuedBy: getValByPlaceholder('УФМС...', 0),
+            kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0),
             
             // Buyer
             buyerName: getValByPlaceholder('Петров Петр Петрович'),
             buyerAddress: getValByPlaceholder('г. Москва, ул. ...'),
             buyerPhone: getValByPlaceholder('+7 (___) ___-__-__'),
             buyerEmail: getValByPlaceholder('buyer@email.com'),
-            buyerPassportSeries: getValByPlaceholder('1234'),
-            buyerPassportNumber: getValByPlaceholder('567890'),
-            buyerPassportIssuedBy: getValByPlaceholder('УФМС...'),
-            buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта'),
+            
+            // Buyer Passport - Fixed dual lookups (Index 1)
+            buyerPassportSeries: getValByPlaceholder('1234', 1),
+            buyerPassportNumber: getValByPlaceholder('567890', 1),
+            buyerPassportIssuedBy: getValByPlaceholder('УФМС...', 1),
+            buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 1),
 
             // Dog Parents
             dogFatherName: getValByPlaceholder('CHAMPION NAME', 0),
