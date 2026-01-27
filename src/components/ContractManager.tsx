@@ -215,7 +215,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
   const uploadPdfTemplate = async (file: File) => {
     const formData = new FormData();
-    formData.append("pdf", file); // API ожидает поле "pdf"
+    formData.append("file", file); // API ожидает поле "file"
 
     try {
       const response = await fetch("/api/api.php?action=uploadPdfTemplate", {
