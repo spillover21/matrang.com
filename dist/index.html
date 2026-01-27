@@ -160,33 +160,78 @@
       setInterval(checkPdfTemplate, 3000);
       checkPdfTemplate();
 
+      document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (ОБНОВЛЕНО)';
       document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
         if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
         
         try {
           setStatus('⏳ Загрузка и заполнение...');
           
+          // Scrape ALL data from the screen
           const data = {
+            // Kennel
             kennelName: getValByPlaceholder('GREAT LEGACY BULLY'),
             kennelOwner: getValByPlaceholder('Иванов Иван Иванович'),
-            kennelAddress: getValByPlaceholder('г. Каяани, Финляндия'),
+            kennelAddress: getValByPlaceholder('г. Каяани, Финляндия', 0), // First one matches kennel
             kennelPhone: getValByPlaceholder('+7 (900) 455-27-16'),
             kennelEmail: getValByPlaceholder('greatlegacybully@gmail.com'),
             
+            // Buyer
             buyerName: getValByPlaceholder('Петров Петр Петрович'),
             buyerAddress: getValByPlaceholder('г. Москва, ул. ...'),
             buyerPhone: getValByPlaceholder('+7 (___) ___-__-__'),
             buyerEmail: getValByPlaceholder('buyer@email.com'),
-            
+            buyerPassportSeries: getValByPlaceholder('1234'),
+            buyerPassportNumber: getValByPlaceholder('567890'),
+            buyerPassportIssuedBy: getValByPlaceholder('УФМС...'),
+            buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта'),
+
+            // Dog Parents (Duplicates handled by index)
+            dogFatherName: getValByPlaceholder('CHAMPION NAME', 0),
+            dogFatherRegNumber: getValByPlaceholder('ABKC/UKC...', 0),
+            dogMotherName: getValByPlaceholder('CHAMPION NAME', 1),
+            dogMotherRegNumber: getValByPlaceholder('ABKC/UKC...', 1),
+
+            // Dog
             dogName: getValByPlaceholder('MATRANG'),
             dogBreed: getValByPlaceholder('Американский булли'),
+            dogBirthDate: getValByLabel('Дата рождения'),
+            dogGender: getValByLabel('Пол'),
             dogColor: getValByPlaceholder('Blue Fawn'),
-            dogPrice: getValByPlaceholder('150000'),
+            dogChipNumber: getValByPlaceholder('123456789012345'),
+            dogPuppyCard: getValByPlaceholder('ABKC номер'),
+
+            // Purpose (Checkboxes)
+            purposeBreeding: getValByLabel('Для племенной работы', 'checkbox'),
+            purposeCompanion: getValByLabel('Компаньон', 'checkbox'),
+            purposeGeneral: getValByLabel('Общение', 'checkbox'),
+
+            // Financial
+            price: getValByPlaceholder('150000'),
+            depositAmount: getValByPlaceholder('30000'),
+            depositDate: getValByLabel('Дата внесения задатка'),
+            remainingAmount: getValByLabel('Остаток к оплате'), // No static placeholder
+            finalPaymentDate: getValByLabel('Срок окончательного расчета'),
+
+            // Medical
+            dewormingDate: getValByLabel('Дата выгонки глистов'),
+            vaccinationDates: getValByPlaceholder('01.01.2025, 15.01.2025'),
+            vaccineName: getValByPlaceholder('Nobivac, Eurican...'),
+            nextDewormingDate: getValByLabel('Следующая обработка от глистов'),
+            nextVaccinationDate: getValByLabel('Следующая вакцинация'),
+
+            // Extra
+            specialFeatures: getValByPlaceholder('Особенности экстерьера, характера, нюансы здоровья...'),
+            deliveryTerms: getValByPlaceholder('Способ доставки, стоимость, сроки...'),
+            additionalAgreements: getValByPlaceholder('Дополнительные условия договора, гарантии, особые требования...'),
+            recommendedFood: getValByPlaceholder('Royal Canin, Acana...'),
             
-            contractDate: new Date().toLocaleDateString('ru-RU')
+            // Contract Info
+            contractDate: getValByLabel('Дата договора') || new Date().toLocaleDateString('ru-RU'),
+            contractPlace: getValByPlaceholder('г. Каяани, Финляндия', 1) // Second one matches place
           };
           
-          console.log('[VANILLA] Scraped Data:', data);
+          console.log('[VANILLA] Scraped Data Full:', data);
           if(!data.buyerEmail) { alert('⚠️ Email покупателя не найден! Проверьте поле.'); }
 
           const pdfBytes = await fetch(pdfTemplatePath).then(res => res.arrayBuffer());
@@ -199,27 +244,75 @@
             '`kennelAddress`': data.kennelAddress,
             '`kennelPhone`': data.kennelPhone,
             '`kennelEmail`': data.kennelEmail,
+            
             '`buyerName`': data.buyerName,
             '`buyerAddress`': data.buyerAddress,
             '`buyerPhone`': data.buyerPhone,
             '`buyerEmail`': data.buyerEmail,
+            '`buyerPassportSeries`': data.buyerPassportSeries,
+            '`buyerPassportNumber`': data.buyerPassportNumber,
+            '`buyerPassportIssuedBy`': data.buyerPassportIssuedBy,
+            '`buyerPassportIssuedDate`': data.buyerPassportIssuedDate,
+
+            '`dogFatherName`': data.dogFatherName,
+            '`dogFatherRegNumber`': data.dogFatherRegNumber,
+            '`dogMotherName`': data.dogMotherName,
+            '`dogMotherRegNumber`': data.dogMotherRegNumber,
+
             '`dogName`': data.dogName,
             '`dogBreed`': data.dogBreed,
+            '`dogBirthDate`': data.dogBirthDate,
+            '`dogGender`': data.dogGender,
             '`dogColor`': data.dogColor,
-            '`totalPrice`': data.dogPrice,
+            '`dogChipNumber`': data.dogChipNumber,
+            '`dogPuppyCard`': data.dogPuppyCard,
+
+            '`purposeBreeding`': data.purposeBreeding,
+            '`purposeCompanion`': data.purposeCompanion,
+            '`purposeGeneral`': data.purposeGeneral,
+
+            '`price`': data.price,
+            '`depositAmount`': data.depositAmount,
+            '`depositDate`': data.depositDate,
+            '`remainingAmount`': data.remainingAmount,
+            '`finalPaymentDate`': data.finalPaymentDate,
+
+            '`dewormingDate`': data.dewormingDate,
+            '`vaccinationDates`': data.vaccinationDates,
+            '`vaccineName`': data.vaccineName,
+            '`nextDewormingDate`': data.nextDewormingDate,
+            '`nextVaccinationDate`': data.nextVaccinationDate,
+
+            '`specialFeatures`': data.specialFeatures,
+            '`deliveryTerms`': data.deliveryTerms,
+            '`additionalAgreements`': data.additionalAgreements,
+            '`recommendedFood`': data.recommendedFood,
+
             '`contractDate`': data.contractDate,
-            '`contractPlace`': 'г. Москва'
+            '`contractPlace`': data.contractPlace
           };
 
           let filledCount = 0;
           for (const [name, val] of Object.entries(fieldMap)) {
             try {
-              form.getTextField(name).setText(String(val || ''));
-              filledCount++;
+              if (typeof val === 'boolean') {
+                 const cb = form.getCheckBox(name);
+                 val ? cb.check() : cb.uncheck();
+                 filledCount++;
+              } else {
+                 form.getTextField(name).setText(String(val || ''));
+                 filledCount++;
+              }
             } catch (e) {
                try {
+                 // Try stripping backticks if needed, though map has them
                  const cleanName = name.replace(/`/g, '');
-                 form.getTextField(cleanName).setText(String(val || ''));
+                 if (typeof val === 'boolean') {
+                    const cb = form.getCheckBox(cleanName);
+                    val ? cb.check() : cb.uncheck();
+                 } else {
+                    form.getTextField(cleanName).setText(String(val || ''));
+                 }
                  filledCount++;
                } catch (e2) {}
             }
