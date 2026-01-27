@@ -105,25 +105,50 @@
         const els = document.querySelectorAll(`input[placeholder="${ph}"], textarea[placeholder="${ph}"]`);
         return els[index] ? els[index].value : '';
       };
+      
+      const getValByPlaceholderEx = (ph, index = 0) => {
+         const els = document.querySelectorAll(`input[placeholder="${ph}"]`);
+         return els[index] ? els[index].value : '';
+      };
+
+      // Date formatter
+      const formatDate = (isoDate) => {
+          if (!isoDate || !isoDate.includes('-')) return isoDate;
+          const [y, m, d] = isoDate.split('-');
+          return `${d}.${m}.${y}`;
+      };
 
       // Helper to find input/select/textarea by Label text
       const getValByLabel = (labelText, type = 'text', index = 0) => {
+        // Find labels loosely matching text (Using innerText as textContent can be hidden)
         const labels = Array.from(document.querySelectorAll('label'))
-            .filter(l => l.innerText.includes(labelText)); // All matching labels
+            .filter(l => l.innerText && l.innerText.includes(labelText));
         
         const labelEl = labels[index]; 
-        if (!labelEl) return '';
+        if (!labelEl) {
+            console.warn(`[VANILLA] Label NOT FOUND: "${labelText}" (index ${index})`);
+            return '';
+        }
         
         const parent = labelEl.parentElement;
         if (!parent) return '';
 
+        let input;
         if (type === 'checkbox') {
-             const cb = parent.querySelector('input[type="checkbox"]') || labelEl.querySelector('input[type="checkbox"]');
-             return cb ? cb.checked : false;
+             input = parent.querySelector('input[type="checkbox"]') || labelEl.querySelector('input[type="checkbox"]');
+             return input ? input.checked : false;
         }
 
-        const input = parent.querySelector('input, select, textarea');
-        return input ? input.value : '';
+        input = parent.querySelector('input, select, textarea');
+        let val = input ? input.value : '';
+        
+        // Auto-format dates
+        if (input && input.type === 'date' && val) {
+            val = formatDate(val);
+        }
+        
+        console.log(`[VANILLA] Scraped "${labelText}" [${index}]: "${val}"`);
+        return val;
       };
       
       // *** HACK: Change date input to text to allow custom text ***
