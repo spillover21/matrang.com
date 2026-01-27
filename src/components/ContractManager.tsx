@@ -445,7 +445,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       toast.warning('Поля заполнены, но могут не отображаться сразу. Откройте PDF в Adobe Reader.');
     }
     
-    const filledPdfBytes = await pdfDoc.save();
+    const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
   };
 
@@ -541,7 +541,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       } catch (e) {
         console.warn('⚠️ Кириллица не поддерживается WinAnsi:', e);
       }
-      const filledPdfBytes = await pdfDoc.save();
+      const filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
       toast.info(`PDF saved: ${filledPdfBytes.length} bytes`);
       
       // 4. Upload PDF (как в test_pdf_fill.html)
@@ -869,7 +869,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                       }
                       
                       console.log("🔵 Сохраняем PDF...");
-                      const saved = await pdfDoc.save();
+                      const saved = await pdfDoc.save({ updateFieldAppearances: false });
                       (window as any).filledPdfBytes = saved;
                       
                       console.log(`✅ PDF заполнен! Полей: ${filled}`);
