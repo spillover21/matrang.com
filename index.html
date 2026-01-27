@@ -19,37 +19,27 @@
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script>console.log("🚀 MATRANG PDF: LAYOUT V4.0 (CLEAN BUILD)");</script>
-    <script type="module" crossorigin src="/assets/index-nsFWc5Ml.js?v=force_update_4"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CtzaG6Py.css?v=force_update_4">
+
+
+
+
+    <script type="module" crossorigin src="/assets/index-Bf0Y7Pln-1769538887664.js?v=7"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CtzaG6Py.css?v=7">
   </head>
 
   <body>
     <div id="root"></div>
+
     
-    <!-- VANILLA JS BRIDGE - TOP BAR TOOLBAR -->
-    <div id="vanilla-contract-ui" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 50px; background: #1e293b; border-bottom: 2px solid #3b82f6; z-index: 99999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); align-items: center; padding: 0 20px; box-sizing: border-box; font-family: sans-serif; color: white;">
-      <div style="font-weight:bold; color: #60a5fa; margin-right: 20px; font-size: 14px;">⚡ MATRANG PDF</div>
-      
-      <div id="vanilla-pdf-status" style="font-size: 12px; color: #94a3b8; margin-right: 20px;">
-        ⏳ Поиск...
-      </div>
-
-      <div style="display:flex; gap: 8px; margin-right: auto;">
-         <button id="btn-save-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">💾 Cохранить мои данные</button>
-         <button id="btn-load-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">📥 Вставить мои данные</button>
-      </div>
-
-      <div style="display:flex; gap: 8px; align-items: center;">
-          <span id="vanilla-status" style="font-size: 11px; color: #fbbf24; margin-right: 10px; opacity: 0;">...</span>
-          <button id="vanilla-fill-btn" style="font-size: 12px; padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">1. Сформировать PDF</button>
-          <button id="vanilla-download-btn" style="font-size: 12px; padding: 6px 12px; background: #059669; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">2. Скачать</button>
-          <button id="vanilla-send-btn" style="font-size: 12px; padding: 6px 12px; background: #dc2626; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">3. Отправить на подпись</button>
-      </div>
+    <!-- VANILLA JS BRIDGE - PROFILE BUTTONS ONLY -->
+    <div id="vanilla-profile-ui" style="display: none; gap: 8px;">
+         <button id="btn-save-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">💾 Сохранить данные</button>
+         <button id="btn-load-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">📥 Вставить данные</button>
     </div>
 
     <style>
-      #vanilla-contract-ui input, #vanilla-contract-ui button { transition: all 0.2s; }
-      #vanilla-contract-ui button:active { transform: scale(0.95); }
+      #vanilla-profile-ui button { transition: all 0.2s; }
+      #vanilla-profile-ui button:active { transform: scale(0.95); }
     </style>
     
     <script>
@@ -58,8 +48,13 @@
       let filledPdfBytes = null;
       let pdfTemplatePath = null;
       
-      const statusEl = document.getElementById('vanilla-status');
-      const setStatus = (msg) => { statusEl.textContent = msg; console.log('[VANILLA]', msg); };
+      const getStatusEl = () => document.getElementById('vanilla-status');
+      const setStatus = (msg) => { 
+          const el = getStatusEl();
+          if (el) el.textContent = msg; 
+          console.log('[VANILLA]', msg); 
+          if (!el && msg) alert(msg); // Fallback if no status element
+      };
       
       // Helper to find input by placeholder
       const getValByPlaceholder = (ph, index = 0) => {
@@ -192,170 +187,29 @@
          } catch(e) { console.error(e); alert('Error loading profile: ' + e.message); }
       });
       
-      document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
-        if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
-        try {
-          setStatus('⏳ Сбор данных...');
-          const contractNum = `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`;
-          const data = {
-            kennelName: 'GREAT LEGACY BULLY',
-            kennelOwner: getValByLabel('Владелец питомника'), 
-            kennelAddress: getValByLabel('Адрес', 'text', 0), 
-            kennelPhone: getValByLabel('Телефон', 'text', 0),
-            kennelEmail: getValByLabel('Email', 'text', 0),
-            kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0) || getValByPlaceholderEx('1234', 0),
-            kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0) || getValByPlaceholderEx('567890', 0),
-            kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0) || getValByPlaceholderEx('УФМС...', 0),
-            kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0) || formatDate(document.querySelectorAll('input[type="date"]')[0]?.value),
-            buyerName: getValByLabel('ФИО покупателя'),
-            buyerAddress: getValByLabel('Адрес регистрации'),
-            buyerPhone: getValByLabel('Телефон', 'text', 1),
-            buyerEmail: getValByLabel('Email', 'text', 1) || getValByLabel('Email покупателя', 'text', 0),
-            buyerPassportSeries: getValByLabel('Паспорт серия', 'text', 1),
-            buyerPassportNumber: getValByLabel('Паспорт номер', 'text', 1),
-            buyerPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 1),
-            buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 1),
-            dogFatherName: getValByLabel('Кличка отца'),
-            dogFatherRegNumber: getValByLabel('Рег. номер отца'),
-            dogMotherName: getValByLabel('Кличка матери'),
-            dogMotherRegNumber: getValByLabel('Рег. номер матери'),
-            dogName: getValByLabel('Кличка щенка'),
-            dogBreed: getValByLabel('Порода'),
-            dogBirthDate: getValByLabel('Дата рождения'),
-            dogGender: getValByLabel('Пол'),
-            dogColor: getValByLabel('Окрас'),
-            dogChipNumber: getValByLabel('Номер чипа'),
-            dogPuppyCard: getValByLabel('Щенячья карточка'),
-            price: getValByLabel('Полная стоимость'),
-            depositAmount: getValByLabel('Сумма задатка'),
-            depositDate: getValByLabel('Дата внесения задатка'),
-            remainingAmount: getValByLabel('Остаток к оплате'), 
-            finalPaymentDate: getValByLabel('Срок окончательного расчета'),
-            dewormingDate: getValByLabel('Дата выгонки глистов'),
-            vaccinationDates: getValByLabel('Даты прививок'),
-            vaccineName: getValByLabel('Название вакцины'),
-            nextDewormingDate: getValByLabel('Следующая обработка от глистов'),
-            nextVaccinationDate: getValByLabel('Следующая вакцинация'),
-            purposeBreeding: getValByLabel('Для племенной работы', 'checkbox'),
-            purposeCompanion: getValByLabel('Компаньон', 'checkbox'),
-            purposeGeneral: getValByLabel('Общение', 'checkbox'),
-            specialFeatures: getValByLabel('Индивидуальные особенности'),
-            deliveryTerms: getValByLabel('Условия доставки'),
-            additionalAgreements: getValByLabel('Дополнительные соглашения'),
-            recommendedFood: getValByLabel('Рекомендуемый корм'),
-            contractDate: getValByLabel('Дата договора') || new Date().toLocaleDateString('ru-RU'),
-            contractPlace: getValByLabel('Место составления'),
-            contractNumber: contractNum
-          };
-          if (!data.buyerEmail) data.buyerEmail = getValByPlaceholder('buyer@email.com');
-          if (!data.kennelPhone) data.kennelPhone = getValByPlaceholder('+7 (900) 455-27-16');
-
-          const pdfBytes = await fetch(pdfTemplatePath).then(res => res.arrayBuffer());
-          const pdfDoc = await PDFDocument.load(pdfBytes);
-          const form = pdfDoc.getForm();
-          const fieldMap = {
-            '`contractNumber`': data.contractNumber,
-            '`kennelName`': data.kennelName, '`kennelOwner`': data.kennelOwner, '`kennelAddress`': data.kennelAddress, '`kennelPhone`': data.kennelPhone, '`kennelEmail`': data.kennelEmail, '`kennelPassportSeries`': data.kennelPassportSeries, '`kennelPassportNumber`': data.kennelPassportNumber, '`kennelPassportIssuedBy`': data.kennelPassportIssuedBy, '`kennelPassportIssuedDate`': data.kennelPassportIssuedDate,
-            '`buyerName`': data.buyerName, '`buyerAddress`': data.buyerAddress, '`buyerPhone`': data.buyerPhone, '`buyerEmail`': data.buyerEmail, '`buyerPassportSeries`': data.buyerPassportSeries, '`buyerPassportNumber`': data.buyerPassportNumber, '`buyerPassportIssuedBy`': data.buyerPassportIssuedBy, '`buyerPassportIssuedDate`': data.buyerPassportIssuedDate,
-            '`dogFatherName`': data.dogFatherName, '`dogFatherRegNumber`': data.dogFatherRegNumber, '`dogMotherName`': data.dogMotherName, '`dogMotherRegNumber`': data.dogMotherRegNumber,
-            '`dogName`': data.dogName, '`dogBreed`': data.dogBreed, '`dogBirthDate`': data.dogBirthDate, '`dogGender`': data.dogGender, '`dogColor`': data.dogColor, '`dogChipNumber`': data.dogChipNumber, '`dogPuppyCard`': data.dogPuppyCard,
-            '`purposeBreeding`': data.purposeBreeding, '`purposeCompanion`': data.purposeCompanion, '`purposeGeneral`': data.purposeGeneral,
-            '`price`': data.price, '`depositAmount`': data.depositAmount, '`depositDate`': data.depositDate, '`remainingAmount`': data.remainingAmount, '`finalPaymentDate`': data.finalPaymentDate,
-            '`dewormingDate`': data.dewormingDate, '`vaccinationDates`': data.vaccinationDates, '`vaccineName`': data.vaccineName, '`nextDewormingDate`': data.nextDewormingDate, '`nextVaccinationDate`': data.nextVaccinationDate,
-            '`specialFeatures`': data.specialFeatures, '`deliveryTerms`': data.deliveryTerms, '`additionalAgreements`': data.additionalAgreements, '`recommendedFood`': data.recommendedFood,
-            '`contractDate`': data.contractDate, '`contractPlace`': data.contractPlace
-          };
-
-          let filledCount = 0;
-          for (const [name, val] of Object.entries(fieldMap)) {
-            try {
-              if (typeof val === 'boolean') { const cb = form.getCheckBox(name); val ? cb.check() : cb.uncheck(); filledCount++; }
-              else { form.getTextField(name).setText(String(val || '')); filledCount++; }
-            } catch (e) { console.warn(`SKIP ${name}`); }
-          }
-
-          try { const acroForm = pdfDoc.catalog.lookup(PDFLib.PDFName.of('AcroForm')); if (acroForm) acroForm.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.True); } catch(e){}
-          filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
-          setStatus(`✅ Заполнено полей: ${filledCount}`);
-          alert(`✅ Успешно! Заполнено ${filledCount} полей.`);
-        } catch (err) { setStatus('❌ ' + err.message); alert('Ошибка: ' + err.message); }
-      });
-      
-      document.getElementById('vanilla-download-btn').addEventListener('click', () => {
-        if (!filledPdfBytes) { alert('Сначала заполните!'); return; }
-        const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `contract_${Date.now()}.pdf`; a.click();
-      });
-      
-      document.getElementById('vanilla-send-btn').addEventListener('click', async () => {
-         if (!filledPdfBytes) { alert('❌ Сначала заполните PDF (кнопка 1)!'); return; }
-         const clientEmail = prompt('Введите Email клиента:', document.querySelector('input[placeholder="buyer@email.com"]')?.value || '');
-         if (!clientEmail || !confirm(`Отправить клиенту: ${clientEmail}?`)) return;
-         try {
-             setStatus('⏳ Загрузка...');
-             function blobToBase64(blob) { return new Promise(r => { const rd = new FileReader(); rd.onloadend = () => r(rd.result); rd.readAsDataURL(blob); }); }
-             const base64Pdf = await blobToBase64(new Blob([filledPdfBytes], {type: 'application/pdf'}));
-             
-             const upRes = await fetch('/api/api.php?action=upload_pdf_for_signing', {
-                 method: 'POST', headers: getHeaders(), body: JSON.stringify({ pdfBase64: base64Pdf, clientEmail })
-             });
-             const upData = await upRes.json();
-             if (!upData.success) throw new Error(upData.message);
-             
-             setStatus('⏳ Отправка письма...');
-             const mailRes = await fetch('/api/api.php?action=send_signing_email', {
-                 method: 'POST', headers: getHeaders(), body: JSON.stringify({ email: clientEmail, link: upData.link })
-             });
-             const mailData = await mailRes.json();
-             if (mailData.success) { alert('✅ Письмо отправлено!'); setStatus('✅ Отправлено!'); }
-             else throw new Error(mailData.message);
-         } catch (e) { alert('❌ Ошибка: ' + e.message); setStatus('❌ Ошибка'); }
-      });
+      // REMOVED VANILLA ACTION BUTTONS - HANDLED BY REACT
       
       // VISIBILITY LOGIC
       const checkUiVisibility = async () => {
-         let ui = document.getElementById('vanilla-contract-ui');
+         let ui = document.getElementById('vanilla-profile-ui');
          if (!ui) return;
 
          // TARGET CONTAINER IN REACT APP (ContractManager.tsx)
-         const container = document.getElementById('vanilla-contract-ui-container');
+         const container = document.getElementById('vanilla-profile-buttons-container');
          
          if (container) {
              ui.style.display = 'flex';
              if (ui.parentElement !== container) {
-                 console.log('[VANILLA] Injected into ContractManager container');
+                 console.log('[VANILLA] Injected into Profile container');
                  container.appendChild(ui);
              }
-             // Reset fixed positioning styles
-             ui.style.position = 'static';
-             ui.style.width = '100%';
-             ui.style.top = 'auto';
-             ui.style.left = 'auto';
-             ui.style.borderTop = 'none';
-             ui.style.boxShadow = 'none';
-             ui.style.background = 'transparent'; // Integrate cleanly
-             ui.style.padding = '0'; // Let container padding handle it if needed
          } else {
-             // Fallback if not on Contract page or container not found yet 
              ui.style.display = 'none';
-         }
-
-         if (!pdfTemplatePath && (ui.style.display !== 'none')) {
-             try {
-                const headers = getHeaders();
-                if (headers.Authorization) {
-                   const res = await fetch('/api/api.php?action=getContracts', { headers });
-                   const d = await res.json();
-                   if (d.success && d.pdfTemplate) pdfTemplatePath = d.pdfTemplate;
-                }
-             } catch(e){}
-             if (!pdfTemplatePath) pdfTemplatePath = '/uploads/contract_template.pdf';
          }
       };
       setInterval(checkUiVisibility, 1000);
       checkUiVisibility();
     })();
     </script>
-
   </body>
 </html>

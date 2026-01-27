@@ -893,7 +893,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Данные питомника / Заводчика</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Данные питомника / Заводчика</h2>
+                <div id="vanilla-profile-buttons-container" className="flex gap-2"></div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Название питомника</label>
