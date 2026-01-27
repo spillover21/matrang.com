@@ -1229,6 +1229,49 @@ if ($action === 'send_signing_email') {
     exit;
 }
 
+// 2.1 OTP GENERATION & VERIFICATION
+if ($action === 'send_otp') {
+    $token = $_POST['token'] ?? json_decode(file_get_contents('php://input'), true)['token'] ?? '';
+    
+    $db = file_exists($signingDbFile) ? json_decode(file_get_contents($signingDbFile), true) : [];
+    if (!isset($db[$token])) { echo json_encode(['success'=>false, 'message'=>'Invalid token']); exit; }
+    
+    $otp = rand(1000, 9999);
+    $db[$token]['otp'] = $otp; 
+    $db[$token]['otp_created_at'] = time();
+    file_put_contents($signingDbFile, json_encode($db));
+    
+    $email = $db[$token]['email'];
+    $subject = "Код подтверждения: $otp";
+    $headers = "From: MATRANG KENNEL <noreply@matrang.com>\r\nContent-Type: text/plain; charset=UTF-8\r\n";
+    $msg = "Ваш код для подписания договора: $otp\n\nНикому не сообщайте этот код.";
+    
+    @mail($email, $subject, $msg, $headers);
+    
+    echo json_encode(['success' => true]);
+    exit;
+}
+
+if ($action === 'verify_otp') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $token = $input['token'] ?? '';
+    $code = $input['code'] ?? '';
+    
+    $db = file_exists($signingDbFile) ? json_decode(file_get_contents($signingDbFile), true) : [];
+    if (!isset($db[$token])) { echo json_encode(['success'=>false, 'message'=>'Invalid token']); exit; }
+    
+    if (isset($db[$token]['otp']) && (string)$db[$token]['otp'] === (string)$code) {
+        $db[$token]['otp_verified'] = true;
+        $db[$token]['otp_verified_at'] = date('c');
+         addHistoryEvent($db, $token, 'otp_verified', "Личность подтверждена кодом: $code via Email");
+        file_put_contents($signingDbFile, json_encode($db));
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Неверный код']);
+    }
+    exit;
+}
+
 // 3. GET PDF FOR CLIENT (PUBLIC w/ TOKEN)
 if ($action === 'get_signing_pdf') {
     $token = $_GET['token'] ?? '';

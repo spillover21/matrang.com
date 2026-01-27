@@ -55,6 +55,26 @@
 </div>
 
 <!-- Signature Modal -->
+<div id="otp-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center;">
+        <h3 style="margin-top:0;">🔐 Подтверждение личности</h3>
+        <p style="font-size: 14px; color: #555;">Для юридической значимости подписи необходимо подтвердить ваш Email.</p>
+        
+        <!-- Step 1: Send Request -->
+        <div id="otp-step-1">
+             <button id="btn-send-otp" onclick="requestOtp()" style="background: #2563eb; color: white; padding: 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">📤 Отправить код на Email</button>
+        </div>
+        
+        <!-- Step 2: Enter Code -->
+        <div id="otp-step-2" style="display: none; margin-top: 15px;">
+            <input type="number" id="otp-input" placeholder="Введите код (например 4591)" style="font-size: 18px; padding: 10px; width: 80%; text-align: center; letter-spacing: 3px; border: 2px solid #ddd; border-radius: 6px;">
+            <button onclick="verifyOtp()" style="margin-top: 10px; background: #16a34a; color: white; padding: 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">✅ Подтвердить</button>
+        </div>
+        
+        <button onclick="closeSignModal()" style="margin-top: 15px; background: transparent; border: none; color: #888; cursor: pointer;">Отмена</button>
+    </div>
+</div>
+
 <div id="sign-modal">
     <div id="pad-container">
         <h3 style="margin-top:0; text-align:center;">Расшифровка подписи</h3>
@@ -132,11 +152,53 @@
 
     // Modal Controls
     function openSignModal() {
-        document.getElementById('sign-modal').style.display = 'flex';
-        resizeCanvas();
+        // Step 1: Open OTP Modal if not verified, else Sign Modal
+        document.getElementById('otp-modal').style.display = 'flex';
     }
+    
+    async function requestOtp() {
+        try {
+            document.getElementById('btn-send-otp').innerText = 'Отправка...';
+            const res = await fetch('/api/api.php?action=send_otp', {
+                method: 'POST',
+                body: JSON.stringify({ token })
+            });
+            const json = await res.json();
+            if(json.success) {
+                document.getElementById('otp-step-1').style.display = 'none';
+                document.getElementById('otp-step-2').style.display = 'block';
+                alert('Код отправлен на ваш Email');
+            } else {
+                alert('Ошибка: ' + json.message);
+            }
+        } catch(e) { alert('Ошибка сети'); }
+        finally { document.getElementById('btn-send-otp').innerText = 'Отправить код подтверждения'; }
+    }
+    
+    async function verifyOtp() {
+        const code = document.getElementById('otp-input').value;
+        if(code.length < 4) return alert('Введите код');
+        
+        try {
+             const res = await fetch('/api/api.php?action=verify_otp', {
+                method: 'POST',
+                body: JSON.stringify({ token, code })
+            });
+            const json = await res.json();
+            if(json.success) {
+                document.getElementById('otp-modal').style.display = 'none';
+                document.getElementById('sign-modal').style.display = 'flex';
+                resizeCanvas();
+            } else {
+                alert('Неверный код!');
+            }
+        } catch(e) { alert('Ошибка проверки'); }
+    }
+
+    // Reuse existing closeSignModal
     function closeSignModal() {
         document.getElementById('sign-modal').style.display = 'none';
+        document.getElementById('otp-modal').style.display = 'none';
         signaturePad.clear();
     }
 
@@ -159,11 +221,11 @@
                 time: now.toISOString(),
                 desc: `Документ подписан электронной подписью (${signerEmail})`,
                 ip: 'Client IP'
+                y: 100,
+                width: 140,
+                height: 70,
             });
-
-            // Prepare signature
-            const pngDataUrl = signaturePad.toDataURL();
-            const pngImageBytes = await fetch(pngDataUrl).then(res => res.arrayBuffer());
+            lastPage.drawText(`Digital ID: ${token.substring(0,8)}... | OTP Verified`, {.arrayBuffer());
 
             // Modify PDF
             const { PDFDocument, rgb, StandardFonts } = PDFLib;
@@ -214,7 +276,7 @@
 
             drawLabelVal('Transaction ID:', token, 60, infoBoxY - 20);
             drawLabelVal('Created:', history[0]?.time.split('T')[0] || '-', 60, infoBoxY - 40);
-            drawLabelVal('Status:', 'SIGNED', 60, infoBoxY - 60);
+            drawLabelVal('Status:', 'SIGNED (OTP VERIFIED)', 60, infoBoxY - 60);
             drawLabelVal('Signer:', signerEmail, 300, infoBoxY - 20);
             
             yPos -= 120;
