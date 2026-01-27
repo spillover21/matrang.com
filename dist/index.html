@@ -64,7 +64,7 @@
     <div id="root"></div>
     
     <!-- VANILLA JS BRIDGE - SCRAPES REACT DOM AND FILLS PDF -->
-    <div id="vanilla-contract-ui" style="position: fixed; top: 80px; right: 20px; z-index: 9999; background: #fffbeb; border: 3px solid #d97706; padding: 20px; border-radius: 12px; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); font-family: sans-serif;">
+    <div id="vanilla-contract-ui" style="display: none; position: fixed; top: 80px; right: 20px; z-index: 9999; background: #fffbeb; border: 3px solid #d97706; padding: 20px; border-radius: 12px; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); font-family: sans-serif;">
       <h2 style="margin: 0 0 10px 0; color: #92400e; font-size: 16px; font-weight: 800; text-transform: uppercase;">⚡ PDF КОНСТРУКТОР</h2>
       
       <div id="vanilla-pdf-status" style="margin-bottom: 10px; font-size: 12px; padding: 5px; background: #fef3c7; border-radius: 4px; border: 1px solid #fcd34d;">
@@ -171,6 +171,17 @@
       };
       
       async function checkPdfTemplate() {
+        // VISIBILITY CHECK: Only show in Admin Panel
+        const ui = document.getElementById('vanilla-contract-ui');
+        if (ui) {
+            if (window.location.href.includes('/admin')) {
+                ui.style.display = 'block';
+            } else {
+                ui.style.display = 'none';
+                return; // Stop processing if not in admin
+            }
+        }
+
         try {
           const headers = getHeaders();
           if (!headers.Authorization) {
