@@ -140,6 +140,100 @@ if ($action === 'login') {
     exit();
 }
 
+// ---------------------------------------------------------
+// CONTRACTS API EXTENSION
+// ---------------------------------------------------------
+
+// 1. Get Contracts / Template Path
+if ($action === 'getContracts') {
+    // Return path to template if exists
+    $templatePath = '/uploads/contract_template.pdf';
+    $fullPath = $uploadDir . 'contract_template.pdf';
+    
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'contracts' => [], // Legacy compat
+        'pdfTemplate' => file_exists($fullPath) ? $templatePath : null
+    ]);
+    exit();
+}
+
+// 2. Upload Template
+if ($action === 'uploadPdfTemplate') {
+    if (!isset($_FILES['file'])) {
+        http_response_code(400); echo json_encode(['success'=>false, 'message'=>'No file']); exit();
+    }
+    $res = move_uploaded_file($_FILES['file']['tmp_name'], $uploadDir . 'contract_template.pdf');
+    if ($res) echo json_encode(['success'=>true, 'path'=>'/uploads/contract_template.pdf']);
+    else { http_response_code(500); echo json_encode(['success'=>false, 'message'=>'Upload failed']); }
+    exit();
+}
+
+// 3. Save/Get Seller Profile
+$sellerFile = __DIR__ . '/../data/seller_profile.json';
+if ($action === 'save_seller_profile') {
+    $input = file_get_contents('php://input');
+    file_put_contents($sellerFile, $input);
+    echo json_encode(['success'=>true]);
+    exit();
+}
+if ($action === 'get_seller_profile') {
+    if (file_exists($sellerFile)) {
+        echo file_get_contents($sellerFile);
+    } else {
+        echo json_encode(['success'=>false]);
+    }
+    exit();
+}
+
+// 4. Upload Filled Contract (for signing)
+if ($action === 'uploadcontract' || $action === 'upload_pdf_for_signing') {
+     if (!is_dir($uploadDir . 'contracts/')) mkdir($uploadDir . 'contracts/', 0755, true);
+     
+     // Handle Multipart (File) or JSON base64
+     if (isset($_FILES['file'])) {
+         $name = 'contract_' . time() . '.pdf';
+         move_uploaded_file($_FILES['file']['tmp_name'], $uploadDir . 'contracts/' . $name);
+         echo json_encode(['success'=>true, 'path'=>'/uploads/contracts/'.$name, 'link'=>'https://'.$_SERVER['HTTP_HOST'].'/uploads/contracts/'.$name]);
+         exit();
+     }
+     
+     // Handle Base64
+     $input = json_decode(file_get_contents('php://input'), true);
+     if (isset($input['pdfBase64'])) {
+         $data = base64_decode(explode(',', $input['pdfBase64'])[1] ?? $input['pdfBase64']);
+         $name = 'contract_' . time() . '.pdf';
+         file_put_contents($uploadDir . 'contracts/' . $name, $data);
+         echo json_encode(['success'=>true, 'link'=>'https://'.$_SERVER['HTTP_HOST'].'/uploads/contracts/'.$name]);
+         exit();
+     }
+     
+     http_response_code(400); echo json_encode(['success'=>false, 'message'=>'No data']); exit();
+}
+
+// 5. Send Email
+if ($action === 'sendContractPdf' || $action === 'send_signing_email') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? $input['data']['buyerEmail'] ?? '';
+    $link = $input['link'] ?? $input['pdfTemplate'] ?? ''; // Handle various scalar inputs
+    
+    if (!$email) {
+        http_response_code(400); echo json_encode(['success'=>false, 'message'=>'No email']); exit();
+    }
+    
+    $subject = "Ваш договор от питомника (MATRANG)";
+    $message = "Здравствуйте! \n\nВаш договор подготовлен. \nСкачать и подписать можно по ссылке:\n" . $link;
+    $headers = "From: info@" . $_SERVER['HTTP_HOST'] . "\r\n";
+    $headers .= "Reply-To: info@" . $_SERVER['HTTP_HOST'] . "\r\n";
+    
+    // Try native mail first
+    $sent = mail($email, $subject, $message, $headers);
+    
+    echo json_encode(['success'=>$sent, 'message'=>$sent?'Sent':'Mail failed']);
+    exit();
+}
+
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action']);
 
