@@ -319,6 +319,7 @@
       const checkUiVisibility = async () => {
          const ui = document.getElementById('vanilla-contract-ui');
          if (!ui) return;
+
          const path = window.location.pathname.toLowerCase();
          const hash = window.location.hash.toLowerCase();
          // Check if URL has admin
@@ -326,6 +327,38 @@
          
          if (isAtAdmin) {
             ui.style.display = 'flex';
+            
+            // ATTEMPT TO INJECT INTO MAIN HEADER
+            // Find the Admin Header by looking for the H1 title since class names are generic
+            const headerTitle = Array.from(document.querySelectorAll('h1')).find(el => el.textContent && el.textContent.includes('Админ Панель'));
+            // The header container is usually the closest ancestor with 'sticky' class
+            const stickyHeader = headerTitle ? headerTitle.closest('.sticky') : null;
+
+            if (stickyHeader) {
+                if (ui.parentElement !== stickyHeader) {
+                    // Move inside header for better layout flow
+                    // This makes the PDF toolbar physically part of the sticky header
+                    console.log('[VANILLA] Moving toolbar INSIDE admin header');
+                    ui.style.position = 'static'; // Important: remove fixed positioning
+                    ui.style.borderTop = '1px solid #3b82f6';
+                    ui.style.boxShadow = 'none';
+                    ui.style.width = '100%';
+                    ui.style.zIndex = '100'; // Ensure it stays on top within header
+                    stickyHeader.appendChild(ui);
+                }
+            } else {
+                // Fallback: Fixed position if header NOT found
+                if (ui.parentElement !== document.body) {
+                     document.body.appendChild(ui);
+                     console.log('[VANILLA] Moving toolbar back to BODY');
+                }
+                ui.style.position = 'fixed';
+                ui.style.top = '78px'; // Slightly increased gap just in case
+                ui.style.left = '0';
+                ui.style.width = '100%';
+                ui.style.zIndex = '99999';
+            }
+
             if (!pdfTemplatePath) {
                 // Try fetch template path from API if not set
                 try {
