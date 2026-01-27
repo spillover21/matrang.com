@@ -49,10 +49,6 @@
     <style>
       #vanilla-contract-ui input, #vanilla-contract-ui button { transition: all 0.2s; }
       #vanilla-contract-ui button:active { transform: scale(0.95); }
-      #vanilla-contract-ui { top: 58px !important; } /* Mobile header approx */
-      @media (min-width: 768px) {
-         #vanilla-contract-ui { top: 74px !important; } /* Desktop header approx */
-      }
     </style>
     
     <script>
@@ -317,7 +313,11 @@
       
       // VISIBILITY LOGIC
       const checkUiVisibility = async () => {
-         const ui = document.getElementById('vanilla-contract-ui');
+         // Re-acquire element in case it was moved/deleted
+         let ui = document.getElementById('vanilla-contract-ui');
+         
+         // If UI is missing (e.g. deleted by React re-render if we injected it), we can't easily restore it here 
+         // without re-creating the DOM. For now, we assume it stays in BODY.
          if (!ui) return;
 
          const path = window.location.pathname.toLowerCase();
@@ -328,36 +328,39 @@
          if (isAtAdmin) {
             ui.style.display = 'flex';
             
-            // ATTEMPT TO INJECT INTO MAIN HEADER
-            // Find the Admin Header by looking for the H1 title since class names are generic
-            const headerTitle = Array.from(document.querySelectorAll('h1')).find(el => el.textContent && el.textContent.includes('Админ Панель'));
-            // The header container is usually the closest ancestor with 'sticky' class
-            const stickyHeader = headerTitle ? headerTitle.closest('.sticky') : null;
-
-            if (stickyHeader) {
-                if (ui.parentElement !== stickyHeader) {
-                    // Move inside header for better layout flow
-                    // This makes the PDF toolbar physically part of the sticky header
-                    console.log('[VANILLA] Moving toolbar INSIDE admin header');
-                    ui.style.position = 'static'; // Important: remove fixed positioning
-                    ui.style.borderTop = '1px solid #3b82f6';
-                    ui.style.boxShadow = 'none';
-                    ui.style.width = '100%';
-                    ui.style.zIndex = '100'; // Ensure it stays on top within header
-                    stickyHeader.appendChild(ui);
-                }
-            } else {
-                // Fallback: Fixed position if header NOT found
-                if (ui.parentElement !== document.body) {
-                     document.body.appendChild(ui);
-                     console.log('[VANILLA] Moving toolbar back to BODY');
-                }
-                ui.style.position = 'fixed';
-                ui.style.top = '78px'; // Slightly increased gap just in case
-                ui.style.left = '0';
-                ui.style.width = '100%';
-                ui.style.zIndex = '99999';
+            // DYNAMIC POSITIONING STRATEGY
+            // 1. Ensure UI is direct child of BODY to prevent deletion by React
+            if (ui.parentElement !== document.body) {
+                document.body.appendChild(ui);
+                console.log('[VANILLA] Restored toolbar to BODY');
             }
+
+            // 2. Measure Sticky Header Height
+            // Look for the admin header (closest sticky element or specific class)
+            let headerHeight = 0;
+            // Try to find the sticky header container
+            const stickyHeader = document.querySelector('.sticky.top-0');
+            if (stickyHeader) {
+                const rect = stickyHeader.getBoundingClientRect();
+                // Ensure we are getting a valid height (> 20px)
+                if (rect.height > 20) {
+                    headerHeight = rect.height;
+                }
+            }
+            
+            // Fallback heights if measurement fails
+            if (headerHeight === 0) {
+                 // Check width for responsive fallback
+                 headerHeight = window.innerWidth < 768 ? 64 : 80;
+            }
+
+            // 3. Apply Positioning
+            ui.style.position = 'fixed'; // Use fixed so it stays floating
+            ui.style.top = Math.floor(headerHeight) + 'px'; // Exact height of header
+            ui.style.left = '0';
+            ui.style.width = '100%';
+            ui.style.zIndex = '99999';
+            ui.style.borderTop = '1px solid rgba(255,255,255,0.1)';
 
             if (!pdfTemplatePath) {
                 // Try fetch template path from API if not set
