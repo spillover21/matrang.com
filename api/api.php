@@ -161,11 +161,15 @@ if ($action === 'getContracts') {
 
 // 2. Upload Template
 if ($action === 'uploadPdfTemplate') {
-    if (!isset($_FILES['file'])) {
-        http_response_code(400); echo json_encode(['success'=>false, 'message'=>'No file']); exit();
+    // Check for 'file' OR 'pdf' key, as frontend might send 'pdf'
+    $uploadedFile = $_FILES['file'] ?? $_FILES['pdf'] ?? null;
+    
+    if (!$uploadedFile) {
+        http_response_code(400); echo json_encode(['success'=>false, 'message'=>'No file provided (checked keys: file, pdf)']); exit();
     }
-    $res = move_uploaded_file($_FILES['file']['tmp_name'], $uploadDir . 'contract_template.pdf');
-    if ($res) echo json_encode(['success'=>true, 'path'=>'/uploads/contract_template.pdf']);
+    
+    $res = move_uploaded_file($uploadedFile['tmp_name'], $uploadDir . 'contract_template.pdf');
+    if ($res) echo json_encode(['success'=>true, 'path'=>'/uploads/contract_template.pdf', 'url'=>'/uploads/contract_template.pdf']);
     else { http_response_code(500); echo json_encode(['success'=>false, 'message'=>'Upload failed']); }
     exit();
 }
