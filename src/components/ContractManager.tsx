@@ -552,6 +552,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       
       const uploadRes = await fetch('/api/api.php?action=uploadcontract', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: formData2
       });
       const uploadData = await uploadRes.json();
@@ -568,9 +569,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          data: formData,
-          pdfTemplate: uploadData.path,
-          useUploadedPdf: true
+          email: formData.buyerEmail,
+          pdfData: uploadData.url || uploadData.path
         })
       });
       
