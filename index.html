@@ -18,8 +18,8 @@
     <meta name="twitter:site" content="@MATRANG" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script type="module" crossorigin src="/assets/index-cKhCiwum.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BZN5vPMo.css">
+    <script type="module" crossorigin src="/assets/index-nsFWc5Ml.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CtzaG6Py.css">
   </head>
 
   <body>
@@ -313,69 +313,42 @@
       
       // VISIBILITY LOGIC
       const checkUiVisibility = async () => {
-         // Re-acquire element in case it was moved/deleted
          let ui = document.getElementById('vanilla-contract-ui');
-         
-         // If UI is missing (e.g. deleted by React re-render if we injected it), we can't easily restore it here 
-         // without re-creating the DOM. For now, we assume it stays in BODY.
          if (!ui) return;
 
-         const path = window.location.pathname.toLowerCase();
-         const hash = window.location.hash.toLowerCase();
-         // Check if URL has admin
-         const isAtAdmin = path.includes('admin') || hash.includes('admin') || window.location.href.includes('admin');
+         // TARGET CONTAINER IN REACT APP (ContractManager.tsx)
+         const container = document.getElementById('vanilla-contract-ui-container');
          
-         if (isAtAdmin) {
-            ui.style.display = 'flex';
-            
-            // DYNAMIC POSITIONING STRATEGY
-            // 1. Ensure UI is direct child of BODY to prevent deletion by React
-            if (ui.parentElement !== document.body) {
-                document.body.appendChild(ui);
-                console.log('[VANILLA] Restored toolbar to BODY');
-            }
-
-            // 2. Measure Sticky Header Height
-            // Look for the admin header (closest sticky element or specific class)
-            let headerHeight = 0;
-            // Try to find the sticky header container
-            const stickyHeader = document.querySelector('.sticky.top-0');
-            if (stickyHeader) {
-                const rect = stickyHeader.getBoundingClientRect();
-                // Ensure we are getting a valid height (> 20px)
-                if (rect.height > 20) {
-                    headerHeight = rect.height;
-                }
-            }
-            
-            // Fallback heights if measurement fails
-            if (headerHeight === 0) {
-                 // Check width for responsive fallback
-                 headerHeight = window.innerWidth < 768 ? 64 : 80;
-            }
-
-            // 3. Apply Positioning
-            ui.style.position = 'fixed'; // Use fixed so it stays floating
-            ui.style.top = Math.floor(headerHeight) + 'px'; // Exact height of header
-            ui.style.left = '0';
-            ui.style.width = '100%';
-            ui.style.zIndex = '99999';
-            ui.style.borderTop = '1px solid rgba(255,255,255,0.1)';
-
-            if (!pdfTemplatePath) {
-                // Try fetch template path from API if not set
-                try {
-                   const headers = getHeaders();
-                   if (headers.Authorization) {
-                      const res = await fetch('/api/api.php?action=getContracts', { headers });
-                      const d = await res.json();
-                      if (d.success && d.pdfTemplate) pdfTemplatePath = d.pdfTemplate;
-                   }
-                } catch(e){}
-                if (!pdfTemplatePath) pdfTemplatePath = '/uploads/contract_template.pdf';
-            }
+         if (container) {
+             ui.style.display = 'flex';
+             if (ui.parentElement !== container) {
+                 console.log('[VANILLA] Injected into ContractManager container');
+                 container.appendChild(ui);
+             }
+             // Reset fixed positioning styles
+             ui.style.position = 'static';
+             ui.style.width = '100%';
+             ui.style.top = 'auto';
+             ui.style.left = 'auto';
+             ui.style.borderTop = 'none';
+             ui.style.boxShadow = 'none';
+             ui.style.background = 'transparent'; // Integrate cleanly
+             ui.style.padding = '0'; // Let container padding handle it if needed
          } else {
-            ui.style.display = 'none';
+             // Fallback if not on Contract page or container not found yet 
+             ui.style.display = 'none';
+         }
+
+         if (!pdfTemplatePath && (ui.style.display !== 'none')) {
+             try {
+                const headers = getHeaders();
+                if (headers.Authorization) {
+                   const res = await fetch('/api/api.php?action=getContracts', { headers });
+                   const d = await res.json();
+                   if (d.success && d.pdfTemplate) pdfTemplatePath = d.pdfTemplate;
+                }
+             } catch(e){}
+             if (!pdfTemplatePath) pdfTemplatePath = '/uploads/contract_template.pdf';
          }
       };
       setInterval(checkUiVisibility, 1000);

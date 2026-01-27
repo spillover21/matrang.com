@@ -1,13 +1,9 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  
-  # Не перенаправлять существующие файлы и папки
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  
-  # Все остальные запросы направлять на index.html
-  RewriteRule ^ index.html [L]
+  RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
 <IfModule mod_mime.c>
@@ -23,17 +19,9 @@
 </IfModule>
 
 <FilesMatch "\.(js|css|svg|woff2|woff|jpg|jpeg|png|gif|ico)$">
-  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
 
-<IfModule LiteSpeed>
-  CacheDisable public /
-</IfModule>
-
-<FilesMatch "\.(html)$">
-  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
-</FilesMatch>
-
-<FilesMatch "^(version\.txt)$">
-  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+<FilesMatch "\.html$">
+  Header set Cache-Control "public, max-age=0, must-revalidate"
 </FilesMatch>

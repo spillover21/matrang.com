@@ -45,7 +45,7 @@
             },
             "time": "2026-01-09T18:02:33+00:00",
             "type": "library",
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "PHPMailer\\PHPMailer\\": "src/"
@@ -102,7 +102,7 @@
             },
             "time": "2019-12-08T10:32:10+00:00",
             "type": "library",
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "classmap": [
                     "fpdf.php"
@@ -164,7 +164,7 @@
             },
             "time": "2025-08-05T09:57:14+00:00",
             "type": "library",
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "setasign\\Fpdi\\": "src/"
@@ -206,6 +206,6 @@
             "install-path": "../setasign/fpdi"
         }
     ],
-    "dev": true,
+    "dev": false,
     "dev-package-names": []
 }
