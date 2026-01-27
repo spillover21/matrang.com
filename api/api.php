@@ -1125,6 +1125,18 @@ $signedDir = __DIR__ . '/../uploads/signed_contracts/';
 if (!is_dir($pendingDir)) mkdir($pendingDir, 0755, true);
 if (!is_dir($signedDir)) mkdir($signedDir, 0755, true);
 
+// HELPERS FOR HISTORY
+function addHistoryEvent(&$db, $token, $event, $desc) {
+    if (!isset($db[$token]['history'])) $db[$token]['history'] = [];
+    $db[$token]['history'][] = [
+        'event' => $event,
+        'time' => date('c'), // ISO 8601
+        'desc' => $desc,
+        'ip' => $_SERVER['REMOTE_ADDR'] // Log IP
+    ];
+    // Save DB logic needs a reference to file saving, usually handled by caller or we move save here
+}
+
 // 1. UPLOAD PDF FOR SIGNING (ADMIN)
 if ($action === 'upload_pdf_for_signing') {
     if (!checkAuth()) { http_response_code(401); echo json_encode(['success'=>false]); exit; }
@@ -1148,7 +1160,15 @@ if ($action === 'upload_pdf_for_signing') {
         'status' => 'pending',
         'file' => $filename,
         'email' => $input['clientEmail'],
-        'created_at' => date('c')
+        'created_at' => date('c'),
+        'history' => [
+            [
+                'event' => 'created', 
+                'time' => date('c'), 
+                'desc' => "Документ создан администратором (MATRANG)", 
+                'ip' => $_SERVER['REMOTE_ADDR']
+            ]
+        ]
     ];
     file_put_contents($signingDbFile, json_encode($db));
 
@@ -1170,6 +1190,20 @@ if ($action === 'send_signing_email') {
     $email = $input['email'];
     $link = $input['link'];
     
+    // Log History
+    // Find token from link or pass it explicitly. Assuming link contains token.
+    $parts = parse_url($link);
+    parse_str($parts['query'], $query);
+    $token = $query['token'] ?? '';
+    
+    if ($token) {
+        $db = file_exists($signingDbFile) ? json_decode(file_get_contents($signingDbFile), true) : [];
+        if (isset($db[$token])) {
+             addHistoryEvent($db, $token, 'emailed', "Отправлено на email: $email для подписи");
+             file_put_contents($signingDbFile, json_encode($db));
+        }
+    }
+
     $subject = "✍️ Подписание договора (MATRANG)";
     $headers = "MIME-Version: 1.0" . "\r\n";
     $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
@@ -1204,6 +1238,15 @@ if ($action === 'get_signing_pdf') {
         http_response_code(404); echo "Contract not found"; exit;
     }
     
+    // Log View Event (Only once or if some time passed)
+    // We'll simplisticly log if last event wasn't 'viewed'
+    $history = $db[$token]['history'] ?? [];
+    $lastEvent = end($history);
+    if ($lastEvent['event'] !== 'viewed' && $lastEvent['event'] !== 'signed') {
+         addHistoryEvent($db, $token, 'viewed', "Документ просмотрен клиентом ({$db[$token]['email']})");
+         file_put_contents($signingDbFile, json_encode($db));
+    }
+
     $file = $pendingDir . $db[$token]['file'];
     if (!file_exists($file)) {
         http_response_code(404); echo "File missing"; exit;
@@ -1211,6 +1254,19 @@ if ($action === 'get_signing_pdf') {
     
     header('Content-Type: application/pdf');
     readfile($file);
+    exit;
+}
+
+// 3.1 GET METADATA (For History Page)
+if ($action === 'get_contract_meta') {
+    $token = $_GET['token'] ?? '';
+    $db = file_exists($signingDbFile) ? json_decode(file_get_contents($signingDbFile), true) : [];
+    
+    if (isset($db[$token])) {
+        echo json_encode(['success' => true, 'meta' => $db[$token]]);
+    } else {
+        echo json_encode(['success' => false]);
+    }
     exit;
 }
 

@@ -146,34 +146,112 @@
         
         showLoader(true);
         try {
+            // Get Metadata for history
+            const metaRes = await fetch(`/api/api.php?action=get_contract_meta&token=${token}`);
+            const metaJson = await metaRes.json();
+            const history = metaJson.success ? metaJson.meta.history : [];
+            const signerEmail = metaJson.success ? metaJson.meta.email : 'Unknown';
+
+            // Add "Signed" event locally for rendering
+            const now = new Date();
+            history.push({
+                event: 'signed',
+                time: now.toISOString(),
+                desc: `Документ подписан электронной подписью (${signerEmail})`,
+                ip: 'Client IP'
+            });
+
+            // Prepare signature
             const pngDataUrl = signaturePad.toDataURL();
             const pngImageBytes = await fetch(pngDataUrl).then(res => res.arrayBuffer());
 
             // Modify PDF
-            const { PDFDocument } = PDFLib;
+            const { PDFDocument, rgb, StandardFonts } = PDFLib;
             const pdfDoc = await PDFDocument.load(originalPdfBytes);
             const pngImage = await pdfDoc.embedPng(pngImageBytes);
+            const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
             
-            // Get last page
+            // 1. SIGN ON LAST PAGE
             const pages = pdfDoc.getPages();
             const lastPage = pages[pages.length - 1];
             const { width, height } = lastPage.getSize();
             
-            // Draw signature (Bottom Right approx - adjust as needed)
-            // Assuming standard A4, signature usually at bottom right
             lastPage.drawImage(pngImage, {
-                x: width / 2 + 50,
-                y: 100, // Adjust Y coordinate dynamically if needed
-                width: 150,
-                height: 75,
+                x: width / 2 + 20,
+                y: 100,
+                width: 140,
+                height: 70,
             });
+            lastPage.drawText(`Digital ID: ${token.substring(0,8)}...`, {
+                x: width / 2 + 20,
+                y: 85,
+                size: 7,
+                font: font,
+                color: rgb(0.5, 0.5, 0.5)
+            });
+
+            // 2. CREATE AUDIT REPORT PAGE
+            const auditPage = pdfDoc.addPage([595, 842]); // A4
+            const apWidth = auditPage.getWidth();
+            const apHeight = auditPage.getHeight();
+            let yPos = apHeight - 50;
+
+            // Header
+            auditPage.drawText('FINAL AUDIT REPORT', { x: 50, y: yPos, size: 24, font: fontBold, color: rgb(0.1, 0.5, 0.9) });
+            yPos -= 30;
+            auditPage.drawLine({ start: { x: 50, y: yPos }, end: { x: apWidth - 50, y: yPos }, thickness: 2, color: rgb(0, 0, 0) });
+            yPos -= 20;
+
+            // Transaction Info Box
+            const infoBoxY = yPos;
+            auditPage.drawRectangle({ x: 50, y: infoBoxY - 70, width: apWidth - 100, height: 80, borderColor: rgb(0,0,0), borderWidth: 1, color: rgb(0.95, 0.95, 0.95) });
             
-            // Add a text stamp
-            lastPage.drawText(`Signed digitally: ${new Date().toLocaleString()}`, {
-                x: width / 2 + 50,
-                y: 80,
-                size: 8,
-                color: PDFLib.rgb(0.5, 0.5, 0.5)
+            const drawLabelVal = (lbl, val, x, y) => {
+                auditPage.drawText(lbl, { x, y, size: 10, font: fontBold });
+                auditPage.drawText(val, { x: x + 80, y, size: 10, font: font });
+            };
+
+            drawLabelVal('Transaction ID:', token, 60, infoBoxY - 20);
+            drawLabelVal('Created:', history[0]?.time.split('T')[0] || '-', 60, infoBoxY - 40);
+            drawLabelVal('Status:', 'SIGNED', 60, infoBoxY - 60);
+            drawLabelVal('Signer:', signerEmail, 300, infoBoxY - 20);
+            
+            yPos -= 120;
+
+            // Audit History List
+            auditPage.drawText('History', { x: 50, y: yPos, size: 18, font: fontBold });
+            yPos -= 20;
+
+            for (const h of history) {
+                // Ensure enough space
+                if (yPos < 50) { auditPage.addPage(); yPos = 800; }
+
+                const dateStr = h.time.replace('T', ' ').substring(0, 19);
+                
+                // Icon simulation (circle color based on event)
+                let iconColor = rgb(0.5, 0.5, 0.5);
+                if (h.event === 'created') iconColor = rgb(0.9, 0.6, 0.1); 
+                if (h.event === 'viewed') iconColor = rgb(0.1, 0.6, 0.9);
+                if (h.event === 'signed') iconColor = rgb(0.1, 0.8, 0.3);
+
+                auditPage.drawCircle({ x: 60, y: yPos, size: 4, color: iconColor });
+                
+                // Text
+                auditPage.drawText(dateStr + ' GMT', { x: 80, y: yPos + 3, size: 9, font: fontBold, color: rgb(0.3, 0.3, 0.3) });
+                auditPage.drawText(h.desc, { x: 80, y: yPos - 10, size: 10, font: font });
+                
+                if (h.ip) {
+                   auditPage.drawText(`IP: ${h.ip}`, { x: 80, y: yPos - 20, size: 8, font: font, color: rgb(0.6, 0.6, 0.6) });
+                   yPos -= 40;
+                } else {
+                   yPos -= 30;
+                }
+            }
+            
+            // Bottom validation text
+            auditPage.drawText('This audit trail is a binding part of the document transaction.', {
+               x: 50, y: 30, size: 8, font: font, color: rgb(0.7,0.7,0.7) 
             });
 
             const pdfBytes = await pdfDoc.save();
