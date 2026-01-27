@@ -390,6 +390,11 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     let filledCount = 0;
     let notFoundCount = 0;
     const existingFieldNames = fields.map(f => f.getName());
+    const notFoundFields: string[] = [];
+
+    console.log('=== FIELD MAPPING DEBUG ===');
+    console.log('PDF fields:', existingFieldNames);
+    console.log('Fields to fill:', Object.keys(fieldMap));
 
     toast.info(`🔍 PDF: ${fields.length} полей найдено, заполняем ${Object.keys(fieldMap).length}`);
 
@@ -400,15 +405,25 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           if (value) checkbox.check();
           else checkbox.uncheck();
           filledCount++;
+          console.log(`✅ Filled checkbox: ${fieldName} = ${value}`);
         } else {
           const textField = form.getTextField(fieldName);
           textField.setText(String(value));
           filledCount++;
+          console.log(`✅ Filled text: ${fieldName} = ${value}`);
         }
       } catch (e) {
         notFoundCount++;
+        notFoundFields.push(fieldName);
+        console.log(`❌ Not found: ${fieldName}`);
       }
     });
+
+    console.log('=== SUMMARY ===');
+    console.log(`Filled: ${filledCount}, Not found: ${notFoundCount}`);
+    if (notFoundFields.length > 0) {
+      console.log('Missing fields:', notFoundFields);
+    }
 
     toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
