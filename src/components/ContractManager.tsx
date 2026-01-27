@@ -436,8 +436,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
     toast.success(`✅ Заполнено: ${filledCount}, Не найдено: ${notFoundCount}`);
 
-    // Включаем обновление внешнего вида полей для отображения текста
-    form.updateFieldAppearances();
+    // Пытаемся обновить внешний вид (может не работать с кириллицей)
+    try {
+      form.updateFieldAppearances();
+      console.log('✅ Внешний вид обновлен');
+    } catch (e) {
+      console.warn('⚠️ Не удалось обновить внешний вид (кириллица не поддерживается шрифтом WinAnsi):', e);
+      toast.warning('Поля заполнены, но могут не отображаться сразу. Откройте PDF в Adobe Reader.');
+    }
     
     const filledPdfBytes = await pdfDoc.save();
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
@@ -527,9 +533,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       document.title = `⏱️ Filled ${filled} fields`;
       toast.success(`✅ Заполнено: ${filled} полей`);
       
-      // 3. Сохраняем PDF с обновлением внешнего вида
+      // 3. Сохраняем PDF
       document.title = "⏱️ Saving PDF...";
-      form.updateFieldAppearances();
+      try {
+        form.updateFieldAppearances();
+        console.log('✅ Внешний вид обновлен');
+      } catch (e) {
+        console.warn('⚠️ Кириллица не поддерживается WinAnsi:', e);
+      }
       const filledPdfBytes = await pdfDoc.save();
       toast.info(`PDF saved: ${filledPdfBytes.length} bytes`);
       
@@ -849,7 +860,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                       }
                       
                       console.log("🔵 Обновляем внешний вид полей...");
-                      form.updateFieldAppearances();
+                      try {
+                        form.updateFieldAppearances();
+                        console.log('✅ Внешний вид обновлен');
+                      } catch (e) {
+                        console.warn('⚠️ WinAnsi не поддерживает кириллицу:', e);
+                        toast.warning('Поля заполнены. Откройте PDF в Adobe Reader для просмотра.');
+                      }
                       
                       console.log("🔵 Сохраняем PDF...");
                       const saved = await pdfDoc.save();
