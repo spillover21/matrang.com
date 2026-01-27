@@ -31,6 +31,9 @@ dist-ssr
 # Adobe Sign config (содержит секретные ключи)
 api/adobe_sign_config.php
 
+# Composer vendor (собирается в CI)
+api/vendor/
+
 # Data files
 data/*.json
 data/*.log
