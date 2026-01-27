@@ -100,24 +100,22 @@
       const statusEl = document.getElementById('vanilla-status');
       const setStatus = (msg) => { statusEl.textContent = msg; console.log('[VANILLA]', msg); };
       
-      // Helper to find input by placeholder (for text inputs with unique placeholders)
+      // Helper to find input by placeholder
       const getValByPlaceholder = (ph, index = 0) => {
         const els = document.querySelectorAll(`input[placeholder="${ph}"], textarea[placeholder="${ph}"]`);
         return els[index] ? els[index].value : '';
       };
 
-      // Helper to find input/select/textarea by Label text (for dates, duplicates, selects)
+      // Helper to find input/select/textarea by Label text
       const getValByLabel = (labelText, type = 'text') => {
         const labels = Array.from(document.querySelectorAll('label'));
-        const labelEl = labels.find(l => l.textContent.includes(labelText));
+        const labelEl = labels.find(l => l.innerText.includes(labelText)); // innerText is safer for visible text
         if (!labelEl) return '';
         
-        const parent = labelEl.parentElement; // div wrapper
+        const parent = labelEl.parentElement;
         if (!parent) return '';
 
         if (type === 'checkbox') {
-             // Checkbox is often inside a label or siblings
-             // In the React code: <label><input type="checkbox"/> text</label>
              const cb = parent.querySelector('input[type="checkbox"]') || labelEl.querySelector('input[type="checkbox"]');
              return cb ? cb.checked : false;
         }
@@ -125,6 +123,20 @@
         const input = parent.querySelector('input, select, textarea');
         return input ? input.value : '';
       };
+      
+      // *** HACK: Change date input to text to allow custom text ***
+      setInterval(() => {
+         const labels = Array.from(document.querySelectorAll('label'));
+         const labelEl = labels.find(l => l.innerText.includes('Срок окончательного расчета'));
+         if (labelEl && labelEl.parentElement) {
+            const dateInput = labelEl.parentElement.querySelector('input[type="date"]');
+            if (dateInput) {
+                console.log('[VANILLA] Converting "Final Payment" date input to text');
+                dateInput.type = 'text';
+                dateInput.placeholder = 'Введите дату или условия...';
+            }
+         }
+      }, 2000);
 
       const getHeaders = () => {
         const token = localStorage.getItem("admin_token");
@@ -160,21 +172,31 @@
       setInterval(checkPdfTemplate, 3000);
       checkPdfTemplate();
 
-      document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (ОБНОВЛЕНО)';
+      document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (v3)';
       document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
         if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
         
         try {
           setStatus('⏳ Загрузка и заполнение...');
           
+          // Generate Contract Number
+          const contractNum = `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`;
+
           // Scrape ALL data from the screen
           const data = {
-            // Kennel
-            kennelName: getValByPlaceholder('GREAT LEGACY BULLY'),
+            // Kennel (Hardcoded from typical usage if not found, but we try to find inputs)
+            // Note: If fields like Passport are not on screen, we can't scrape them. 
+            // We use empty strings unless user asks to hardcode them.
+            kennelName: getValByPlaceholder('GREAT LEGACY BULLY') || 'GREAT LEGACY BULLY',
             kennelOwner: getValByPlaceholder('Иванов Иван Иванович'),
-            kennelAddress: getValByPlaceholder('г. Каяани, Финляндия', 0), // First one matches kennel
+            kennelAddress: getValByPlaceholder('г. Каяани, Финляндия', 0), 
             kennelPhone: getValByPlaceholder('+7 (900) 455-27-16'),
             kennelEmail: getValByPlaceholder('greatlegacybully@gmail.com'),
+            // Attempt to find Kennel Passport info (likely missing on screen, so defaults or added later)
+            kennelPassportSeries: '', 
+            kennelPassportNumber: '',
+            kennelPassportIssuedBy: '',
+            kennelPassportIssuedDate: '',
             
             // Buyer
             buyerName: getValByPlaceholder('Петров Петр Петрович'),
@@ -186,7 +208,7 @@
             buyerPassportIssuedBy: getValByPlaceholder('УФМС...'),
             buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта'),
 
-            // Dog Parents (Duplicates handled by index)
+            // Dog Parents
             dogFatherName: getValByPlaceholder('CHAMPION NAME', 0),
             dogFatherRegNumber: getValByPlaceholder('ABKC/UKC...', 0),
             dogMotherName: getValByPlaceholder('CHAMPION NAME', 1),
@@ -194,14 +216,14 @@
 
             // Dog
             dogName: getValByPlaceholder('MATRANG'),
-            dogBreed: getValByPlaceholder('Американский булли'),
+            dogBreed: getValByPlaceholder('Американский булли') || 'Американский булли',
             dogBirthDate: getValByLabel('Дата рождения'),
             dogGender: getValByLabel('Пол'),
             dogColor: getValByPlaceholder('Blue Fawn'),
             dogChipNumber: getValByPlaceholder('123456789012345'),
             dogPuppyCard: getValByPlaceholder('ABKC номер'),
 
-            // Purpose (Checkboxes)
+            // Purpose
             purposeBreeding: getValByLabel('Для племенной работы', 'checkbox'),
             purposeCompanion: getValByLabel('Компаньон', 'checkbox'),
             purposeGeneral: getValByLabel('Общение', 'checkbox'),
@@ -210,8 +232,8 @@
             price: getValByPlaceholder('150000'),
             depositAmount: getValByPlaceholder('30000'),
             depositDate: getValByLabel('Дата внесения задатка'),
-            remainingAmount: getValByLabel('Остаток к оплате'), // No static placeholder
-            finalPaymentDate: getValByLabel('Срок окончательного расчета'),
+            remainingAmount: getValByLabel('Остаток к оплате'), 
+            finalPaymentDate: getValByLabel('Срок окончательного расчета'), // Now supports text due to hack
 
             // Medical
             dewormingDate: getValByLabel('Дата выгонки глистов'),
@@ -228,7 +250,8 @@
             
             // Contract Info
             contractDate: getValByLabel('Дата договора') || new Date().toLocaleDateString('ru-RU'),
-            contractPlace: getValByPlaceholder('г. Каяани, Финляндия', 1) // Second one matches place
+            contractPlace: getValByPlaceholder('г. Каяани, Финляндия', 1),
+            contractNumber: contractNum
           };
           
           console.log('[VANILLA] Scraped Data Full:', data);
@@ -239,11 +262,17 @@
           const form = pdfDoc.getForm();
           
           const fieldMap = {
+            '`contractNumber`': data.contractNumber, // Added
+            
             '`kennelName`': data.kennelName,
             '`kennelOwner`': data.kennelOwner,
             '`kennelAddress`': data.kennelAddress,
             '`kennelPhone`': data.kennelPhone,
             '`kennelEmail`': data.kennelEmail,
+            '`kennelPassportSeries`': data.kennelPassportSeries, 
+            '`kennelPassportNumber`': data.kennelPassportNumber,
+            '`kennelPassportIssuedBy`': data.kennelPassportIssuedBy,
+            '`kennelPassportIssuedDate`': data.kennelPassportIssuedDate,
             
             '`buyerName`': data.buyerName,
             '`buyerAddress`': data.buyerAddress,
