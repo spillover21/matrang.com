@@ -174,92 +174,99 @@
       setInterval(checkPdfTemplate, 3000);
       checkPdfTemplate();
 
-      document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (v3)';
+document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (v4)';
       document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
         if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
         
         try {
-          setStatus('⏳ Загрузка и заполнение...');
-          
-          // Generate Contract Number
+          setStatus('⏳ Сбор данных...');
+          console.clear();
+          console.log('[VANILLA] START SCRAPING (v4)...');
+
           const contractNum = `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`;
 
-          // Scrape ALL data from the screen
+          // Robust scraping using Labels where possible (more reliable than placeholders)
           const data = {
-            // Kennel (Hardcoded from typical usage if not found, but we try to find inputs)
-            // Note: If fields like Passport are not on screen, we can't scrape them. 
-            // We use empty strings unless user asks to hardcode them.
+            // == KENNEL (Index 0) ==
             kennelName: getValByPlaceholder('GREAT LEGACY BULLY') || 'GREAT LEGACY BULLY',
-            kennelOwner: getValByPlaceholder('Иванов Иван Иванович'),
-            kennelAddress: getValByPlaceholder('г. Каяани, Финляндия', 0), 
-            kennelPhone: getValByPlaceholder('+7 (900) 455-27-16'),
-            kennelEmail: getValByPlaceholder('greatlegacybully@gmail.com'),
+            kennelOwner: getValByLabel('Владелец питомника'), // Label: "Владелец питомника / ФИО Заводчика *"
+            kennelAddress: getValByLabel('Адрес', 'text', 0), 
+            kennelPhone: getValByLabel('Телефон', 'text', 0),
+            kennelEmail: getValByLabel('Email', 'text', 0),
             
-            // Kennel Passport - Fixed dual lookups
-            kennelPassportSeries: getValByPlaceholder('1234', 0), 
-            kennelPassportNumber: getValByPlaceholder('567890', 0),
-            kennelPassportIssuedBy: getValByPlaceholder('УФМС...', 0),
+            // Kennel Passport - Using labels now!
+            kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0),
+            kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0),
+            kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0),
             kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0),
             
-            // Buyer
-            buyerName: getValByPlaceholder('Петров Петр Петрович'),
-            buyerAddress: getValByPlaceholder('г. Москва, ул. ...'),
-            buyerPhone: getValByPlaceholder('+7 (___) ___-__-__'),
-            buyerEmail: getValByPlaceholder('buyer@email.com'),
+            // == BUYER (Index 1 usually, but check labels) ==
+            buyerName: getValByLabel('ФИО покупателя'),
+            buyerAddress: getValByLabel('Адрес регистрации'), // Label: "Адрес регистрации"
+            buyerPhone: getValByLabel('Телефон', 'text', 1), // 2nd "Phone" label
+            buyerEmail: getValByLabel('Email', 'text', 1),   // 2nd "Email" label
             
-            // Buyer Passport - Fixed dual lookups (Index 1)
-            buyerPassportSeries: getValByPlaceholder('1234', 1),
-            buyerPassportNumber: getValByPlaceholder('567890', 1),
-            buyerPassportIssuedBy: getValByPlaceholder('УФМС...', 1),
+            // Buyer Pasport
+            buyerPassportSeries: getValByLabel('Паспорт серия', 'text', 1),
+            buyerPassportNumber: getValByLabel('Паспорт номер', 'text', 1),
+            buyerPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 1),
             buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 1),
 
-            // Dog Parents
-            dogFatherName: getValByPlaceholder('CHAMPION NAME', 0),
-            dogFatherRegNumber: getValByPlaceholder('ABKC/UKC...', 0),
-            dogMotherName: getValByPlaceholder('CHAMPION NAME', 1),
-            dogMotherRegNumber: getValByPlaceholder('ABKC/UKC...', 1),
+            // Checking specific email label for buyer if generic 'Email' fails
+            _buyerEmailFallback: getValByLabel('Email покупателя', 'text', 0),
+
+            // Parents
+            dogFatherName: getValByLabel('Кличка отца'),
+            dogFatherRegNumber: getValByLabel('Рег. номер отца'),
+            dogMotherName: getValByLabel('Кличка матери'),
+            dogMotherRegNumber: getValByLabel('Рег. номер матери'),
 
             // Dog
-            dogName: getValByPlaceholder('MATRANG'),
-            dogBreed: getValByPlaceholder('Американский булли') || 'Американский булли',
+            dogName: getValByLabel('Кличка щенка'),
+            dogBreed: getValByLabel('Порода'),
             dogBirthDate: getValByLabel('Дата рождения'),
             dogGender: getValByLabel('Пол'),
-            dogColor: getValByPlaceholder('Blue Fawn'),
-            dogChipNumber: getValByPlaceholder('123456789012345'),
-            dogPuppyCard: getValByPlaceholder('ABKC номер'),
-
-            // Purpose
-            purposeBreeding: getValByLabel('Для племенной работы', 'checkbox'),
-            purposeCompanion: getValByLabel('Компаньон', 'checkbox'),
-            purposeGeneral: getValByLabel('Общение', 'checkbox'),
+            dogColor: getValByLabel('Окрас'),
+            dogChipNumber: getValByLabel('Номер чипа'),
+            dogPuppyCard: getValByLabel('Щенячья карточка'),
 
             // Financial
-            price: getValByPlaceholder('150000'),
-            depositAmount: getValByPlaceholder('30000'),
+            price: getValByLabel('Полная стоимость'),
+            depositAmount: getValByLabel('Сумма задатка'),
             depositDate: getValByLabel('Дата внесения задатка'),
             remainingAmount: getValByLabel('Остаток к оплате'), 
-            finalPaymentDate: getValByLabel('Срок окончательного расчета'), // Now supports text due to hack
+            finalPaymentDate: getValByLabel('Срок окончательного расчета'),
 
             // Medical
             dewormingDate: getValByLabel('Дата выгонки глистов'),
-            vaccinationDates: getValByPlaceholder('01.01.2025, 15.01.2025'),
-            vaccineName: getValByPlaceholder('Nobivac, Eurican...'),
+            vaccinationDates: getValByLabel('Даты прививок'),
+            vaccineName: getValByLabel('Название вакцины'),
             nextDewormingDate: getValByLabel('Следующая обработка от глистов'),
             nextVaccinationDate: getValByLabel('Следующая вакцинация'),
-
-            // Extra
-            specialFeatures: getValByPlaceholder('Особенности экстерьера, характера, нюансы здоровья...'),
-            deliveryTerms: getValByPlaceholder('Способ доставки, стоимость, сроки...'),
-            additionalAgreements: getValByPlaceholder('Дополнительные условия договора, гарантии, особые требования...'),
-            recommendedFood: getValByPlaceholder('Royal Canin, Acana...'),
             
-            // Contract Info
+            purposeBreeding: getValByLabel('Для племенной работы', 'checkbox'),
+            purposeCompanion: getValByLabel('Компаньон', 'checkbox'),
+            purposeGeneral: getValByLabel('Общение', 'checkbox'),
+            
+            specialFeatures: getValByLabel('Индивидуальные особенности'),
+            deliveryTerms: getValByLabel('Условия доставки'),
+            additionalAgreements: getValByLabel('Дополнительные соглашения'),
+            recommendedFood: getValByLabel('Рекомендуемый корм'),
+            
             contractDate: getValByLabel('Дата договора') || new Date().toLocaleDateString('ru-RU'),
-            contractPlace: getValByPlaceholder('г. Каяани, Финляндия', 1),
+            contractPlace: getValByLabel('Место составления'),
             contractNumber: contractNum
           };
-          
-          console.log('[VANILLA] Scraped Data Full:', data);
+
+          // Fixup logic
+          if (!data.buyerEmail && data._buyerEmailFallback) {
+             data.buyerEmail = data._buyerEmailFallback;
+          }
+           // Fallbacks using placeholders if labels fail
+          if (!data.buyerEmail) data.buyerEmail = getValByPlaceholder('buyer@email.com');
+          if (!data.kennelPhone) data.kennelPhone = getValByPlaceholder('+7 (900) 455-27-16');
+
+          console.log('[VANILLA] Scraped Data Final:', data);
           if(!data.buyerEmail) { alert('⚠️ Email покупателя не найден! Проверьте поле.'); }
 
           const pdfBytes = await fetch(pdfTemplatePath).then(res => res.arrayBuffer());
