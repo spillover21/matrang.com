@@ -550,9 +550,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       const formData2 = new FormData();
       formData2.append('file', blob, 'contract.pdf');
       
-      const uploadRes = await fetch('/api/api.php?action=uploadcontract', {
+      const uploadRes = await fetch(`/api/api.php?action=uploadcontract&token=${encodeURIComponent(token)}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData2
       });
       const uploadData = await uploadRes.json();
