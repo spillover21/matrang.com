@@ -1300,6 +1300,27 @@ if ($action === 'save_signed_pdf') {
     exit;
 }
 
+// 5. SELLER PROFILE (Save/Load Preset)
+$sellerProfileFile = __DIR__ . '/../data/seller_profile.json';
+
+if ($action === 'save_seller_profile') {
+    if (!checkAuth()) { http_response_code(401); echo json_encode(['success'=>false]); exit; }
+    
+    $input = json_decode(file_get_contents('php://input'), true);
+    file_put_contents($sellerProfileFile, json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    echo json_encode(['success' => true]);
+    exit;
+}
+
+if ($action === 'get_seller_profile') {
+    if (file_exists($sellerProfileFile)) {
+        echo file_get_contents($sellerProfileFile);
+    } else {
+        echo json_encode([]);
+    }
+    exit;
+}
+
 // Если не нашли подходящий action
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action: ' . $action]);

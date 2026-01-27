@@ -63,32 +63,25 @@
   <body>
     <div id="root"></div>
     
-    <!-- VANILLA JS BRIDGE - SCRAPES REACT DOM AND FILLS PDF -->
-    <div id="vanilla-contract-ui" style="display: none; position: fixed; top: 80px; right: 20px; z-index: 9999; background: #fffbeb; border: 3px solid #d97706; padding: 20px; border-radius: 12px; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); font-family: sans-serif;">
-      <h2 style="margin: 0 0 10px 0; color: #92400e; font-size: 16px; font-weight: 800; text-transform: uppercase;">⚡ PDF КОНСТРУКТОР</h2>
+    <!-- VANILLA JS BRIDGE - TOP BAR TOOLBAR -->
+    <div id="vanilla-contract-ui" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 50px; background: #1e293b; border-bottom: 2px solid #3b82f6; z-index: 99999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); align-items: center; padding: 0 20px; box-sizing: border-box; font-family: sans-serif; color: white;">
+      <div style="font-weight:bold; color: #60a5fa; margin-right: 20px; font-size: 14px;">⚡ MATRANG PDF</div>
       
-      <div id="vanilla-pdf-status" style="margin-bottom: 10px; font-size: 12px; padding: 5px; background: #fef3c7; border-radius: 4px; border: 1px solid #fcd34d;">
-        ⏳ Поиск шаблона...
+      <div id="vanilla-pdf-status" style="font-size: 12px; color: #94a3b8; margin-right: 20px;">
+        ⏳ Поиск...
       </div>
-      
-      <button id="vanilla-fill-btn" style="width: 100%; padding: 14px; margin-bottom: 8px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
-        1. 🔧 ЗАПОЛНИТЬ ИЗ ФОРМЫ
-      </button>
-      
-      <button id="vanilla-download-btn" style="width: 100%; padding: 14px; margin-bottom: 8px; background: #059669; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
-        2. 💾 СКАЧАТЬ И ПРОВЕРИТЬ
-      </button>
-      
-      <button id="vanilla-send-btn" style="width: 100%; padding: 14px; background: #dc2626; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
-        3. 📧 ОТПРАВИТЬ КЛИЕНТУ
-      </button>
 
-      <div style="margin-top: 10px;">
-        <label style="font-size:10px; color:#92400e; font-weight:bold;">ИЛИ ЗАГРУЗИТЕ СВОЙ PDF:</label>
-        <input type="file" id="manual-pdf-input" accept=".pdf" style="font-size:10px; width:100%">
+      <div style="display:flex; gap: 8px; margin-right: auto;">
+         <button id="btn-save-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">💾 Cохранить мои данные</button>
+         <button id="btn-load-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">📥 Вставить мои данные</button>
       </div>
-      
-      <p id="vanilla-status" style="margin: 10px 0 0 0; font-size: 11px; color: #78350f; font-weight: bold; min-height: 1.2em;">...</p>
+
+      <div style="display:flex; gap: 8px; align-items: center;">
+          <span id="vanilla-status" style="font-size: 11px; color: #fbbf24; margin-right: 10px; opacity: 0;">...</span>
+          <button id="vanilla-fill-btn" style="font-size: 12px; padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">1. Сформировать PDF</button>
+          <button id="vanilla-download-btn" style="font-size: 12px; padding: 6px 12px; background: #059669; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">2. Скачать</button>
+          <button id="vanilla-send-btn" style="font-size: 12px; padding: 6px 12px; background: #dc2626; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">3. Отправить на подпись</button>
+      </div>
     </div>
     
     <script>
@@ -213,7 +206,101 @@
       setInterval(checkPdfTemplate, 3000);
       checkPdfTemplate();
 
-      document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (v5)';
+      // Helper to scrape only Seller info
+      const scrapeSellerInfo = () => {
+          return {
+             kennelOwner: getValByLabel('Владелец питомника'), 
+             kennelAddress: getValByLabel('Адрес', 'text', 0), 
+             kennelPhone: getValByLabel('Телефон', 'text', 0),
+             kennelEmail: getValByLabel('Email', 'text', 0),
+             kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0),
+             kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0),
+             kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0),
+             // Note: getValByLabel returns formatted date "DD.MM.YYYY". We save this.
+             kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0)
+          };
+      };
+
+      // Helper to set input by Label
+      const setValByLabel = (labelText, value, index = 0) => {
+         const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText && l.innerText.includes(labelText));
+         const labelEl = labels[index];
+         if (!labelEl) return;
+         
+         const parent = labelEl.parentElement;
+         if (!parent) return;
+         
+         const input = parent.querySelector('input, select, textarea');
+         if (input) {
+             // For React 16+ controlled components hack
+             const proto = Object.getPrototypeOf(input);
+             const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+             
+             if (setter) {
+                 setter.call(input, value);
+             } else {
+                 input.value = value;
+             }
+             
+             input.dispatchEvent(new Event('input', { bubbles: true }));
+             input.dispatchEvent(new Event('change', { bubbles: true }));
+             console.log(`[VANILLA] Set "${labelText}" to "${value}"`);
+         }
+      };
+
+      document.getElementById('btn-save-profile').addEventListener('click', async () => {
+         const data = scrapeSellerInfo();
+         if (!data.kennelOwner) { alert('❌ Сначала заполните ФИО и другие свои данные, затем жмите сохранение.'); return; }
+         
+         try {
+             setStatus('Сохранение...');
+             await fetch('/api/api.php?action=save_seller_profile', {
+                 method: 'POST',
+                 headers: getHeaders(),
+                 body: JSON.stringify(data)
+             });
+             alert('✅ Ваши данные сохранены! Теперь можно не вводить их вручную.');
+             setStatus('✅ Данные сохранены');
+         } catch(e) { alert('Error: ' + e.message); }
+      });
+
+      document.getElementById('btn-load-profile').addEventListener('click', async () => {
+         try {
+             setStatus('Загрузка...');
+             const res = await fetch('/api/api.php?action=get_seller_profile', { headers: getHeaders() });
+             let data = await res.json();
+             
+             if (!data || Object.keys(data).length === 0) {
+                 alert('⚠️ Нет сохраненных данных. Сначала заполните поля и нажмите "Сохранить мои данные".');
+                 return;
+             }
+             
+             // Check if it's the old format or new (handle both just in case)
+             console.log('Loading profile:', data);
+
+             setValByLabel('Владелец питомника', data.kennelOwner || '');
+             setValByLabel('Адрес', data.kennelAddress || '', 0);
+             setValByLabel('Телефон', data.kennelPhone || '', 0);
+             setValByLabel('Email', data.kennelEmail || '', 0);
+             setValByLabel('Паспорт серия', data.kennelPassportSeries || '', 0);
+             setValByLabel('Паспорт номер', data.kennelPassportNumber || '', 0);
+             setValByLabel('Паспорт выдан', data.kennelPassportIssuedBy || '', 0);
+             
+             // Restore Date: stored as DD.MM.YYYY, input needs YYYY-MM-DD
+             let dateVal = data.kennelPassportIssuedDate;
+             if (dateVal && dateVal.includes('.')) {
+                 const [d, m, y] = dateVal.split('.');
+                 dateVal = `${y}-${m}-${d}`;
+             }
+             setValByLabel('Дата выдачи паспорта', dateVal || '', 0);
+             
+             alert('✅ Ваши данные успешно вставлены!');
+             setStatus('✅ Готово');
+         } catch(e) { console.error(e); alert('Error loading profile: ' + e.message); }
+      });
+      
+      document.getElementById('vanilla-fill-btn').innerHTML = '1. Сформировать PDF';
       document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
         if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
         
