@@ -22,25 +22,18 @@ jobs:
           node-version: 20
           cache: npm
 
-      # ВРЕМЕННО ОТКЛЮЧЕНО: Используем локальный билд вместо пересборки
-      # - name: Install dependencies
-      #   run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      # - name: Build
-      #   run: npm run build
-      #   env:
-      #     # Укажите секрет VITE_GOOGLE_MAPS_API_KEY в настройках репозитория
-      #     VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+      - name: Build
+        run: npm run build
+        env:
+          # Укажите секрет VITE_GOOGLE_MAPS_API_KEY в настройках репозитория
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
 
       - name: Stamp version
         run: |
-          mkdir -p dist
           echo "version=$(git rev-parse --short HEAD)-$(date -u +%Y%m%dT%H%M%SZ)" > dist/version.txt
-          # Копируем локальные сбилженные файлы в dist
-          cp -r assets dist/
-          cp index.html dist/
-          cp robots.txt dist/ || true
-          cp favicon.ico dist/ || true
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
