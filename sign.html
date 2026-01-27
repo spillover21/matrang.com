@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Подписание договора | MATRANG</title>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background: #f3f4f6; font-family: sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; background: white; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        header { background: #111; color: white; padding: 15px; text-align: center; }
+        header h1 { margin: 0; font-size: 18px; }
+
+        #pdf-viewer { flex: 1; overflow-y: auto; background: #525659; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        canvas.pdf-page { max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        #controls { padding: 20px; text-align: center; border-top: 1px solid #ddd; background: white; position: sticky; bottom: 0; }
+        
+        button.primary { background: #2563eb; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+        button.secondary { background: #e5e7eb; color: #111; padding: 10px 20px; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+
+        /* Modal */
+        #sign-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        #pad-container { background: white; padding: 10px; border-radius: 10px; width: 95%; max-width: 500px; }
+        #pad-canvas { border: 2px dashed #ccc; width: 100%; height: 250px; cursor: crosshair; touch-action: none; background: #fff; }
+        .modal-footer { margin-top: 15px; display: flex; gap: 10px; }
+        .modal-footer button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-clear { background: #fee2e2; color: #991b1b; }
+        .btn-confirm { background: #16a34a; color: white; }
+
+        .loader { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:2000; align-items:center; justify-content:center; flex-direction:column; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📄 Просмотр договора</h1>
+    </header>
+
+    <div id="pdf-viewer">
+        <!-- PDF Pages will be rendered here -->
+        <div style="color:white; margin-top: 50px;">Загрузка документа...</div>
+    </div>
+
+    <div id="controls">
+        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Внимательно ознакомьтесь с текстом договора перед подписанием.</p>
+        <button class="primary" onclick="openSignModal()">✍️ ПОДПИСАТЬ ЭЛЕКТРОННО</button>
+    </div>
+</div>
+
+<!-- Signature Modal -->
+<div id="sign-modal">
+    <div id="pad-container">
+        <h3 style="margin-top:0; text-align:center;">Расшифровка подписи</h3>
+        <p style="font-size:12px; color:#555; text-align:center;">Распишитесь пальцем или мышкой в поле ниже:</p>
+        <canvas id="pad-canvas"></canvas>
+        <div class="modal-footer">
+            <button class="btn-clear" onclick="signaturePad.clear()">Очистить</button>
+            <button class="btn-confirm" onclick="finishSigning()">✅ Подтвердить</button>
+        </div>
+        <button onclick="closeSignModal()" style="width:100%; margin-top:10px; background:transparent; border:none; color:#666;">Отмена</button>
+    </div>
+</div>
+
+<div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p style="margin-top:20px; font-weight:bold;">Обработка документа...</p>
+</div>
+
+<script>
+    // Config
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    
+    // State
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    let originalPdfBytes = null;
+    let signaturePad = null;
+    
+    // Init Signature Pad
+    const canvas = document.getElementById('pad-canvas');
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+    }
+    window.onresize = resizeCanvas;
+    signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
+
+    // 1. Load PDF
+    async function loadPdf() {
+        if (!token) return alert('Ошибка: Ссылка недействительна (нет токена)');
+        
+        try {
+            const res = await fetch(`/api/api.php?action=get_signing_pdf&token=${token}`);
+            if (!res.ok) throw new Error('Document not found');
+            
+            originalPdfBytes = await res.arrayBuffer();
+            renderPdf(originalPdfBytes);
+        } catch (e) {
+            alert('Ошибка загрузки: ' + e.message);
+        }
+    }
+
+    // 2. Render PDF (ReadOnly)
+    async function renderPdf(data) {
+        const pdf = await pdfjsLib.getDocument(data).promise;
+        const viewer = document.getElementById('pdf-viewer');
+        viewer.innerHTML = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const scale = 1.5;
+            const viewport = page.getViewport({ scale });
+            
+            const canvas = document.createElement('canvas');
+            canvas.className = 'pdf-page';
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+            viewer.appendChild(canvas);
+        }
+    }
+
+    // Modal Controls
+    function openSignModal() {
+        document.getElementById('sign-modal').style.display = 'flex';
+        resizeCanvas();
+    }
+    function closeSignModal() {
+        document.getElementById('sign-modal').style.display = 'none';
+        signaturePad.clear();
+    }
+
+    // 3. Apply Signature & Save
+    async function finishSigning() {
+        if (signaturePad.isEmpty()) return alert('Пожалуйста, поставьте подпись.');
+        
+        showLoader(true);
+        try {
+            const pngDataUrl = signaturePad.toDataURL();
+            const pngImageBytes = await fetch(pngDataUrl).then(res => res.arrayBuffer());
+
+            // Modify PDF
+            const { PDFDocument } = PDFLib;
+            const pdfDoc = await PDFDocument.load(originalPdfBytes);
+            const pngImage = await pdfDoc.embedPng(pngImageBytes);
+            
+            // Get last page
+            const pages = pdfDoc.getPages();
+            const lastPage = pages[pages.length - 1];
+            const { width, height } = lastPage.getSize();
+            
+            // Draw signature (Bottom Right approx - adjust as needed)
+            // Assuming standard A4, signature usually at bottom right
+            lastPage.drawImage(pngImage, {
+                x: width / 2 + 50,
+                y: 100, // Adjust Y coordinate dynamically if needed
+                width: 150,
+                height: 75,
+            });
+            
+            // Add a text stamp
+            lastPage.drawText(`Signed digitally: ${new Date().toLocaleString()}`, {
+                x: width / 2 + 50,
+                y: 80,
+                size: 8,
+                color: PDFLib.rgb(0.5, 0.5, 0.5)
+            });
+
+            const pdfBytes = await pdfDoc.save();
+            const base64Pdf = await pdfDoc.saveAsBase64({ dataUri: true });
+            
+            // Upload
+            const res = await fetch('/api/api.php?action=save_signed_pdf', {
+                method: 'POST',
+                body: JSON.stringify({
+                    token: token,
+                    pdfBase64: base64Pdf
+                })
+            });
+            
+            const json = await res.json();
+            if (json.success) {
+                alert('✅ Договор успешно подписан! Спасибо.');
+                window.location.reload(); // Or show success screen
+                document.body.innerHTML = '<div style="text-align:center; padding:50px; font-family:sans-serif;"><h1>✅ Готово!</h1><p>Договор подписан. Мы отправили копию вам на почту.</p></div>';
+            } else {
+                throw new Error(json.message || 'Ошибка сохранения');
+            }
+
+        } catch (e) {
+            console.error(e);
+            alert('Ошибка подписания: ' + e.message);
+        } finally {
+            showLoader(false);
+            closeSignModal();
+        }
+    }
+
+    function showLoader(show) {
+        document.getElementById('loader').style.display = show ? 'flex' : 'none';
+    }
+
+    // Start
+    loadPdf();
+</script>
+
+</body>
+</html>

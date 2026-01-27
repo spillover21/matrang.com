@@ -1113,6 +1113,137 @@ if ($action === 'sendcontract') {
     echo json_encode(['success' => true, 'contract' => $newContract]);
     exit;
 }
+
+// =======================================================
+// E-SIGNATURE API (NEW)
+// =======================================================
+
+$signingDbFile = __DIR__ . '/../data/signing_contracts.json';
+$pendingDir = __DIR__ . '/../uploads/pending_signatures/';
+$signedDir = __DIR__ . '/../uploads/signed_contracts/';
+
+if (!is_dir($pendingDir)) mkdir($pendingDir, 0755, true);
+if (!is_dir($signedDir)) mkdir($signedDir, 0755, true);
+
+// 1. UPLOAD PDF FOR SIGNING (ADMIN)
+if ($action === 'upload_pdf_for_signing') {
+    if (!checkAuth()) { http_response_code(401); echo json_encode(['success'=>false]); exit; }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    if (empty($input['pdfBase64']) || empty($input['clientEmail'])) {
+         echo json_encode(['success' => false, 'message' => 'No PDF or Email provided']); exit;
+    }
+
+    $token = bin2hex(random_bytes(16));
+    $filename = 'contract_' . time() . '_' . $token . '.pdf';
+    $filePath = $pendingDir . $filename;
+    
+    // Save base64 PDF
+    $pdfData = base64_decode(preg_replace('#^data:application/\w+;base64,#i', '', $input['pdfBase64']));
+    file_put_contents($filePath, $pdfData);
+
+    // Update DB
+    $db = file_exists($signingDbFile) ? json_decode(file_get_contents($signingDbFile), true) : [];
+    $db[$token] = [
+        'status' => 'pending',
+        'file' => $filename,
+        'email' => $input['clientEmail'],
+        'created_at' => date('c')
+    ];
+    file_put_contents($signingDbFile, json_encode($db));
+
+    $signLink = "https://" . $_SERVER['HTTP_HOST'] . "/sign.html?token=" . $token;
+
+    echo json_encode([
+        'success' => true, 
+        'token' => $token, 
+        'link' => $signLink 
+    ]);
+    exit;
+}
+
+// 2. SEND LINK VIA EMAIL (ADMIN)
+if ($action === 'send_signing_email') {
+    if (!checkAuth()) { http_response_code(401); echo json_encode(['success'=>false]); exit; }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'];
+    $link = $input['link'];
+    
+    $subject = "✍️ Подписание договора (MATRANG)";
+    $headers = "MIME-Version: 1.0" . "\r\n";
+    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+    $headers .= "From: MATRANG KENNEL <noreply@matrang.com>" . "\r\n";
+
+    $html = "
+    <div style='font-family: sans-serif; background: #f3f4f6; padding: 20px;'>
+      <div style='max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px;'>
+         <h2 style='color: #111;'>Электронное подписание договора</h2>
+         <p>Здравствуйте! Пожалуйста, перейдите по ссылке ниже, чтобы просмотреть и подписать договор купли-продажи.</p>
+         <br>
+         <a href='{$link}' style='display: block; width: 200px; margin: 0 auto; text-align: center; background: #2563eb; color: white; padding: 15px; border-radius: 5px; text-decoration: none; font-weight: bold;'>
+             ✍️ ПОДПИСАТЬ ДОГОВОР
+         </a>
+         <br>
+         <p style='font-size: 12px; color: #666;'>Если кнопка не работает: {$link}</p>
+      </div>
+    </div>
+    ";
+
+    $sent = @mail($email, $subject, $html, $headers);
+    echo json_encode(['success' => $sent, 'message' => $sent ? 'Email отправлен' : 'Ошибка отправки (check server logs)']);
+    exit;
+}
+
+// 3. GET PDF FOR CLIENT (PUBLIC w/ TOKEN)
+if ($action === 'get_signing_pdf') {
+    $token = $_GET['token'] ?? '';
+    $db = file_exists($signingDbFile) ? json_decode(file_get_contents($signingDbFile), true) : [];
+    
+    if (!isset($db[$token])) {
+        http_response_code(404); echo "Contract not found"; exit;
+    }
+    
+    $file = $pendingDir . $db[$token]['file'];
+    if (!file_exists($file)) {
+        http_response_code(404); echo "File missing"; exit;
+    }
+    
+    header('Content-Type: application/pdf');
+    readfile($file);
+    exit;
+}
+
+// 4. SAVE SIGNED PDF (PUBLIC w/ TOKEN)
+if ($action === 'save_signed_pdf') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $token = $input['token'] ?? '';
+    
+    $db = file_exists($signingDbFile) ? json_decode(file_get_contents($signingDbFile), true) : [];
+    if (!isset($db[$token])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid token']); exit;
+    }
+    
+    $pdfData = base64_decode(preg_replace('#^data:application/\w+;base64,#i', '', $input['pdfBase64']));
+    $newFilename = 'SIGNED_' . $db[$token]['file'];
+    
+    file_put_contents($signedDir . $newFilename, $pdfData);
+    
+    // Update Status
+    $db[$token]['status'] = 'signed';
+    $db[$token]['signed_at'] = date('c');
+    $db[$token]['signed_file'] = $newFilename;
+    file_put_contents($signingDbFile, json_encode($db));
+    
+    // Notify Admin
+    $adminEmail = 'info@matrang.com'; // Adjust if needed
+    $notificationBody = "Клиент подписал договор! Файл: {$newFilename}";
+    @mail($adminEmail, "✅ Договор подписан!", $notificationBody);
+
+    echo json_encode(['success' => true]);
+    exit;
+}
+
 // Если не нашли подходящий action
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action: ' . $action]);
