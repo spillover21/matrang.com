@@ -367,6 +367,49 @@ if ($action === 'uploadPdfTemplate') {
     exit();
 }
 
+// Загрузка заполненного PDF контракта
+if ($action === 'uploadcontract') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    if (!isset($_FILES['file'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'No file provided']);
+        exit();
+    }
+
+    $file = $_FILES['file'];
+    
+    if ($file['type'] !== 'application/pdf') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid file type']);
+        exit();
+    }
+
+    if ($file['size'] > 10 * 1024 * 1024) { // 10MB
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'File too large']);
+        exit();
+    }
+
+    // Сохраняем с уникальным именем
+    $filename = 'contract_' . time() . '.pdf';
+    $filepath = $uploadDir . $filename;
+
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        $url = '/uploads/' . $filename;
+        http_response_code(200);
+        echo json_encode(['success' => true, 'url' => $url, 'filename' => $filename]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
+    }
+    exit();
+}
+
 // Отправка контракта в PDF по email
 if ($action === 'sendContractPdf') {
     if (!checkAuth()) {
