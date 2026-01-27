@@ -49,6 +49,10 @@
     <style>
       #vanilla-contract-ui input, #vanilla-contract-ui button { transition: all 0.2s; }
       #vanilla-contract-ui button:active { transform: scale(0.95); }
+      #vanilla-contract-ui { top: 58px !important; } /* Mobile header approx */
+      @media (min-width: 768px) {
+         #vanilla-contract-ui { top: 74px !important; } /* Desktop header approx */
+      }
     </style>
     
     <script>
