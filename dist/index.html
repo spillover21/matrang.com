@@ -164,11 +164,15 @@
       };
       
       async function checkPdfTemplate() {
-        // VISIBILITY CHECK: Only show in Admin Panel
+        // VISIBILITY CHECK: STRICTLY only in Admin URL (path or hash)
         const ui = document.getElementById('vanilla-contract-ui');
         if (ui) {
-            if (window.location.href.includes('/admin')) {
-                ui.style.display = 'block';
+            const path = window.location.pathname;
+            // Check standard path /admin OR hash router #/admin
+            const isAtAdmin = path.includes('/admin') || window.location.hash.includes('/admin');
+            
+            if (isAtAdmin) {
+                ui.style.display = 'flex';
             } else {
                 ui.style.display = 'none';
                 return; // Stop processing if not in admin
