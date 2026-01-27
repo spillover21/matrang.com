@@ -100,11 +100,32 @@
       const statusEl = document.getElementById('vanilla-status');
       const setStatus = (msg) => { statusEl.textContent = msg; console.log('[VANILLA]', msg); };
       
-      const getValByPlaceholder = (ph) => {
-        const el = document.querySelector(`input[placeholder="${ph}"]`);
-        return el ? el.value : '';
+      // Helper to find input by placeholder (for text inputs with unique placeholders)
+      const getValByPlaceholder = (ph, index = 0) => {
+        const els = document.querySelectorAll(`input[placeholder="${ph}"], textarea[placeholder="${ph}"]`);
+        return els[index] ? els[index].value : '';
       };
-      
+
+      // Helper to find input/select/textarea by Label text (for dates, duplicates, selects)
+      const getValByLabel = (labelText, type = 'text') => {
+        const labels = Array.from(document.querySelectorAll('label'));
+        const labelEl = labels.find(l => l.textContent.includes(labelText));
+        if (!labelEl) return '';
+        
+        const parent = labelEl.parentElement; // div wrapper
+        if (!parent) return '';
+
+        if (type === 'checkbox') {
+             // Checkbox is often inside a label or siblings
+             // In the React code: <label><input type="checkbox"/> text</label>
+             const cb = parent.querySelector('input[type="checkbox"]') || labelEl.querySelector('input[type="checkbox"]');
+             return cb ? cb.checked : false;
+        }
+
+        const input = parent.querySelector('input, select, textarea');
+        return input ? input.value : '';
+      };
+
       const getHeaders = () => {
         const token = localStorage.getItem("admin_token");
         return token ? { 'Authorization': `Bearer ${token}` } : {};
