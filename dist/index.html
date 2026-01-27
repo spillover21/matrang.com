@@ -174,14 +174,17 @@
       setInterval(checkPdfTemplate, 3000);
       checkPdfTemplate();
 
-document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (v4)';
+      setInterval(checkPdfTemplate, 3000);
+      checkPdfTemplate();
+
+      document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить (v5)';
       document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
         if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
         
         try {
-          setStatus('⏳ Сбор данных...');
+          setStatus('⏳ Сбор данных (v5)...');
           console.clear();
-          console.log('[VANILLA] START SCRAPING (v4)...');
+          console.log('[VANILLA] START SCRAPING (v5)...');
 
           const contractNum = `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`;
 
@@ -189,33 +192,35 @@ document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить
           const data = {
             // == KENNEL (Index 0) ==
             kennelName: getValByPlaceholder('GREAT LEGACY BULLY') || 'GREAT LEGACY BULLY',
-            kennelOwner: getValByLabel('Владелец питомника'), // Label: "Владелец питомника / ФИО Заводчика *"
+            kennelOwner: getValByLabel('Владелец питомника'), 
             kennelAddress: getValByLabel('Адрес', 'text', 0), 
             kennelPhone: getValByLabel('Телефон', 'text', 0),
             kennelEmail: getValByLabel('Email', 'text', 0),
             
-            // Kennel Passport - Using labels now!
-            kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0),
-            kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0),
-            kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0),
-            kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0),
+            // Kennel Passport - Double check retrieval
+            kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0) || getValByPlaceholderEx('1234', 0),
+            kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0) || getValByPlaceholderEx('567890', 0),
+            kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0) || getValByPlaceholderEx('УФМС...', 0),
             
-            // == BUYER (Index 1 usually, but check labels) ==
+            // Kennel Date: Explicitly get the first date input if label fails (Index 0 is usually kennel)
+            kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0) || formatDate(document.querySelectorAll('input[type="date"]')[0]?.value),
+            
+            // == BUYER (Index 1) ==
             buyerName: getValByLabel('ФИО покупателя'),
-            buyerAddress: getValByLabel('Адрес регистрации'), // Label: "Адрес регистрации"
-            buyerPhone: getValByLabel('Телефон', 'text', 1), // 2nd "Phone" label
-            buyerEmail: getValByLabel('Email', 'text', 1),   // 2nd "Email" label
+            buyerAddress: getValByLabel('Адрес регистрации'),
+            buyerPhone: getValByLabel('Телефон', 'text', 1),
+            buyerEmail: getValByLabel('Email', 'text', 1),
             
             // Buyer Pasport
-            buyerPassportSeries: getValByLabel('Паспорт серия', 'text', 1),
-            buyerPassportNumber: getValByLabel('Паспорт номер', 'text', 1),
-            buyerPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 1),
+            buyerPassportSeries: getValByLabel('Паспорт серия', 'text', 1) || getValByPlaceholderEx('1234', 1),
+            buyerPassportNumber: getValByLabel('Паспорт номер', 'text', 1) || getValByPlaceholderEx('567890', 1),
+            buyerPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 1) || getValByPlaceholderEx('УФМС...', 1),
             buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 1),
 
             // Checking specific email label for buyer if generic 'Email' fails
             _buyerEmailFallback: getValByLabel('Email покупателя', 'text', 0),
 
-            // Parents
+             // Parents
             dogFatherName: getValByLabel('Кличка отца'),
             dogFatherRegNumber: getValByLabel('Рег. номер отца'),
             dogMotherName: getValByLabel('Кличка матери'),
@@ -257,12 +262,12 @@ document.getElementById('vanilla-fill-btn').innerHTML = '📝 Заполнить
             contractPlace: getValByLabel('Место составления'),
             contractNumber: contractNum
           };
-
+          
           // Fixup logic
           if (!data.buyerEmail && data._buyerEmailFallback) {
              data.buyerEmail = data._buyerEmailFallback;
           }
-           // Fallbacks using placeholders if labels fail
+           // Fallbacks
           if (!data.buyerEmail) data.buyerEmail = getValByPlaceholder('buyer@email.com');
           if (!data.kennelPhone) data.kennelPhone = getValByPlaceholder('+7 (900) 455-27-16');
 
