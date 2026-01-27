@@ -1,53 +1,346 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MATRANG DOGS</title>
-    <meta name="description" content="питомник американских булли Great Legacy bully" />
-    <meta name="author" content="MATRANG Kennel" />
+    <!-- TODO: Set the document title to the name of your application -->
+    <title>MATRANG App</title>
+    <meta name="description" content="MATRANG Project" />
+    <meta name="author" content="MATRANG" />
 
-    <meta property="og:title" content="MATRANG" />
-    <meta property="og:description" content="питомник американских булли Great Legacy bully" />
+    <!-- TODO: Update og:title to match your application name -->
+    <meta property="og:title" content="MATRANG App" />
+    <meta property="og:description" content="MATRANG Project" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://matrang.com/" />
-    <meta property="og:image" content="https://matrang.com/uploads/1767891439_85337ea8.png" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@MATRANG" />
-    <meta name="twitter:image" content="/assets/hero-pitbull.jpg" />
-    
-    <script>
-      // DEBUG: Перехват кликов на всех кнопках
-      window.addEventListener('DOMContentLoaded', function() {
-        console.error('🟢 DEBUG SCRIPT LOADED at ' + new Date().toISOString());
-        
-        setInterval(function() {
-          const sendButton = Array.from(document.querySelectorAll('button')).find(btn => 
-            btn.textContent && (btn.textContent.includes('Отправить на email') || btn.textContent.includes('Отправка'))
-          );
-          
-          if (sendButton && !sendButton.dataset.debugAttached) {
-            sendButton.dataset.debugAttached = 'true';
-            console.error('🔵 Found send button, attaching debug listener');
-            
-            sendButton.addEventListener('click', function(e) {
-              console.error('🔴🔴🔴 BUTTON CLICKED!', e);
-              alert('🔴 BUTTON CLICKED! Time: ' + Date.now());
-              window.__BUTTON_CLICKED = Date.now();
-            }, true); // capture phase
-          }
-        }, 1000);
-      });
-    </script>
-
-
-    <script type="module" crossorigin src="/assets/index-DYa1ulwO.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-D35cW1RB.css">
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <script type="module" crossorigin src="/assets/index-JlBtDR2F.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CtpAEqOj.css">
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   </head>
 
   <body>
     <div id="root"></div>
+    
+    <!-- VANILLA JS BRIDGE - TOP BAR TOOLBAR -->
+    <div id="vanilla-contract-ui" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 50px; background: #1e293b; border-bottom: 2px solid #3b82f6; z-index: 99999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); align-items: center; padding: 0 20px; box-sizing: border-box; font-family: sans-serif; color: white;">
+      <div style="font-weight:bold; color: #60a5fa; margin-right: 20px; font-size: 14px;">⚡ MATRANG PDF</div>
+      
+      <div id="vanilla-pdf-status" style="font-size: 12px; color: #94a3b8; margin-right: 20px;">
+        ⏳ Поиск...
+      </div>
+
+      <div style="display:flex; gap: 8px; margin-right: auto;">
+         <button id="btn-save-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">💾 Cохранить мои данные</button>
+         <button id="btn-load-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">📥 Вставить мои данные</button>
+      </div>
+
+      <div style="display:flex; gap: 8px; align-items: center;">
+          <span id="vanilla-status" style="font-size: 11px; color: #fbbf24; margin-right: 10px; opacity: 0;">...</span>
+          <button id="vanilla-fill-btn" style="font-size: 12px; padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">1. Сформировать PDF</button>
+          <button id="vanilla-download-btn" style="font-size: 12px; padding: 6px 12px; background: #059669; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">2. Скачать</button>
+          <button id="vanilla-send-btn" style="font-size: 12px; padding: 6px 12px; background: #dc2626; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">3. Отправить на подпись</button>
+      </div>
+    </div>
+
+    <style>
+      #vanilla-contract-ui input, #vanilla-contract-ui button { transition: all 0.2s; }
+      #vanilla-contract-ui button:active { transform: scale(0.95); }
+    </style>
+    
+    <script>
+    (function() {
+      const { PDFDocument } = PDFLib;
+      let filledPdfBytes = null;
+      let pdfTemplatePath = null;
+      
+      const statusEl = document.getElementById('vanilla-status');
+      const setStatus = (msg) => { statusEl.textContent = msg; console.log('[VANILLA]', msg); };
+      
+      // Helper to find input by placeholder
+      const getValByPlaceholder = (ph, index = 0) => {
+        const els = document.querySelectorAll(`input[placeholder="${ph}"], textarea[placeholder="${ph}"]`);
+        return els[index] ? els[index].value : '';
+      };
+      
+      const getValByPlaceholderEx = (ph, index = 0) => {
+         const els = document.querySelectorAll(`input[placeholder="${ph}"]`);
+         return els[index] ? els[index].value : '';
+      };
+
+      // Date formatter
+      const formatDate = (isoDate) => {
+          if (!isoDate || !isoDate.includes('-')) return isoDate;
+          const [y, m, d] = isoDate.split('-');
+          return `${d}.${m}.${y}`;
+      };
+
+      // Helper to find input/select/textarea by Label text
+      const getValByLabel = (labelText, type = 'text', index = 0) => {
+        const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText && l.innerText.includes(labelText));
+        const labelEl = labels[index]; 
+        if (!labelEl) return '';
+        const parent = labelEl.parentElement;
+        if (!parent) return '';
+
+        let input;
+        if (type === 'checkbox') {
+             input = parent.querySelector('input[type="checkbox"]') || labelEl.querySelector('input[type="checkbox"]');
+             return input ? input.checked : false;
+        }
+
+        input = parent.querySelector('input, select, textarea');
+        let val = input ? input.value : '';
+        if (input && input.type === 'date' && val) val = formatDate(val);
+        return val;
+      };
+
+      // *** HACK: Change date input to text to allow custom text ***
+      setInterval(() => {
+         const labels = Array.from(document.querySelectorAll('label'));
+         const labelEl = labels.find(l => l.innerText.includes('Срок окончательного расчета'));
+         if (labelEl && labelEl.parentElement) {
+            const dateInput = labelEl.parentElement.querySelector('input[type="date"]');
+            if (dateInput) {
+                dateInput.type = 'text';
+                dateInput.placeholder = 'Введите дату или условия...';
+            }
+         }
+      }, 2000);
+
+      const getHeaders = () => {
+        const token = localStorage.getItem("admin_token");
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+      };
+      
+      // Helper to scrape only Seller info
+      const scrapeSellerInfo = () => {
+          return {
+             kennelOwner: getValByLabel('Владелец питомника'), 
+             kennelAddress: getValByLabel('Адрес', 'text', 0), 
+             kennelPhone: getValByLabel('Телефон', 'text', 0),
+             kennelEmail: getValByLabel('Email', 'text', 0),
+             kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0),
+             kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0),
+             kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0),
+             kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0)
+          };
+      };
+
+      // Helper to set input by Label
+      const setValByLabel = (labelText, value, index = 0) => {
+         const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText && l.innerText.includes(labelText));
+         const labelEl = labels[index];
+         if (!labelEl) return;
+         const parent = labelEl.parentElement;
+         if (!parent) return;
+         const input = parent.querySelector('input, select, textarea');
+         if (input) {
+             const proto = Object.getPrototypeOf(input);
+             const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+             if (setter) setter.call(input, value); else input.value = value;
+             input.dispatchEvent(new Event('input', { bubbles: true }));
+             input.dispatchEvent(new Event('change', { bubbles: true }));
+         }
+      };
+
+      document.getElementById('btn-save-profile').addEventListener('click', async () => {
+         const data = scrapeSellerInfo();
+         if (!data.kennelOwner) { alert('❌ Сначала заполните ФИО и другие свои данные, затем жмите сохранение.'); return; }
+         try {
+             setStatus('Сохранение...');
+             await fetch('/api/api.php?action=save_seller_profile', {
+                 method: 'POST',
+                 headers: getHeaders(),
+                 body: JSON.stringify(data)
+             });
+             alert('✅ Ваши данные сохранены! Теперь можно не вводить их вручную.');
+             setStatus('✅ Данные сохранены');
+         } catch(e) { alert('Error: ' + e.message); }
+      });
+
+      document.getElementById('btn-load-profile').addEventListener('click', async () => {
+         try {
+             setStatus('Загрузка...');
+             const res = await fetch('/api/api.php?action=get_seller_profile', { headers: getHeaders() });
+             let data = await res.json();
+             if (!data || Object.keys(data).length === 0) {
+                 alert('⚠️ Нет сохраненных данных.'); return;
+             }
+             setValByLabel('Владелец питомника', data.kennelOwner || '');
+             setValByLabel('Адрес', data.kennelAddress || '', 0);
+             setValByLabel('Телефон', data.kennelPhone || '', 0);
+             setValByLabel('Email', data.kennelEmail || '', 0);
+             setValByLabel('Паспорт серия', data.kennelPassportSeries || '', 0);
+             setValByLabel('Паспорт номер', data.kennelPassportNumber || '', 0);
+             setValByLabel('Паспорт выдан', data.kennelPassportIssuedBy || '', 0);
+             
+             let dateVal = data.kennelPassportIssuedDate;
+             if (dateVal && dateVal.includes('.')) {
+                 const [d, m, y] = dateVal.split('.');
+                 dateVal = `${y}-${m}-${d}`;
+             }
+             setValByLabel('Дата выдачи паспорта', dateVal || '', 0);
+             alert('✅ Ваши данные успешно вставлены!');
+             setStatus('✅ Готово');
+         } catch(e) { console.error(e); alert('Error loading profile: ' + e.message); }
+      });
+      
+      document.getElementById('vanilla-fill-btn').addEventListener('click', async () => {
+        if (!pdfTemplatePath) { alert('❌ Сначала загрузите PDF шаблон в админке (слева)!'); return; }
+        try {
+          setStatus('⏳ Сбор данных...');
+          const contractNum = `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`;
+          const data = {
+            kennelName: 'GREAT LEGACY BULLY',
+            kennelOwner: getValByLabel('Владелец питомника'), 
+            kennelAddress: getValByLabel('Адрес', 'text', 0), 
+            kennelPhone: getValByLabel('Телефон', 'text', 0),
+            kennelEmail: getValByLabel('Email', 'text', 0),
+            kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0) || getValByPlaceholderEx('1234', 0),
+            kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0) || getValByPlaceholderEx('567890', 0),
+            kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0) || getValByPlaceholderEx('УФМС...', 0),
+            kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0) || formatDate(document.querySelectorAll('input[type="date"]')[0]?.value),
+            buyerName: getValByLabel('ФИО покупателя'),
+            buyerAddress: getValByLabel('Адрес регистрации'),
+            buyerPhone: getValByLabel('Телефон', 'text', 1),
+            buyerEmail: getValByLabel('Email', 'text', 1) || getValByLabel('Email покупателя', 'text', 0),
+            buyerPassportSeries: getValByLabel('Паспорт серия', 'text', 1),
+            buyerPassportNumber: getValByLabel('Паспорт номер', 'text', 1),
+            buyerPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 1),
+            buyerPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 1),
+            dogFatherName: getValByLabel('Кличка отца'),
+            dogFatherRegNumber: getValByLabel('Рег. номер отца'),
+            dogMotherName: getValByLabel('Кличка матери'),
+            dogMotherRegNumber: getValByLabel('Рег. номер матери'),
+            dogName: getValByLabel('Кличка щенка'),
+            dogBreed: getValByLabel('Порода'),
+            dogBirthDate: getValByLabel('Дата рождения'),
+            dogGender: getValByLabel('Пол'),
+            dogColor: getValByLabel('Окрас'),
+            dogChipNumber: getValByLabel('Номер чипа'),
+            dogPuppyCard: getValByLabel('Щенячья карточка'),
+            price: getValByLabel('Полная стоимость'),
+            depositAmount: getValByLabel('Сумма задатка'),
+            depositDate: getValByLabel('Дата внесения задатка'),
+            remainingAmount: getValByLabel('Остаток к оплате'), 
+            finalPaymentDate: getValByLabel('Срок окончательного расчета'),
+            dewormingDate: getValByLabel('Дата выгонки глистов'),
+            vaccinationDates: getValByLabel('Даты прививок'),
+            vaccineName: getValByLabel('Название вакцины'),
+            nextDewormingDate: getValByLabel('Следующая обработка от глистов'),
+            nextVaccinationDate: getValByLabel('Следующая вакцинация'),
+            purposeBreeding: getValByLabel('Для племенной работы', 'checkbox'),
+            purposeCompanion: getValByLabel('Компаньон', 'checkbox'),
+            purposeGeneral: getValByLabel('Общение', 'checkbox'),
+            specialFeatures: getValByLabel('Индивидуальные особенности'),
+            deliveryTerms: getValByLabel('Условия доставки'),
+            additionalAgreements: getValByLabel('Дополнительные соглашения'),
+            recommendedFood: getValByLabel('Рекомендуемый корм'),
+            contractDate: getValByLabel('Дата договора') || new Date().toLocaleDateString('ru-RU'),
+            contractPlace: getValByLabel('Место составления'),
+            contractNumber: contractNum
+          };
+          if (!data.buyerEmail) data.buyerEmail = getValByPlaceholder('buyer@email.com');
+          if (!data.kennelPhone) data.kennelPhone = getValByPlaceholder('+7 (900) 455-27-16');
+
+          const pdfBytes = await fetch(pdfTemplatePath).then(res => res.arrayBuffer());
+          const pdfDoc = await PDFDocument.load(pdfBytes);
+          const form = pdfDoc.getForm();
+          const fieldMap = {
+            '`contractNumber`': data.contractNumber,
+            '`kennelName`': data.kennelName, '`kennelOwner`': data.kennelOwner, '`kennelAddress`': data.kennelAddress, '`kennelPhone`': data.kennelPhone, '`kennelEmail`': data.kennelEmail, '`kennelPassportSeries`': data.kennelPassportSeries, '`kennelPassportNumber`': data.kennelPassportNumber, '`kennelPassportIssuedBy`': data.kennelPassportIssuedBy, '`kennelPassportIssuedDate`': data.kennelPassportIssuedDate,
+            '`buyerName`': data.buyerName, '`buyerAddress`': data.buyerAddress, '`buyerPhone`': data.buyerPhone, '`buyerEmail`': data.buyerEmail, '`buyerPassportSeries`': data.buyerPassportSeries, '`buyerPassportNumber`': data.buyerPassportNumber, '`buyerPassportIssuedBy`': data.buyerPassportIssuedBy, '`buyerPassportIssuedDate`': data.buyerPassportIssuedDate,
+            '`dogFatherName`': data.dogFatherName, '`dogFatherRegNumber`': data.dogFatherRegNumber, '`dogMotherName`': data.dogMotherName, '`dogMotherRegNumber`': data.dogMotherRegNumber,
+            '`dogName`': data.dogName, '`dogBreed`': data.dogBreed, '`dogBirthDate`': data.dogBirthDate, '`dogGender`': data.dogGender, '`dogColor`': data.dogColor, '`dogChipNumber`': data.dogChipNumber, '`dogPuppyCard`': data.dogPuppyCard,
+            '`purposeBreeding`': data.purposeBreeding, '`purposeCompanion`': data.purposeCompanion, '`purposeGeneral`': data.purposeGeneral,
+            '`price`': data.price, '`depositAmount`': data.depositAmount, '`depositDate`': data.depositDate, '`remainingAmount`': data.remainingAmount, '`finalPaymentDate`': data.finalPaymentDate,
+            '`dewormingDate`': data.dewormingDate, '`vaccinationDates`': data.vaccinationDates, '`vaccineName`': data.vaccineName, '`nextDewormingDate`': data.nextDewormingDate, '`nextVaccinationDate`': data.nextVaccinationDate,
+            '`specialFeatures`': data.specialFeatures, '`deliveryTerms`': data.deliveryTerms, '`additionalAgreements`': data.additionalAgreements, '`recommendedFood`': data.recommendedFood,
+            '`contractDate`': data.contractDate, '`contractPlace`': data.contractPlace
+          };
+
+          let filledCount = 0;
+          for (const [name, val] of Object.entries(fieldMap)) {
+            try {
+              if (typeof val === 'boolean') { const cb = form.getCheckBox(name); val ? cb.check() : cb.uncheck(); filledCount++; }
+              else { form.getTextField(name).setText(String(val || '')); filledCount++; }
+            } catch (e) { console.warn(`SKIP ${name}`); }
+          }
+
+          try { const acroForm = pdfDoc.catalog.lookup(PDFLib.PDFName.of('AcroForm')); if (acroForm) acroForm.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.True); } catch(e){}
+          filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+          setStatus(`✅ Заполнено полей: ${filledCount}`);
+          alert(`✅ Успешно! Заполнено ${filledCount} полей.`);
+        } catch (err) { setStatus('❌ ' + err.message); alert('Ошибка: ' + err.message); }
+      });
+      
+      document.getElementById('vanilla-download-btn').addEventListener('click', () => {
+        if (!filledPdfBytes) { alert('Сначала заполните!'); return; }
+        const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `contract_${Date.now()}.pdf`; a.click();
+      });
+      
+      document.getElementById('vanilla-send-btn').addEventListener('click', async () => {
+         if (!filledPdfBytes) { alert('❌ Сначала заполните PDF (кнопка 1)!'); return; }
+         const clientEmail = prompt('Введите Email клиента:', document.querySelector('input[placeholder="buyer@email.com"]')?.value || '');
+         if (!clientEmail || !confirm(`Отправить клиенту: ${clientEmail}?`)) return;
+         try {
+             setStatus('⏳ Загрузка...');
+             function blobToBase64(blob) { return new Promise(r => { const rd = new FileReader(); rd.onloadend = () => r(rd.result); rd.readAsDataURL(blob); }); }
+             const base64Pdf = await blobToBase64(new Blob([filledPdfBytes], {type: 'application/pdf'}));
+             
+             const upRes = await fetch('/api/api.php?action=upload_pdf_for_signing', {
+                 method: 'POST', headers: getHeaders(), body: JSON.stringify({ pdfBase64: base64Pdf, clientEmail })
+             });
+             const upData = await upRes.json();
+             if (!upData.success) throw new Error(upData.message);
+             
+             setStatus('⏳ Отправка письма...');
+             const mailRes = await fetch('/api/api.php?action=send_signing_email', {
+                 method: 'POST', headers: getHeaders(), body: JSON.stringify({ email: clientEmail, link: upData.link })
+             });
+             const mailData = await mailRes.json();
+             if (mailData.success) { alert('✅ Письмо отправлено!'); setStatus('✅ Отправлено!'); }
+             else throw new Error(mailData.message);
+         } catch (e) { alert('❌ Ошибка: ' + e.message); setStatus('❌ Ошибка'); }
+      });
+      
+      // VISIBILITY LOGIC
+      const checkUiVisibility = async () => {
+         const ui = document.getElementById('vanilla-contract-ui');
+         if (!ui) return;
+         const path = window.location.pathname.toLowerCase();
+         const hash = window.location.hash.toLowerCase();
+         // Check if URL has admin
+         const isAtAdmin = path.includes('admin') || hash.includes('admin') || window.location.href.includes('admin');
+         
+         if (isAtAdmin) {
+            ui.style.display = 'flex';
+            if (!pdfTemplatePath) {
+                // Try fetch template path from API if not set
+                try {
+                   const headers = getHeaders();
+                   if (headers.Authorization) {
+                      const res = await fetch('/api/api.php?action=getContracts', { headers });
+                      const d = await res.json();
+                      if (d.success && d.pdfTemplate) pdfTemplatePath = d.pdfTemplate;
+                   }
+                } catch(e){}
+                if (!pdfTemplatePath) pdfTemplatePath = '/uploads/contract_template.pdf';
+            }
+         } else {
+            ui.style.display = 'none';
+         }
+      };
+      setInterval(checkUiVisibility, 1000);
+      checkUiVisibility();
+    })();
+    </script>
   </body>
 </html>

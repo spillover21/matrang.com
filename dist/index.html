@@ -583,38 +583,31 @@
       }
 
       // Check current URL to hide widget on frontend
-          const blob = new Blob([filledPdfBytes], { type: 'application/pdf' });
-          const fd = new FormData();
-          fd.append('file', blob, 'contract.pdf');
-          
-          const headers = getHeaders();
-          const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd, headers });
-          const upData = await upRes.json();
-          
-          if (!upData.success) throw new Error(upData.message);
-          
-          const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...headers },
-            body: JSON.stringify({
-              data: { buyerEmail: email }, 
-              pdfTemplate: upData.path,
-              useUploadedPdf: true
-            })
-          });
-          
-          const emailData = await emailRes.json();
-          if (emailData.success) {
-            setStatus(`✅ Отправлено!`);
-            alert(`✅ Договор успешно отправлен на ${email}`);
-          } else {
-            throw new Error(emailData.message);
-          }
-        } catch (err) {
-          setStatus('❌ ' + err.message);
-          alert('❌ Ошибка отправки: ' + err.message);
-        }
-      });
+      const checkUiVisibility = () => {
+         const ui = document.getElementById('vanilla-contract-ui');
+         if (!ui) return;
+
+         const path = window.location.pathname.toLowerCase();
+         const hash = window.location.hash.toLowerCase();
+         const href = window.location.href.toLowerCase();
+
+         // Simple robust check: if URL contains 'admin', show it.
+         // Unless it's the login page? User didn't specify, but usually sidebar is enough.
+         // User said "The panel is gone completely".
+         const isAtAdmin = path.includes('admin') || hash.includes('admin') || href.includes('admin');
+
+         if (isAtAdmin) {
+            ui.style.display = 'flex';
+            // Also ensure template path is set if not already
+            if (!pdfTemplatePath) pdfTemplatePath = '/uploads/contract_template.pdf';
+         } else {
+            ui.style.display = 'none';
+         }
+      };
+
+      setInterval(checkUiVisibility, 1000);
+      checkUiVisibility();
+
     })();
     </script>
   </body>
