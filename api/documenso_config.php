@@ -37,11 +37,12 @@ if (!function_exists('loadEnvConfig')) {
 $envPath = __DIR__ . '/../.env';
 $env = loadEnvConfig($envPath);
 
+// Возвращаем конфигурацию с фоллбэками на жестко прописанные значения
+// Это позволяет работать на сервере без .env файла, если пользователь не может его создать
 return [
-    'API_KEY' => $env['DOCUMENSO_API_KEY'] ?? '', 
-    // Если URL нет, используем стандартный
+    'API_KEY' => $env['DOCUMENSO_API_KEY'] ?? 'api_yv7nozp1x55ozcfz', 
     'API_URL' => $env['DOCUMENSO_API_URL'] ?? 'https://app.documenso.com/api/v2',
-    'WEBHOOK_SECRET' => $env['DOCUMENSO_WEBHOOK_SECRET'] ?? '', 
-    'TEMPLATE_ID' => $env['DOCUMENSO_TEMPLATE_ID'] ?? '', 
+    'WEBHOOK_SECRET' => $env['DOCUMENSO_WEBHOOK_SECRET'] ?? 'pXbQZ8@Y6akBjd5', 
+    'TEMPLATE_ID' => $env['DOCUMENSO_TEMPLATE_ID'] ?? '783235', 
     'PUBLIC_URL' => 'https://app.documenso.com' 
 ];
