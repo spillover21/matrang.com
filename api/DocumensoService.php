@@ -19,24 +19,29 @@ class DocumensoService {
      * Создает сессию подписания на основе шаблона
      * Реализует полный цикл: Создание -> Добавление получателя -> Отправка -> Получение ссылки
      * 
-     * @param string $customerEmail Email клиента
-     * @param string $customerName Имя клиента
-     * @param string $internalUserId Внутренний ID пользователя для Audit Trail (Legal Compliance)
+     * @param array $contractData Все данные договора из формы
      * @return string URL для подписания (Direct Link)
      */
-    public function createSigningSession($customerEmail, $customerName, $internalUserId) {
+    public function createSigningSession($contractData) {
         if (empty($this->apiKey) || empty($this->templateId)) {
             throw new Exception("Documenso configuration is missing (API Key or Template ID)");
         }
 
-        // 1. Создаем документ из шаблона с указанием получателей
-        // API требует массив recipients при создании
+        $customerEmail = $contractData['buyerEmail'] ?? '';
+        $customerName = $contractData['buyerName'] ?? 'Customer';
+        $internalUserId = $contractData['internalId'] ?? 'user_'.time();
+
+        if (empty($customerEmail)) {
+            throw new Exception("Buyer email is required");
+        }
+
+        // 1. Создаем документ из шаблона с указанием получателей и полей
         $documentData = [
             'templateId' => (int)$this->templateId,
             'title' => "Contract for " . $customerName,
             'metadata' => [
                 'internalUserId' => $internalUserId,
-                'source' => 'Matrang CRM',
+                'source' => 'Great Legacy Bully CRM',
                 'createdAt' => date('c')
             ],
             'recipients' => [
@@ -45,10 +50,12 @@ class DocumensoService {
                     'name' => $customerName,
                     'role' => 'SIGNER',
                     'authOptions' => [
-                         'requireEmailAuth' => false // Для упрощения теста, можно включить позже
+                         'requireEmailAuth' => false
                     ]
                 ]
-            ]
+            ],
+            // Передаём все поля договора для автозаполнения
+            'data' => $this->buildFieldData($contractData)
         ];
 
         $document = $this->request('POST', '/documents', $documentData);
@@ -171,6 +178,67 @@ class DocumensoService {
         }
 
         return json_decode($response, true);
+    }
+
+    /**
+     * Формирует массив полей для автозаполнения шаблона
+     */
+    private function buildFieldData($data) {
+        return [
+            'contractNumber' => 'DOG-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'contractDate' => $data['contractDate'] ?? date('d.m.Y'),
+            'contractPlace' => $data['contractPlace'] ?? '',
+            
+            'kennelOwner' => $data['kennelOwner'] ?? '',
+            'kennelAddress' => $data['kennelAddress'] ?? '',
+            'kennelPhone' => $data['kennelPhone'] ?? '',
+            'kennelEmail' => $data['kennelEmail'] ?? '',
+            'kennelPassportSeries' => $data['kennelPassportSeries'] ?? '',
+            'kennelPassportNumber' => $data['kennelPassportNumber'] ?? '',
+            'kennelPassportIssuedBy' => $data['kennelPassportIssuedBy'] ?? '',
+            'kennelPassportIssuedDate' => $data['kennelPassportIssuedDate'] ?? '',
+            
+            'buyerName' => $data['buyerName'] ?? '',
+            'buyerAddress' => $data['buyerAddress'] ?? '',
+            'buyerPhone' => $data['buyerPhone'] ?? '',
+            'buyerEmail' => $data['buyerEmail'] ?? '',
+            'buyerPassportSeries' => $data['buyerPassportSeries'] ?? '',
+            'buyerPassportNumber' => $data['buyerPassportNumber'] ?? '',
+            'buyerPassportIssuedBy' => $data['buyerPassportIssuedBy'] ?? '',
+            'buyerPassportIssuedDate' => $data['buyerPassportIssuedDate'] ?? '',
+            
+            'dogFatherName' => $data['dogFatherName'] ?? '',
+            'dogFatherRegNumber' => $data['dogFatherRegNumber'] ?? '',
+            'dogMotherName' => $data['dogMotherName'] ?? '',
+            'dogMotherRegNumber' => $data['dogMotherRegNumber'] ?? '',
+            
+            'dogName' => $data['dogName'] ?? '',
+            'dogBirthDate' => $data['dogBirthDate'] ?? '',
+            'dogColor' => $data['dogColor'] ?? '',
+            'dogChipNumber' => $data['dogChipNumber'] ?? '',
+            'dogPuppyCard' => $data['dogPuppyCard'] ?? '',
+            
+            'purposeBreeding' => !empty($data['purposeBreeding']) ? 'true' : 'false',
+            'purposeCompanion' => !empty($data['purposeCompanion']) ? 'true' : 'false',
+            'purposeGeneral' => !empty($data['purposeGeneral']) ? 'true' : 'false',
+            
+            'price' => $data['price'] ?? '',
+            'depositAmount' => $data['depositAmount'] ?? '',
+            'depositDate' => $data['depositDate'] ?? '',
+            'remainingAmount' => $data['remainingAmount'] ?? '',
+            'finalPaymentDate' => $data['finalPaymentDate'] ?? '',
+            
+            'dewormingDate' => $data['dewormingDate'] ?? '',
+            'vaccinationDates' => $data['vaccinationDates'] ?? '',
+            'vaccineName' => $data['vaccineName'] ?? '',
+            'nextDewormingDate' => $data['nextDewormingDate'] ?? '',
+            'nextVaccinationDate' => $data['nextVaccinationDate'] ?? '',
+            
+            'specialFeatures' => $data['specialFeatures'] ?? '',
+            'deliveryTerms' => $data['deliveryTerms'] ?? '',
+            'additionalAgreements' => $data['additionalAgreements'] ?? '',
+            'recommendedFood' => $data['recommendedFood'] ?? ''
+        ];
     }
 }
 ?>

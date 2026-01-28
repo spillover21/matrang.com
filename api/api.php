@@ -241,13 +241,69 @@ if ($action === 'createDocumensoSigning') {
     }
 
     $input = json_decode(file_get_contents('php://input'), true);
-    $email = $input['email'] ?? '';
-    $name = $input['name'] ?? 'Customer';
-    $internalId = $input['internalId'] ?? 'user_'.time();
+    
+    // Извлекаем все поля договора
+    $contractData = [
+        'buyerEmail' => $input['buyerEmail'] ?? $input['email'] ?? '',
+        'buyerName' => $input['buyerName'] ?? $input['name'] ?? 'Customer',
+        'internalId' => $input['internalId'] ?? 'user_'.time(),
+        
+        // Все остальные поля из формы
+        'contractDate' => $input['contractDate'] ?? date('d.m.Y'),
+        'contractPlace' => $input['contractPlace'] ?? '',
+        
+        'kennelOwner' => $input['kennelOwner'] ?? '',
+        'kennelAddress' => $input['kennelAddress'] ?? '',
+        'kennelPhone' => $input['kennelPhone'] ?? '',
+        'kennelEmail' => $input['kennelEmail'] ?? '',
+        'kennelPassportSeries' => $input['kennelPassportSeries'] ?? '',
+        'kennelPassportNumber' => $input['kennelPassportNumber'] ?? '',
+        'kennelPassportIssuedBy' => $input['kennelPassportIssuedBy'] ?? '',
+        'kennelPassportIssuedDate' => $input['kennelPassportIssuedDate'] ?? '',
+        
+        'buyerAddress' => $input['buyerAddress'] ?? '',
+        'buyerPhone' => $input['buyerPhone'] ?? '',
+        'buyerPassportSeries' => $input['buyerPassportSeries'] ?? '',
+        'buyerPassportNumber' => $input['buyerPassportNumber'] ?? '',
+        'buyerPassportIssuedBy' => $input['buyerPassportIssuedBy'] ?? '',
+        'buyerPassportIssuedDate' => $input['buyerPassportIssuedDate'] ?? '',
+        
+        'dogFatherName' => $input['dogFatherName'] ?? '',
+        'dogFatherRegNumber' => $input['dogFatherRegNumber'] ?? '',
+        'dogMotherName' => $input['dogMotherName'] ?? '',
+        'dogMotherRegNumber' => $input['dogMotherRegNumber'] ?? '',
+        
+        'dogName' => $input['dogName'] ?? '',
+        'dogBirthDate' => $input['dogBirthDate'] ?? '',
+        'dogColor' => $input['dogColor'] ?? '',
+        'dogChipNumber' => $input['dogChipNumber'] ?? '',
+        'dogPuppyCard' => $input['dogPuppyCard'] ?? '',
+        
+        'purposeBreeding' => $input['purposeBreeding'] ?? false,
+        'purposeCompanion' => $input['purposeCompanion'] ?? false,
+        'purposeGeneral' => $input['purposeGeneral'] ?? false,
+        
+        'price' => $input['price'] ?? '',
+        'depositAmount' => $input['depositAmount'] ?? '',
+        'depositDate' => $input['depositDate'] ?? '',
+        'remainingAmount' => $input['remainingAmount'] ?? '',
+        'finalPaymentDate' => $input['finalPaymentDate'] ?? '',
+        
+        'dewormingDate' => $input['dewormingDate'] ?? '',
+        'vaccinationDates' => $input['vaccinationDates'] ?? '',
+        'vaccineName' => $input['vaccineName'] ?? '',
+        'nextDewormingDate' => $input['nextDewormingDate'] ?? '',
+        'nextVaccinationDate' => $input['nextVaccinationDate'] ?? '',
+        
+        'specialFeatures' => $input['specialFeatures'] ?? '',
+        'deliveryTerms' => $input['deliveryTerms'] ?? '',
+        'additionalAgreements' => $input['additionalAgreements'] ?? '',
+        'recommendedFood' => $input['recommendedFood'] ?? ''
+    ];
 
-    if (!$email) {
+    if (empty($contractData['buyerEmail'])) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Email is required']);
+        echo json_encode(['success' => false, 'message' => 'Buyer email is required']);
         exit();
     }
 
@@ -258,7 +314,7 @@ if ($action === 'createDocumensoSigning') {
         require_once __DIR__ . '/DocumensoService.php';
         
         $service = new DocumensoService();
-        $result = $service->createSigningSession($email, $name, $internalId);
+        $result = $service->createSigningSession($contractData);
         
         echo json_encode([
             'success' => true,
