@@ -923,13 +923,16 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                       const fd = new FormData();
                       fd.append('file', blob, 'contract.pdf');
                       
-                      const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd });
+                      const upRes = await fetch(`/api/api.php?action=uploadcontract&token=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
                       const upData = await upRes.json();
                       
                       const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({ data: formData, pdfTemplate: upData.path, useUploadedPdf: true })
+                        body: JSON.stringify({ 
+                          email: formData.buyerEmail,
+                          pdfData: upData.url || upData.path
+                        })
                       });
                       
                       const emailData = await emailRes.json();
