@@ -1,0 +1,27 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/javascript js mjs
+  AddType text/css css
+  AddType image/svg+xml svg
+  AddType font/woff2 woff2
+  AddType font/woff woff
+  AddType image/jpeg jpg jpeg
+  AddType image/png png
+  AddType image/gif gif
+  AddType image/x-icon ico
+</IfModule>
+
+<FilesMatch "\.(js|css|svg|woff2|woff|jpg|jpeg|png|gif|ico)$">
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+
+<FilesMatch "\.html$">
+  Header set Cache-Control "public, max-age=0, must-revalidate"
+</FilesMatch>

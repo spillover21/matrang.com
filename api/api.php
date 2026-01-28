@@ -502,6 +502,105 @@ if ($action === 'sendContractPdf') {
     exit();
 }
 
+// -------------------------------------------------------------
+// СИСТЕМА ЭЛЕКТРОННОЙ ПОДПИСИ (eIDAS)
+// -------------------------------------------------------------
+
+require_once __DIR__ . '/signature_system.php';
+
+// 1. Создание запроса на подписание
+if ($action === 'createSigningRequest') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    // Проверка входных данных
+    if (!$input || empty($input['buyer_email']) || empty($input['buyer_phone']) || empty($input['pdf_url'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields (email, phone, pdf_url)']);
+        exit();
+    }
+    
+    try {
+        $eidas = new eIDASSignatureSystem();
+        $result = $eidas->createSigningRequest(
+            $input['contract_id'] ?? 'DOG-'.date('Y-md-H'), 
+            $input['buyer_email'],
+            $input['buyer_phone'],
+            $input['pdf_url']
+        );
+        
+        http_response_code(200);
+        echo json_encode($result);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
+// 2. Получение информации о запросе (для страницы подписания)
+if ($action === 'getSigningRequest') {
+    $token = $_GET['token'] ?? '';
+    
+    if (empty($token)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Token required']);
+        exit();
+    }
+    
+    try {
+        $eidas = new eIDASSignatureSystem();
+        $request = $eidas->getSigningRequest($token);
+        
+        if (!$request) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Request not found or expired']);
+            exit();
+        }
+        
+        echo json_encode(['success' => true, 'request' => $request]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
+// 3. Подписание контракта (SMS код)
+if ($action === 'signContract') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input || empty($input['token']) || empty($input['sms_code']) || empty($input['signature_data'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+        exit();
+    }
+    
+    try {
+        $eidas = new eIDASSignatureSystem();
+        $result = $eidas->signContract(
+            $input['token'],
+            $input['sms_code'],
+            $input['signature_data'],
+            $input['client_metadata'] ?? []
+        );
+        
+        echo json_encode($result);
+    } catch (Exception $e) {
+        // SMS invalid code usually throws exception
+        http_response_code(400); // 400 for bad logic (e.g. wrong code)
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
+// -------------------------------------------------------------
+
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action']);
 
