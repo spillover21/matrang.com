@@ -438,33 +438,64 @@ if ($action === 'sendContractPdf') {
         exit();
     }
 
-    // Реальная отправка email
+    // Реальная отправка email через PHPMailer (SMTP)
+    require_once __DIR__ . '/vendor/autoload.php';
+    
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
+    
     $email = $input['email'];
     $pdfUrl = $input['pdfData'];
+    $smtpConfig = require __DIR__ . '/smtp_config.php';
     
-    // Формируем письмо
-    $subject = 'Договор купли-продажи щенка';
-    $message = "Здравствуйте!\n\nВо вложении находится договор купли-продажи щенка.\n\nС уважением,\nGreat Legacy Bully";
-    $headers = "From: noreply@matrang.com\r\n";
-    $headers .= "Reply-To: greatlegacybully@gmail.com\r\n";
-    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    $mail = new PHPMailer(true);
     
-    // Отправляем письмо с ссылкой на PDF
-    $fullMessage = $message . "\n\nСсылка на договор: https://matrang.com" . $pdfUrl;
-    
-    $sent = mail($email, $subject, $fullMessage, $headers);
-    
-    if ($sent) {
+    try {
+        // SMTP настройки
+        $mail->isSMTP();
+        $mail->Host = $smtpConfig['host'];
+        $mail->SMTPAuth = $smtpConfig['auth'];
+        $mail->Username = $smtpConfig['username'];
+        $mail->Password = $smtpConfig['password'];
+        $mail->SMTPSecure = $smtpConfig['encryption'];
+        $mail->Port = $smtpConfig['port'];
+        $mail->CharSet = 'UTF-8';
+        
+        // От кого
+        $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
+        $mail->addReplyTo($smtpConfig['reply_to'], $smtpConfig['from_name']);
+        
+        // Кому
+        $mail->addAddress($email);
+        
+        // Содержимое письма
+        $mail->isHTML(true);
+        $mail->Subject = 'Договор купли-продажи щенка';
+        $mail->Body = '
+            <html>
+            <body style="font-family: Arial, sans-serif;">
+                <h2>Договор купли-продажи щенка</h2>
+                <p>Здравствуйте!</p>
+                <p>Во вложении находится ваш договор купли-продажы щенка.</p>
+                <p><a href="https://matrang.com' . htmlspecialchars($pdfUrl) . '" style="background: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Скачать договор (PDF)</a></p>
+                <p>С уважением,<br><strong>Great Legacy Bully</strong></p>
+            </body>
+            </html>
+        ';
+        $mail->AltBody = "Здравствуйте!\n\nВаш договор купли-продажи щенка доступен по ссылке:\nhttps://matrang.com" . $pdfUrl . "\n\nС уважением,\nGreat Legacy Bully";
+        
+        $mail->send();
+        
         http_response_code(200);
         echo json_encode([
             'success' => true,
             'message' => 'Contract sent successfully to ' . $email
         ]);
-    } else {
+    } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([
             'success' => false,
-            'message' => 'Failed to send email'
+            'message' => 'Failed to send email: ' . $mail->ErrorInfo
         ]);
     }
     exit();
