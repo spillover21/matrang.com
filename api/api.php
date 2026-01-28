@@ -438,13 +438,35 @@ if ($action === 'sendContractPdf') {
         exit();
     }
 
-    // В production здесь должна быть реальная отправка email
-    // Для демо просто возвращаем успех
-    http_response_code(200);
-    echo json_encode([
-        'success' => true,
-        'message' => 'Contract sent successfully to ' . $input['email']
-    ]);
+    // Реальная отправка email
+    $email = $input['email'];
+    $pdfUrl = $input['pdfData'];
+    
+    // Формируем письмо
+    $subject = 'Договор купли-продажи щенка';
+    $message = "Здравствуйте!\n\nВо вложении находится договор купли-продажи щенка.\n\nС уважением,\nGreat Legacy Bully";
+    $headers = "From: noreply@matrang.com\r\n";
+    $headers .= "Reply-To: greatlegacybully@gmail.com\r\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    
+    // Отправляем письмо с ссылкой на PDF
+    $fullMessage = $message . "\n\nСсылка на договор: https://matrang.com" . $pdfUrl;
+    
+    $sent = mail($email, $subject, $fullMessage, $headers);
+    
+    if ($sent) {
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Contract sent successfully to ' . $email
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to send email'
+        ]);
+    }
     exit();
 }
 
