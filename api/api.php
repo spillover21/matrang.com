@@ -221,6 +221,19 @@ if ($action === 'getContracts') {
 
 // DOCUMENSO INTEGRATION
 if ($action === 'createDocumensoSigning') {
+    // Включаем перехват фатальных ошибок
+    register_shutdown_function(function() {
+        $error = error_get_last();
+        if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_COMPILE_ERROR)) {
+            // Очищаем буфер вывода, если там был мусор
+            while (ob_get_level()) ob_end_clean();
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Critical PHP Error: ' . $error['message'] . ' in ' . basename($error['file']) . ':' . $error['line']]);
+            exit();
+        }
+    });
+
     if (!checkAuth()) {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);
