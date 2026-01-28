@@ -4,6 +4,10 @@
 
 require_once __DIR__ . '/DocumensoService.php';
 $config = require __DIR__ . '/documenso_config.php';
+require_once __DIR__ . '/vendor/autoload.php'; // Подключаем PHPMailer
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 // Конфигурация (в реальном проекте загружать из .env)
 $webhookSecret = $config['WEBHOOK_SECRET'];
@@ -35,38 +39,96 @@ $data = $payload['data'] ?? [];
 // 3. Обработка событий
 switch ($event) {
     case 'DOCUMENT_COMPLETED': // Документ подписан всеми сторонами
-        $documentId = $data['id'];
-        $internalUserId = $data['metadata']['internalUserId'] ?? 'unknown'; // Достаем наш ID
-        
-        try {
-            $service = new DocumensoService();
-            
-            // Формируем путь для сохранения
-            // Сохраняем в защищенную папку (не в публичный доступ), доступ через скрипт
-            $uploadDir = __DIR__ . '/../uploads/contracts/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-            
-            $filename = "contract_{$internalUserId}_{$documentId}.pdf";
-            $savePath = $uploadDir . $filename;
-            
-            // Скачиваем PDF
-            $service->downloadDocument($documentId, $savePath);
-            
-            // Здесь можно обновить статус в базе данных
-            // DB::update('contracts', ['status' => 'signed', 'file_path' => $filename], "documenso_id = '$documentId'");
-            
-            error_log("Document $documentId signed and saved to $savePath");
-            
-        } catch (Exception $e) {
-            error_log("Failed to download signed document: " . $e->getMessage());
-            http_response_code(500);
-            die('Error processsing document');
-        }
+    case 'document.completed': // На случай если формат изменится
+        handleDocumentCompleted($data);
         break;
 
-        // Другие события: DOCUMENT_VIEWED, RECIPIENT_SIGNED и т.д.
+    case 'DOCUMENT_REJECTED': // Документ отклонен получателем
+    case 'document.rejected':
+    case 'RECIPIENT_REJECTED': 
+        handleDocumentRejected($data);
+        break;
 }
 
 http_response_code(200);
 echo json_encode(['status' => 'ok']);
+
+// --- Helper Functions ---
+
+function handleDocumentCompleted($data) {
+    $documentId = $data['id'];
+    $internalUserId = $data['metadata']['internalUserId'] ?? 'unknown';
+    
+    try {
+        $service = new DocumensoService();
+        
+        $uploadDir = __DIR__ . '/../uploads/contracts/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+        
+        $filename = "contract_{$internalUserId}_{$documentId}.pdf";
+        $savePath = $uploadDir . $filename;
+        
+        // Скачиваем PDF
+        $service->downloadDocument($documentId, $savePath);
+        
+        // Тут логика обновления БД
+        // updateContractStatus($documentId, 'signed', $filename);
+        
+        error_log("WEBHOOK: Document $documentId signed and saved to $savePath");
+        
+    } catch (Exception $e) {
+        error_log("WEBHOOK ERROR: Failed to download signed document: " . $e->getMessage());
+        // Не прерываем выполнение (200 OK), но логируем ошибку
+    }
+}
+
+function handleDocumentRejected($data) {
+    $documentId = $data['id'];
+    $documentTitle = $data['title'] ?? 'Неизвестный документ';
+    $internalUserId = $data['metadata']['internalUserId'] ?? 'unknown';
+    
+    // Пытаемся найти, кто отклонил (если есть в массиве recipients)
+    $rejectReason = "Клиент отказался подписывать документ";
+    
+    // Отправка уведомления менеджеру
+    sendManagerEmail(
+        "ОТКАЗ ОТ ПОДПИСИ: $documentTitle",
+        "Клиент (ID: $internalUserId) отклонил подписание документа #$documentId.<br>Пожалуйста, свяжитесь с клиентом."
+    );
+    
+    error_log("WEBHOOK: Document $documentId rejected by user $internalUserId");
+}
+
+function sendManagerEmail($subject, $body) {
+    $smtp = require __DIR__ . '/smtp_config.php';
+    
+    $mail = new PHPMailer(true);
+    try {
+        // SMTP Config
+        $mail->isSMTP();
+        $mail->Host       = $smtp['host'];
+        $mail->SMTPAuth   = $smtp['auth'];
+        $mail->Username   = $smtp['username'];
+        $mail->Password   = $smtp['password'];
+        $mail->SMTPSecure = $smtp['encryption'];
+        $mail->Port       = $smtp['port'];
+        $mail->CharSet    = 'UTF-8';
+
+        // Sender & Recipient
+        $mail->setFrom($smtp['from_email'], $smtp['from_name']);
+        
+        // Отправляем на email менеджера (можно вынести в конфиг)
+        $managerEmail = 'greatlegacybully@gmail.com'; 
+        $mail->addAddress($managerEmail, 'Manager');
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+
+        $mail->send();
+    } catch (Exception $e) {
+        error_log("WEBHOOK EMAIL ERROR: Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+    }
+}
 ?>
