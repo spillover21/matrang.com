@@ -219,6 +219,42 @@ if ($action === 'getContracts') {
     exit();
 }
 
+// DOCUMENSO INTEGRATION
+if ($action === 'createDocumensoSigning') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+    $name = $input['name'] ?? 'Customer';
+    $internalId = $input['internalId'] ?? 'user_'.time();
+
+    if (!$email) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Email is required']);
+        exit();
+    }
+
+    try {
+        require_once __DIR__ . '/DocumensoService.php';
+        $service = new DocumensoService();
+        $result = $service->createSigningSession($email, $name, $internalId);
+        
+        echo json_encode([
+            'success' => true,
+            'url' => $result['signingUrl'],
+            'documentId' => $result['documentId']
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Documenso Error: ' . $e->getMessage()]);
+    }
+    exit();
+}
+
 // Сохранение контрактов и шаблонов
 if ($action === 'saveContracts') {
     if (!checkAuth()) {

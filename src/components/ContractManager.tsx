@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Send, Download, FileText, Trash2, Plus, Archive, Upload } from "lucide-react";
+import { Save, Send, Download, FileText, Trash2, Plus, Archive, Upload, PenTool } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PDFDocument } from 'pdf-lib';
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"; // Import Dialog
+import DocumensoSigner from "./DocumensoSigner"; // Import Documenso Component
 
 // Version: 2026-01-26-v4-DEBUGGER
 if (typeof window !== 'undefined') {
@@ -111,6 +113,12 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   const [sending, setSending] = useState(false);
   const [formKey, setFormKey] = useState(0); // Force re-render key
   const [pdfTemplate, setPdfTemplate] = useState<string>("");
+
+  // Documenso state
+  const [documensoUrl, setDocumensoUrl] = useState<string | null>(null);
+  const [showDocumensoModal, setShowDocumensoModal] = useState(false);
+  const [documensoLoading, setDocumensoLoading] = useState(false);
+
   const [pdfFieldInfo, setPdfFieldInfo] = useState<{ count: number; names: string[]; lastChecked?: string; error?: string }>({
     count: 0,
     names: []
@@ -211,6 +219,43 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       toast.error("Ошибка загрузки данных");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDocumensoSign = async () => {
+    if (!formData.buyerEmail || !formData.buyerName) {
+      toast.error("Заполните имя и email покупателя");
+      return;
+    }
+
+    setDocumensoLoading(true);
+    try {
+      const response = await fetch("/api/api.php?action=createDocumensoSigning", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: formData.buyerEmail,
+          name: formData.buyerName,
+          internalId: `user_${Date.now()}` // В реальном проекте используйте ID из БД
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setDocumensoUrl(data.url);
+        setShowDocumensoModal(true);
+        toast.success("Сессия подписи создана");
+      } else {
+        toast.error("Ошибка Documenso: " + data.message);
+      }
+    } catch (e) {
+      toast.error("Ошибка соединения");
+      console.error(e);
+    } finally {
+      setDocumensoLoading(false);
     }
   };
 
@@ -1099,7 +1144,43 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 </button>
               </div>
               
-              <p className="text-sm text-yellow-800">
+              <div className="mt-4 pt-4 border-t border-yellow-400">
+                <h3 className="text-lg font-semibold text-yellow-900 mb-2">Альтернатива: Documenso (для юристов)</h3>
+                <Button 
+                  onClick={handleDocumensoSign} 
+                  disabled={documensoLoading}
+                  className="w-full bg-slate-800 hover:bg-slate-700"
+                >
+                  <PenTool className="w-4 h-4 mr-2" />
+                  {documensoLoading ? "Создание сессии..." : "Подписать через Documenso (Legal API)"}
+                </Button>
+                 
+                {/* Documenso Modal */}
+                <Dialog open={showDocumensoModal} onOpenChange={setShowDocumensoModal}>
+                  <DialogContent className="max-w-[1200px] w-full h-[90vh] p-0">
+                    <div className="h-full flex flex-col">
+                      <div className="p-4 border-b">
+                        <h2 className="text-lg font-semibold">Подписание документа (Documenso)</h2>
+                      </div>
+                      <div className="flex-1 overflow-hidden p-4 bg-muted/20">
+                        {documensoUrl && (
+                          <DocumensoSigner 
+                            signingUrl={documensoUrl} 
+                            onSigned={() => {
+                              toast.success("Документ успешно подписан!");
+                              setShowDocumensoModal(false);
+                              loadData(); // Обновить списки
+                            }}
+                            className="h-full"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <p className="text-sm text-yellow-800 mt-2">
                 💡 1. Заполнить → 2. Скачать для проверки → 3. Отправить на email
               </p>
             </div>
