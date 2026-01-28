@@ -109,6 +109,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [formKey, setFormKey] = useState(0); // Force re-render key
   const [pdfTemplate, setPdfTemplate] = useState<string>("");
   const [pdfFieldInfo, setPdfFieldInfo] = useState<{ count: number; names: string[]; lastChecked?: string; error?: string }>({
     count: 0,
@@ -782,10 +783,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       ...prev,
       ...testData
     }));
+    setFormKey(prev => prev + 1); // FORCE RE-RENDER OF INPUTS
     
     // Force ui update logging
     console.log("✅ Data set:", testData);
-    toast.success("Тестовые данные заполнены! Проверьте поля формы.");
+    setTimeout(() => {
+      toast.success("Тестовые данные заполнены! Проверьте поля формы.");
+    }, 100);
   };
 
   const generatePreview = async () => {
@@ -850,6 +854,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           </TabsList>
 
           <TabsContent value="new" className="space-y-6 mt-6">
+            <div key={formKey} className="space-y-6">
             <div className="bg-card border border-border rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">PDF Шаблон договора</h2>
               {pdfTemplate ? (
@@ -1525,6 +1530,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
             <div id="vanilla-contract-ui-container" className="mt-8 border border-border rounded-lg" style={{ minHeight: '60px', width: '100%', background: 'transparent' }}>
               {/* Vanilla JS Toolbar will be injected here */}
+            </div>
             </div>
           </TabsContent>
 
