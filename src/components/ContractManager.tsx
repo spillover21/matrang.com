@@ -690,6 +690,95 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
+  const handleSaveProfile = () => {
+    const profileData = {
+      kennelName: formData.kennelName,
+      kennelOwner: formData.kennelOwner,
+      kennelAddress: formData.kennelAddress,
+      kennelPhone: formData.kennelPhone,
+      kennelEmail: formData.kennelEmail,
+      kennelPassportSeries: formData.kennelPassportSeries,
+      kennelPassportNumber: formData.kennelPassportNumber,
+      kennelPassportIssuedBy: formData.kennelPassportIssuedBy,
+      kennelPassportIssuedDate: formData.kennelPassportIssuedDate,
+    };
+    localStorage.setItem('CONTRACT_PROFILE_DATA', JSON.stringify(profileData));
+    toast.success("Данные профиля (заводчика) сохранены");
+  };
+
+  const handleLoadProfile = () => {
+    const saved = localStorage.getItem('CONTRACT_PROFILE_DATA');
+    if (saved) {
+      try {
+        const profileData = JSON.parse(saved);
+        setFormData(prev => ({
+          ...prev,
+          ...profileData
+        }));
+        toast.success("Данные профиля загружены");
+      } catch (e) {
+        toast.error("Ошибка чтения сохраненных данных");
+      }
+    } else {
+      toast.info("Нет сохраненных данных профиля");
+    }
+  };
+
+  const handleFillTestData = () => {
+    setFormData(prev => ({
+     ...prev,
+      // Buyer
+     buyerName: "Тестовый Покупатель",
+     buyerAddress: "г. Тестоград, ул. Тестовая, д. 1",
+     buyerPhone: "+7 (999) 111-22-33",
+     buyerEmail: "test.buyer@example.com",
+     buyerPassportSeries: "1111",
+     buyerPassportNumber: "222222",
+     buyerPassportIssuedBy: "ТП УФМС Тестограда",
+     buyerPassportIssuedDate: "2020-01-01",
+     
+     // Dog
+     dogName: "TEST DOG " + Math.floor(Math.random() * 1000),
+     dogBreed: "Американский булли",
+     dogBirthDate: "2025-01-01",
+     dogGender: "Кобель",
+     dogColor: "Лиловый",
+     dogChipNumber: "643098100" + Math.floor(Math.random() * 1000000),
+     dogPuppyCard: "ABKC-" + Math.floor(Math.random() * 10000),
+     
+     // Parents
+     dogFatherName: "BIG DADDY",
+     dogFatherRegNumber: "ABKC-DAD-001",
+     dogMotherName: "BIG MOMMA",
+     dogMotherRegNumber: "ABKC-MOM-002",
+     
+     // Finance
+     price: "150000",
+     depositAmount: "50000",
+     depositDate: "2025-02-01",
+     remainingAmount: "100000",
+     finalPaymentDate: "2025-03-01",
+     
+     // Vet
+     dewormingDate: "2025-02-10",
+     vaccinationDates: "2025-02-15",
+     vaccineName: "Eurican",
+     nextDewormingDate: "2025-05-10",
+     nextVaccinationDate: "2026-02-15",
+     
+     // Other
+     specialFeatures: "Без недостатков, шоу перспектива",
+     deliveryTerms: "Самовывоз из питомника",
+     additionalAgreements: "Нет дополнительных соглашений",
+     recommendedFood: "Royal Canin Giant Puppy",
+     
+     // Contract
+     contractPlace: "г. Каяани, Финляндия",
+     contractDate: new Date().toISOString().split('T')[0]
+   }));
+   toast.success("Тестовые данные заполнены");
+ };
+
   const generatePreview = async () => {
     console.log('🟢 generatePreview called');
     if (!pdfTemplate) {
@@ -963,7 +1052,20 @@ const ContractManager = ({ token }: ContractManagerProps) => {
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Данные питомника / Заводчика</h2>
-                <div id="vanilla-profile-buttons-container" className="flex gap-2"></div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleSaveProfile} title="Сохранить данные заводчика в браузере">
+                    <Save className="w-4 h-4 mr-2" />
+                    Сохранить
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleLoadProfile} title="Вставить сохраненные данные заводчика">
+                    <Download className="w-4 h-4 mr-2" />
+                    Вставить
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={handleFillTestData} title="Заполнить форму тестовыми данными">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Тест. данные
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
