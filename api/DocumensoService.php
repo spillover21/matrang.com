@@ -153,7 +153,17 @@ class DocumensoService {
         curl_close($curl);
 
         if ($httpCode >= 400) {
-            throw new Exception("API request failed with status $httpCode: $response");
+            $errorMsg = "API request failed with status $httpCode";
+            $json = json_decode($response, true);
+            // Пытаемся достать человекочитаемое сообщение об ошибке
+            if ($json) {
+                if (isset($json['message'])) {
+                    $errorMsg = $json['message'];
+                } elseif (isset($json['code'])) {
+                    $errorMsg = "Error: " . $json['code'];
+                }
+            }
+            throw new Exception($errorMsg);
         }
 
         if ($rawOutput) {
