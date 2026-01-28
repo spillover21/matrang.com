@@ -239,7 +239,11 @@ if ($action === 'createDocumensoSigning') {
     }
 
     try {
+        if (!file_exists(__DIR__ . '/DocumensoService.php')) {
+            throw new Exception("DocumensoService.php not found");
+        }
         require_once __DIR__ . '/DocumensoService.php';
+        
         $service = new DocumensoService();
         $result = $service->createSigningSession($email, $name, $internalId);
         
@@ -249,8 +253,11 @@ if ($action === 'createDocumensoSigning') {
             'documentId' => $result['documentId']
         ]);
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Documenso Error: ' . $e->getMessage()]);
+        http_response_code(500); 
+        echo json_encode([
+            'success' => false, 
+            'message' => $e->getMessage()
+        ]);
     }
     exit();
 }
