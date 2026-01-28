@@ -425,7 +425,16 @@ if ($action === 'sendContractPdf') {
     
     if (!$input || !isset($input['email']) || !isset($input['pdfData'])) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Invalid request',
+            'debug' => [
+                'hasInput' => !empty($input),
+                'hasEmail' => isset($input['email']),
+                'hasPdfData' => isset($input['pdfData']),
+                'receivedKeys' => $input ? array_keys($input) : []
+            ]
+        ]);
         exit();
     }
 
