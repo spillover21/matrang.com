@@ -725,59 +725,68 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const handleFillTestData = () => {
-    setFormData(prev => ({
-     ...prev,
+    console.log("🟢 Filling test data...");
+    
+    const testData = {
       // Buyer
-     buyerName: "Тестовый Покупатель",
-     buyerAddress: "г. Тестоград, ул. Тестовая, д. 1",
-     buyerPhone: "+7 (999) 111-22-33",
-     buyerEmail: "test.buyer@example.com",
-     buyerPassportSeries: "1111",
-     buyerPassportNumber: "222222",
-     buyerPassportIssuedBy: "ТП УФМС Тестограда",
-     buyerPassportIssuedDate: "2020-01-01",
-     
-     // Dog
-     dogName: "TEST DOG " + Math.floor(Math.random() * 1000),
-     dogBreed: "Американский булли",
-     dogBirthDate: "2025-01-01",
-     dogGender: "Кобель",
-     dogColor: "Лиловый",
-     dogChipNumber: "643098100" + Math.floor(Math.random() * 1000000),
-     dogPuppyCard: "ABKC-" + Math.floor(Math.random() * 10000),
-     
-     // Parents
-     dogFatherName: "BIG DADDY",
-     dogFatherRegNumber: "ABKC-DAD-001",
-     dogMotherName: "BIG MOMMA",
-     dogMotherRegNumber: "ABKC-MOM-002",
-     
-     // Finance
-     price: "150000",
-     depositAmount: "50000",
-     depositDate: "2025-02-01",
-     remainingAmount: "100000",
-     finalPaymentDate: "2025-03-01",
-     
-     // Vet
-     dewormingDate: "2025-02-10",
-     vaccinationDates: "2025-02-15",
-     vaccineName: "Eurican",
-     nextDewormingDate: "2025-05-10",
-     nextVaccinationDate: "2026-02-15",
-     
-     // Other
-     specialFeatures: "Без недостатков, шоу перспектива",
-     deliveryTerms: "Самовывоз из питомника",
-     additionalAgreements: "Нет дополнительных соглашений",
-     recommendedFood: "Royal Canin Giant Puppy",
-     
-     // Contract
-     contractPlace: "г. Каяани, Финляндия",
-     contractDate: new Date().toISOString().split('T')[0]
-   }));
-   toast.success("Тестовые данные заполнены");
- };
+      buyerName: "Тестовый Покупатель",
+      buyerAddress: "г. Тестоград, ул. Тестовая, д. 1",
+      buyerPhone: "+7 (999) 111-22-33",
+      buyerEmail: "test.buyer@example.com",
+      buyerPassportSeries: "1111",
+      buyerPassportNumber: "222222",
+      buyerPassportIssuedBy: "ТП УФМС Тестограда",
+      buyerPassportIssuedDate: "2020-01-01",
+      
+      // Dog
+      dogName: "TEST DOG " + Math.floor(Math.random() * 1000),
+      dogBreed: "Американский булли",
+      dogBirthDate: "2025-01-01",
+      dogGender: "Кобель",
+      dogColor: "Лиловый",
+      dogChipNumber: "643098100" + Math.floor(Math.random() * 1000000),
+      dogPuppyCard: "ABKC-" + Math.floor(Math.random() * 10000),
+      
+      // Parents
+      dogFatherName: "BIG DADDY",
+      dogFatherRegNumber: "ABKC-DAD-001",
+      dogMotherName: "BIG MOMMA",
+      dogMotherRegNumber: "ABKC-MOM-002",
+      
+      // Finance
+      price: "150000",
+      depositAmount: "50000",
+      depositDate: "2025-02-01",
+      remainingAmount: "100000",
+      finalPaymentDate: "2025-03-01",
+      
+      // Vet
+      dewormingDate: "2025-02-10",
+      vaccinationDates: "2025-02-15",
+      vaccineName: "Eurican",
+      nextDewormingDate: "2025-05-10",
+      nextVaccinationDate: "2026-02-15",
+      
+      // Other
+      specialFeatures: "Без недостатков, шоу перспектива",
+      deliveryTerms: "Самовывоз из питомника",
+      additionalAgreements: "Нет дополнительных соглашений",
+      recommendedFood: "Royal Canin Giant Puppy",
+      
+      // Contract
+      contractPlace: "г. Каяани, Финляндия",
+      contractDate: new Date().toISOString().split('T')[0]
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      ...testData
+    }));
+    
+    // Force ui update logging
+    console.log("✅ Data set:", testData);
+    toast.success("Тестовые данные заполнены! Проверьте поля формы.");
+  };
 
   const generatePreview = async () => {
     console.log('🟢 generatePreview called');
