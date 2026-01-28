@@ -52,10 +52,10 @@ class DocumensoService {
         ];
 
         $document = $this->request('POST', '/documents', $documentData);
-        $documentId = $document['id'];
+        // Correctly handle response structure (V1 returns 'documentId')
+        $documentId = $document['documentId'] ?? $document['id'];
         
-        // Получаем созданного получателя из ответа или отдельно
-        // Обычно при создании recipients возвращаются в массиве
+        // Получаем созданного получателя из ответа
         $recipient = null;
         if (!empty($document['recipients'])) {
             foreach ($document['recipients'] as $r) {
@@ -94,11 +94,10 @@ class DocumensoService {
         }
 
         // 4. Генерируем Direct Link (Recipient Token)
-        $token = $recipient['token']; 
-        
-        // Формируем ссылку для iframe
-        // Важно: в V1 ссылка может быть /sign/{token}, проверим
-        $directLink = rtrim($this->publicUrl, '/') . "/sign/{$token}";
+        // Используем signingUrl из ответа, если есть, иначе формируем
+        $directLink = !empty($recipient['signingUrl']) 
+            ? $recipient['signingUrl'] 
+            : rtrim($this->publicUrl, '/') . "/sign/" . $recipient['token'];
 
         return [
             'signingUrl' => $directLink,
