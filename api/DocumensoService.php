@@ -4,6 +4,7 @@ class DocumensoService {
     private $apiKey;
     private $apiUrl;
     private $templateId;
+    private $publicUrl;
 
     public function __construct() {
         $config = require __DIR__ . '/documenso_config.php';
