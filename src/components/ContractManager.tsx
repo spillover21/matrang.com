@@ -560,24 +560,27 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         throw new Error('Upload failed: ' + uploadData.message);
       }
       
-      document.title = "⏱️ Sending email...";
-      toast.info(`Uploaded to: ${uploadData.path}`);
+      document.title = "⏱️ Creating signing request...";
+      toast.info(`Uploaded to: ${uploadData.url || uploadData.path}`);
       
-      // 5. Отправляем email с загруженным PDF
-      const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
+      // 5. Создаем запрос на подписание (eIDAS)
+      const signingRes = await fetch('/api/api.php?action=createSigningRequest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          email: formData.buyerEmail,
-          pdfData: uploadData.url || uploadData.path
+          contract_id: `DOG-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
+          buyer_email: formData.buyerEmail,
+          buyer_phone: formData.buyerPhone,
+          pdf_url: uploadData.url || uploadData.path
         })
       });
       
-      const emailData = await emailRes.json();
+      const signingData = await signingRes.json();
       document.title = "✅ DONE!";
       
-      if (emailData.success) {
-        toast.success(`Договор отправлен на ${formData.buyerEmail}!`);
+      if (signingData.success) {
+        toast.success(`Запрос на подписание отправлен на ${formData.buyerEmail}!`);
+        alert(`✅ Покупателю отправлено письмо со ссылкой на подписание.\n\nНа телефон ${formData.buyerPhone} отправлен SMS-код.\n\nСсылка для подписания:\n${signingData.signing_url}`);
         loadData();
         // Очистка формы...
         setFormData({
