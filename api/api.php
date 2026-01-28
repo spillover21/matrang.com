@@ -6,6 +6,10 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
+// PHPMailer для отправки email
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -440,9 +444,6 @@ if ($action === 'sendContractPdf') {
 
     // Реальная отправка email через PHPMailer (SMTP)
     require_once __DIR__ . '/vendor/autoload.php';
-    
-    use PHPMailer\PHPMailer\PHPMailer;
-    use PHPMailer\PHPMailer\Exception;
     
     $email = $input['email'];
     $pdfUrl = $input['pdfData'];
