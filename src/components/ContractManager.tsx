@@ -450,6 +450,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     return { bytes: new Uint8Array(filledPdfBytes), filledCount, notFoundCount, hasFields: true, fieldNames: fields.map(f => f.getName()) };
   };
 
+  const loadFont = async () => {
+    // Используем Ubuntu-R с CDN pdf-lib, он поддерживает кириллицу
+    const fontUrl = 'https://pdf-lib.js.org/assets/ubuntu/Ubuntu-R.ttf';
+    const fontBytes = await fetch(fontUrl).then((res) => res.arrayBuffer());
+    return fontBytes;
+  };
+
   const checkPdfFields = async () => {
     if (!pdfTemplate) {
       toast.error("Загрузите PDF шаблон договора");
@@ -977,11 +984,34 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                       
                       console.log("🔵 Обновляем внешний вид полей...");
                       try {
-                        form.updateFieldAppearances();
-                        console.log('✅ Внешний вид обновлен');
+                        // Регистрируем fontkit
+                        if ((window as any).fontkit) {
+                          pdfDoc.registerFontkit((window as any).fontkit);
+                          console.log("✅ Fontkit registered");
+                        } else {
+                          console.warn("⚠️ Fontkit not found in window");
+                        }
+
+                        // Загружаем и встраиваем шрифт
+                        console.log("🔵 Loading font...");
+                        const fontBytes = await loadFont();
+                        const customFont = await pdfDoc.embedFont(fontBytes);
+                        console.log("✅ Font embedded");
+
+                        // Обновляем внешний вид с новым шрифтом
+                        form.updateFieldAppearances(customFont);
+                        console.log('✅ Внешний вид обновлен (Cyrillic support enabled)');
+                        
+                        // Делаем поля read-only
+                        const fields = form.getFields();
+                        fields.forEach(field => {
+                          field.enableReadOnly();
+                        });
+                        console.log('✅ Поля заблокированы для редактирования');
+
                       } catch (e) {
-                        console.warn('⚠️ WinAnsi не поддерживает кириллицу:', e);
-                        toast.warning('Поля заполнены. Откройте PDF в Adobe Reader для просмотра.');
+                         console.error('⚠️ Ошибка при обновлении шрифтов/блокировке:', e);
+                         toast.warning('Ошибка обновления шрифтов. Текст может быть невидимым до клика.');
                       }
                       
                       console.log("🔵 Сохраняем PDF...");
