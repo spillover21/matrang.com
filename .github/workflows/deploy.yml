@@ -65,13 +65,7 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/
           server-dir: /
-          # Включаем очистку чтобы удалять старые JS файлы с новыми хэшами
-          dangerous-clean-slate: true
-          exclude: |
-            api/**
-            data/**
-            uploads/**
-            .htaccess
+          dangerous-clean-slate: false
 
       - name: Deploy API
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
