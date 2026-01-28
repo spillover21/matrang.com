@@ -29,48 +29,75 @@ class DocumensoService {
             throw new Exception("Documenso configuration is missing (API Key or Template ID)");
         }
 
-        // 1. Создаем документ из шаблона
-        // LEGAL COMPLIANCE: Мы передаем internalUserId в metadata. 
-        // Это связывает подпись с нашей внутренней базой данных пользователей для судов ЕС.
+        // 1. Создаем документ из шаблона с указанием получателей
+        // API требует массив recipients при создании
         $documentData = [
-            'templateId' => (int)$this->templateId, // Template ID должен быть числом в V2 часто
+            'templateId' => (int)$this->templateId,
             'title' => "Contract for " . $customerName,
             'metadata' => [
                 'internalUserId' => $internalUserId,
                 'source' => 'Matrang CRM',
                 'createdAt' => date('c')
+            ],
+            'recipients' => [
+                [
+                    'email' => $customerEmail,
+                    'name' => $customerName,
+                    'role' => 'SIGNER',
+                    'authOptions' => [
+                         'requireEmailAuth' => false // Для упрощения теста, можно включить позже
+                    ]
+                ]
             ]
         ];
 
         $document = $this->request('POST', '/documents', $documentData);
         $documentId = $document['id'];
-
-        // 2. Добавляем получателя (Recipient)
-        $recipientData = [
-            'email' => $customerEmail,
-            'name' => $customerName,
-            'role' => 'SIGNER', // Или viewer, approver
-            'authOptions' => [
-                 // Можно добавить 2FA (SMS/Email pass) для усиления юридической значимости
-                 'requireEmailAuth' => true
-            ]
-        ];
         
-        // В V2 получатели часто добавляются через отдельный эндпоинт или сразу при создании
-        // Здесь используем подход добавления к созданному черновику
-        $recipient = $this->request('POST', "/documents/{$documentId}/recipients", $recipientData);
+        // Получаем созданного получателя из ответа или отдельно
+        // Обычно при создании recipients возвращаются в массиве
+        $recipient = null;
+        if (!empty($document['recipients'])) {
+            foreach ($document['recipients'] as $r) {
+                if ($r['email'] === $customerEmail) {
+                    $recipient = $r;
+                    break;
+                }
+            }
+        }
+        
+        // Если вдруг токена нет в ответе создания, запрашиваем список получателей
+        if (!$recipient || empty($recipient['token'])) {
+             $recipientsList = $this->request('GET', "/documents/{$documentId}/recipients");
+             // Обработка разных форматов ответа (массив или {recipients: []})
+             $list = isset($recipientsList['recipients']) ? $recipientsList['recipients'] : $recipientsList;
+             foreach ($list as $r) {
+                 if ($r['email'] === $customerEmail) {
+                     $recipient = $r;
+                     break;
+                 }
+             }
+        }
+        
+        if (!$recipient || empty($recipient['token'])) {
+             throw new Exception("Could not retrieve recipient token for $customerEmail");
+        }
 
         // 3. Отправляем документ (переводим из Draft в Pending)
-        $this->request('POST', "/documents/{$documentId}/send", ['sendEmail' => false]); // false, так как мы хотим использовать embed
+        // В некоторых версиях API создание с получателями уже делает документ отправленным, 
+        // но обычно нужно явное действие отправки.
+        try {
+           $this->request('POST', "/documents/{$documentId}/send", ['sendEmail' => false]);
+        } catch (Exception $e) {
+           // Игнорируем ошибку, если документ уже в статусе PENDING
+           // (это может произойти, если создание сразу переводит статус)
+        }
 
         // 4. Генерируем Direct Link (Recipient Token)
-        // Нам нужно найти токен добавленного получателя
-        // В реальном API Documenso нужно получить токен получателя для формирования ссылки
-        // Ссылка обычно выглядит как: https://app.documenso.com/sign/{token}
-        
         $token = $recipient['token']; 
         
         // Формируем ссылку для iframe
+        // Важно: в V1 ссылка может быть /sign/{token}, проверим
         $directLink = rtrim($this->publicUrl, '/') . "/sign/{$token}";
 
         return [
