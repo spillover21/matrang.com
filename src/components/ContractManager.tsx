@@ -729,49 +729,60 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     console.log("🟢 Filling test data...");
     
     const testData = {
+      // Kennel / Breeder (Was missing before)
+      kennelName: "GREAT LEGACY BULLY",
+      kennelOwner: "Иванов Иван Иванович",
+      kennelAddress: "г. Каяани, Финляндия",
+      kennelPhone: "+7 (900) 455-27-16",
+      kennelEmail: "greatlegacybully@gmail.com",
+      kennelPassportSeries: "1234",
+      kennelPassportNumber: "567890",
+      kennelPassportIssuedBy: "УФМС России по гор. Москве",
+      kennelPassportIssuedDate: "2010-05-15",
+
       // Buyer
-      buyerName: "Тестовый Покупатель",
-      buyerAddress: "г. Тестоград, ул. Тестовая, д. 1",
-      buyerPhone: "+7 (999) 111-22-33",
-      buyerEmail: "test.buyer@example.com",
-      buyerPassportSeries: "1111",
-      buyerPassportNumber: "222222",
-      buyerPassportIssuedBy: "ТП УФМС Тестограда",
-      buyerPassportIssuedDate: "2020-01-01",
+      buyerName: "Петров Петр Петрович",
+      buyerAddress: "г. Москва, ул. Ленина, д. 10, кв. 5",
+      buyerPhone: "+7 (999) 123-45-67",
+      buyerEmail: "buyer@example.com",
+      buyerPassportSeries: "4500",
+      buyerPassportNumber: "123456",
+      buyerPassportIssuedBy: "ТП УФМС России по гор. Москве",
+      buyerPassportIssuedDate: "2020-01-20",
       
       // Dog
-      dogName: "TEST DOG " + Math.floor(Math.random() * 1000),
+      dogName: "MATRANG TEST " + Math.floor(Math.random() * 1000),
       dogBreed: "Американский булли",
       dogBirthDate: "2025-01-01",
       dogGender: "Кобель",
-      dogColor: "Лиловый",
+      dogColor: "Лиловый триколор",
       dogChipNumber: "643098100" + Math.floor(Math.random() * 1000000),
       dogPuppyCard: "ABKC-" + Math.floor(Math.random() * 10000),
       
       // Parents
-      dogFatherName: "BIG DADDY",
+      dogFatherName: "GRCH BIG DADDY",
       dogFatherRegNumber: "ABKC-DAD-001",
-      dogMotherName: "BIG MOMMA",
+      dogMotherName: "CH BIG MOMMA",
       dogMotherRegNumber: "ABKC-MOM-002",
       
       // Finance
       price: "150000",
       depositAmount: "50000",
-      depositDate: "2025-02-01",
+      depositDate: new Date().toISOString().split('T')[0],
       remainingAmount: "100000",
-      finalPaymentDate: "2025-03-01",
+      finalPaymentDate: "2026-03-01",
       
       // Vet
       dewormingDate: "2025-02-10",
-      vaccinationDates: "2025-02-15",
-      vaccineName: "Eurican",
+      vaccinationDates: "2025-02-15 (Nobivac DHPPi)",
+      vaccineName: "Nobivac",
       nextDewormingDate: "2025-05-10",
       nextVaccinationDate: "2026-02-15",
       
       // Other
-      specialFeatures: "Без недостатков, шоу перспектива",
-      deliveryTerms: "Самовывоз из питомника",
-      additionalAgreements: "Нет дополнительных соглашений",
+      specialFeatures: "Прикус ножницы, семенники норма, шоу перспектива",
+      deliveryTerms: "Самовывоз из питомника силами покупателя",
+      additionalAgreements: "Покупатель обязуется присылать фото щенка раз в месяц",
       recommendedFood: "Royal Canin Giant Puppy",
       
       // Contract
