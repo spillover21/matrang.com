@@ -47,12 +47,22 @@ $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
 echo "HTTP Code: $httpCode\n";
-echo "Response: " . substr($response, 0, 500) . "...\n";
+echo "Full Response: " . $response . "\n";
 
 $json = json_decode($response, true);
-if (!$json || !isset($json['id'])) die("Failed to create document");
+if (!$json) die("Failed to decode JSON");
 
-$docId = $json['id'];
+// Проверяем разные варианты где может лежать ID
+if (isset($json['id'])) {
+    $docId = $json['id'];
+} elseif (isset($json['document']['id'])) {
+    $docId = $json['document']['id'];
+} elseif (isset($json['data']['id'])) {
+    $docId = $json['data']['id'];
+} else {
+    echo "Debugging keys: " . implode(', ', array_keys($json)) . "\n";
+    die("Failed to find Document ID in response");
+}
 echo "Document ID: $docId\n";
 
 // 3. Find Token
