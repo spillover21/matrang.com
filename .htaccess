@@ -3,6 +3,7 @@
   RewriteBase /
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^sign$ sign.html [QSA,L]
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
