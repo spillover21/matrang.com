@@ -214,41 +214,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const uploadPdfTemplate = async (file: File) => {
-    const formData = new FormData();
-    formData.append("pdf", file); // API ожидает поле "pdf"
-
+    // Загружаем сразу на VPS, локальное хранилище не нужно
     try {
-      const response = await fetch("/api/api.php?action=uploadPdfTemplate", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      const data = await response.json();
-      console.log('Upload PDF response:', data); // Отладка
+      toast.info("Загрузка шаблона на VPS...");
       
-      if (data.success) {
-        console.log('Setting pdfTemplate to:', data.url); // Отладка
-        setPdfTemplate(data.url);
-        toast.success("PDF шаблон загружен");
-        
-        // Загружаем шаблон на VPS
-        uploadTemplateToVPS(file);
-      } else {
-        console.error('Upload failed:', data.message); // Отладка
-        toast.error(data.message || "Ошибка загрузки");
-      }
-    } catch (error) {
-      console.error('Upload error:', error); // Отладка
-      toast.error("Ошибка сети");
-    }
-  };
+      const formData = new FormData();
+      formData.append("template", file);
 
-  const uploadTemplateToVPS = async (file: File) => {
-    const formData = new FormData();
-    formData.append("template", file);
-
-    try {
       const response = await fetch("/api/upload_template_to_vps.php", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -259,14 +231,18 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       
       if (data.success) {
         console.log('✅ Template uploaded to VPS:', data.vps_path);
-        toast.success("Шаблон загружен на VPS");
+        setPdfTemplate(data.vps_path); // Устанавливаем путь на VPS
+        toast.success("✅ PDF шаблон загружен на VPS!");
+        
+        // Проверяем поля в PDF
+        checkPdfFields();
       } else {
         console.error('VPS upload failed:', data.error);
-        toast.warning("Ошибка загрузки на VPS: " + data.error);
+        toast.error("Ошибка загрузки на VPS: " + data.error);
       }
     } catch (error) {
-      console.error('VPS upload error:', error);
-      toast.warning("Не удалось загрузить на VPS");
+      console.error('Upload error:', error);
+      toast.error("Ошибка сети: " + (error as Error).message);
     }
   };
 
