@@ -43,6 +43,6 @@ return [
     'API_KEY' => $env['DOCUMENSO_API_KEY'] ?? 'api_vei99lrwtlm6xfs4', 
     'API_URL' => $env['DOCUMENSO_API_URL'] ?? 'http://72.62.114.139:9000/api/v1',
     'WEBHOOK_SECRET' => $env['DOCUMENSO_WEBHOOK_SECRET'] ?? 'pXbQZ8@Y6akBjd5', 
-    'TEMPLATE_ID' => $env['DOCUMENSO_TEMPLATE_ID'] ?? '2', 
+    'TEMPLATE_ID' => $env['DOCUMENSO_TEMPLATE_ID'] ?? '1', 
     'PUBLIC_URL' => 'http://72.62.114.139:9000' 
 ];
