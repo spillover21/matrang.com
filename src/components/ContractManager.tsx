@@ -231,6 +231,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         console.log('Setting pdfTemplate to:', data.url); // Отладка
         setPdfTemplate(data.url);
         toast.success("PDF шаблон загружен");
+        
+        // Загружаем шаблон на VPS
+        uploadTemplateToVPS(file);
       } else {
         console.error('Upload failed:', data.message); // Отладка
         toast.error(data.message || "Ошибка загрузки");
@@ -238,6 +241,127 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     } catch (error) {
       console.error('Upload error:', error); // Отладка
       toast.error("Ошибка сети");
+    }
+  };
+
+  const uploadTemplateToVPS = async (file: File) => {
+    const formData = new FormData();
+    formData.append("template", file);
+
+    try {
+      const response = await fetch("/api/upload_template_to_vps.php", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('✅ Template uploaded to VPS:', data.vps_path);
+        toast.success("Шаблон загружен на VPS");
+      } else {
+        console.error('VPS upload failed:', data.error);
+        toast.warning("Ошибка загрузки на VPS: " + data.error);
+      }
+    } catch (error) {
+      console.error('VPS upload error:', error);
+      toast.warning("Не удалось загрузить на VPS");
+    }
+  };
+
+  const sendToDocumenso = async () => {
+    if (!formData.buyerEmail || !formData.buyerName) {
+      toast.error("Заполните email и имя покупателя!");
+      return;
+    }
+
+    if (!formData.dogName) {
+      toast.error("Заполните имя щенка!");
+      return;
+    }
+
+    setSending(true);
+    try {
+      toast.info("Отправка в Documenso...");
+
+      const response = await fetch("/api/contracts_api.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(`✅ Договор отправлен! ID: ${data.envelope_id}`);
+        
+        // Показываем ссылку для подписания
+        const signUrl = data.signing_url;
+        const message = `Договор успешно создан!\n\n` +
+          `ID: ${data.envelope_id}\n` +
+          `Получатель: ${formData.buyerEmail}\n\n` +
+          `Ссылка для подписания:\n${signUrl}\n\n` +
+          `Скопировать ссылку в буфер обмена?`;
+        
+        if (confirm(message)) {
+          navigator.clipboard.writeText(signUrl);
+          toast.success("Ссылка скопирована!");
+        }
+        
+        // Перезагружаем данные
+        loadData();
+        
+        // Очищаем форму (только данные покупателя и щенка)
+        setFormData(prev => ({
+          ...prev,
+          buyerName: "",
+          buyerAddress: "",
+          buyerPhone: "",
+          buyerEmail: "",
+          buyerPassportSeries: "",
+          buyerPassportNumber: "",
+          buyerPassportIssuedBy: "",
+          buyerPassportIssuedDate: "",
+          dogFatherName: "",
+          dogFatherRegNumber: "",
+          dogMotherName: "",
+          dogMotherRegNumber: "",
+          dogName: "",
+          dogBirthDate: "",
+          dogGender: "",
+          dogColor: "",
+          dogChipNumber: "",
+          dogPuppyCard: "",
+          purposeBreeding: false,
+          purposeCompanion: false,
+          purposeGeneral: false,
+          price: "",
+          depositAmount: "",
+          depositDate: "",
+          remainingAmount: "",
+          finalPaymentDate: "",
+          dewormingDate: "",
+          vaccinationDates: "",
+          vaccineName: "",
+          nextDewormingDate: "",
+          nextVaccinationDate: "",
+          specialFeatures: "",
+          deliveryTerms: "",
+          additionalAgreements: "",
+          contractDate: new Date().toISOString().split('T')[0],
+        }));
+      } else {
+        toast.error(data.message || "Ошибка отправки в Documenso");
+      }
+    } catch (error) {
+      console.error("Documenso error:", error);
+      toast.error("Ошибка сети: " + (error as Error).message);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -771,117 +895,65 @@ const ContractManager = ({ token }: ContractManagerProps) => {
               </p>
             </div>
 
-            {/* ПОШАГОВЫЙ ИНТЕРФЕЙС - ВСЕГДА ПОКАЗАН */}
-            <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-6 space-y-4">
-              <h2 className="text-2xl font-bold text-yellow-800">📋 Заполнить и отправить PDF</h2>
-              
-              <div className="flex gap-4">
-                <button
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
-                  onClick={async () => {
-                    alert("🔵 Кнопка ЗАПОЛНИТЬ нажата!");
-                    if (!pdfTemplate) {
-                      alert("Сначала загрузите PDF шаблон!");
-                      return;
-                    }
-                    try {
-                      const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
-                      const pdfDoc = await PDFDocument.load(pdfBytes);
-                      const form = pdfDoc.getForm();
-                      const fieldMap = buildFieldMap();
-                      let filled = 0;
-                      for (const [name, val] of Object.entries(fieldMap)) {
-                        try {
-                          if (typeof val === 'boolean') {
-                            const cb = form.getCheckBox(name);
-                            val ? cb.check() : cb.uncheck();
-                          } else {
-                            form.getTextField(name).setText(String(val));
-                          }
-                          filled++;
-                        } catch {}
-                      }
-                      const saved = await pdfDoc.save({ updateFieldAppearances: false });
-                      (window as any).filledPdfBytes = saved;
-                      alert(`✅ PDF заполнен! Полей: ${filled}`);
-                      toast.success(`Заполнено ${filled} полей`);
-                    } catch (err) {
-                      alert("Ошибка: " + (err as Error).message);
-                    }
-                  }}
-                >
-                  🔧 Заполнить поля
-                </button>
-                
-                <button
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
-                  onClick={() => {
-                    alert("🟢 Кнопка СКАЧАТЬ нажата!");
-                    if (!(window as any).filledPdfBytes) {
-                      alert("Сначала заполните PDF!");
-                      return;
-                    }
-                    const blob = new Blob([(window as any).filledPdfBytes], { type: 'application/pdf' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `contract_${Date.now()}.pdf`;
-                    a.click();
-                    toast.success("PDF скачан!");
-                  }}
-                >
-                  💾 Скачать PDF
-                </button>
-                
-                <button
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded disabled:opacity-50"
-                  disabled={sending}
-                  onClick={async () => {
-                    alert("🔴 Кнопка ОТПРАВИТЬ нажата!");
-                    if (!(window as any).filledPdfBytes) {
-                      alert("Сначала заполните PDF!");
-                      return;
-                    }
-                    if (!formData.buyerEmail) {
-                      alert("Укажите email!");
-                      return;
-                    }
-                    
-                    setSending(true);
-                    try {
-                      const blob = new Blob([(window as any).filledPdfBytes], { type: 'application/pdf' });
-                      const fd = new FormData();
-                      fd.append('file', blob, 'contract.pdf');
-                      
-                      const upRes = await fetch('/api/api.php?action=uploadcontract', { method: 'POST', body: fd });
-                      const upData = await upRes.json();
-                      
-                      const emailRes = await fetch('/api/api.php?action=sendContractPdf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({ data: formData, pdfTemplate: upData.path, useUploadedPdf: true })
-                      });
-                      
-                      const emailData = await emailRes.json();
-                      alert(emailData.success ? `✅ Отправлено на ${formData.buyerEmail}!` : "❌ " + emailData.message);
-                      if (emailData.success) {
-                        toast.success("Отправлено!");
-                        loadData();
-                      }
-                    } catch (err) {
-                      alert("Ошибка: " + (err as Error).message);
-                    } finally {
-                      setSending(false);
-                    }
-                  }}
-                >
-                  {sending ? "⏳ Отправка..." : "📧 ОТПРАВИТЬ"}
-                </button>
+            {/* ДЕЙСТВИЯ С ДОГОВОРОМ */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg p-6 space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-blue-900">🚀 Отправить договор на подпись</h2>
+                {pdfTemplate && (
+                  <span className="text-sm text-green-600">✅ Шаблон загружен</span>
+                )}
               </div>
               
-              <p className="text-sm text-yellow-800">
-                💡 1. Заполнить → 2. Скачать для проверки → 3. Отправить на email
-              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={saveAsTemplate}
+                  disabled={saving}
+                  className="h-16"
+                >
+                  <Save className="w-5 h-5 mr-2" />
+                  {saving ? "Сохранение..." : "Сохранить как шаблон"}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={generatePreview}
+                  disabled={!pdfTemplate}
+                  className="h-16"
+                >
+                  <FileText className="w-5 h-5 mr-2" />
+                  Предпросмотр PDF
+                </Button>
+                
+                <Button
+                  size="lg"
+                  onClick={sendToDocumenso}
+                  disabled={sending || !pdfTemplate || !formData.buyerEmail}
+                  className="h-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold"
+                >
+                  <Send className="w-5 h-5 mr-2" />
+                  {sending ? "Отправка в Documenso..." : "📝 Отправить в Documenso"}
+                </Button>
+              </div>
+              
+              <div className="text-sm text-blue-800 bg-blue-100 rounded p-3">
+                <p className="font-semibold mb-1">💡 Как это работает:</p>
+                <ol className="list-decimal list-inside space-y-1 ml-2">
+                  <li>Загрузите PDF шаблон (один раз)</li>
+                  <li>Заполните все поля формы</li>
+                  <li>Нажмите "Отправить в Documenso"</li>
+                  <li>Система автоматически заполнит PDF и отправит на подпись покупателю</li>
+                  <li>Вы получите ссылку для отслеживания статуса</li>
+                </ol>
+              </div>
+              
+              {!pdfTemplate && (
+                <div className="text-center text-yellow-700 bg-yellow-100 rounded p-3">
+                  ⚠️ Сначала загрузите PDF шаблон договора (см. выше)
+                </div>
+              )}
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
