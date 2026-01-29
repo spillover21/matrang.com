@@ -568,6 +568,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   const handleSaveTemplate = async () => {
     const t0 = performance.now();
     toast.info(`⏱️ Before fetch at ${(performance.now()-t0).toFixed(0)}ms`, { duration: 2000 });
+    
+    try {
       const response = await fetch("/api/api.php?action=sendContractPdf", {
         method: "POST",
         headers: {
