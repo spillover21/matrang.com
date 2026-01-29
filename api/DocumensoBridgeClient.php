@@ -52,6 +52,54 @@ class DocumensoBridgeClient {
     }
     
     /**
+     * Создать envelope с PDF файлом
+     */
+    public function createEnvelope($pdfPath, $title, $recipientEmail, $recipientName) {
+        $url = rtrim($this->bridgeUrl, '/') . '/create_envelope.php';
+        
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'X-API-Key: ' . $this->apiKey
+            ],
+            CURLOPT_POSTFIELDS => [
+                'pdf' => new CURLFile($pdfPath),
+                'title' => $title,
+                'recipient_email' => $recipientEmail,
+                'recipient_name' => $recipientName
+            ],
+            CURLOPT_TIMEOUT => 60
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($error) {
+            throw new Exception("Bridge API connection error: $error");
+        }
+        
+        if ($httpCode !== 200) {
+            throw new Exception("Bridge API returned HTTP $httpCode: $response");
+        }
+        
+        $data = json_decode($response, true);
+        
+        if (!$data || !isset($data['success'])) {
+            throw new Exception("Invalid response from Bridge API");
+        }
+        
+        if (!$data['success']) {
+            throw new Exception($data['error'] ?? 'Unknown error');
+        }
+        
+        return $data;
+    }
+    
+    /**
      * Отправить HTTP запрос к bridge API
      */
     private function request($action, $params = []) {
