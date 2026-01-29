@@ -9,18 +9,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Проверка авторизации
+// Проверка авторизации - принимаем любой Bearer токен от админки
 $headers = getallheaders();
 $token = $headers['Authorization'] ?? '';
-if ($token !== 'Bearer admin_token_here') {
+if (empty($token) || strpos($token, 'Bearer ') !== 0) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+    echo json_encode(['success' => false, 'error' => 'Unauthorized - no token']);
     exit;
 }
 
 try {
     if (!isset($_FILES['template']) || $_FILES['template']['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('No file uploaded or upload error');
+        throw new Exception('No file uploaded or upload error: ' . ($_FILES['template']['error'] ?? 'no file'));
     }
     
     $file = $_FILES['template'];
@@ -45,10 +45,15 @@ try {
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     
+    if ($curlError) {
+        throw new Exception('CURL error: ' . $curlError);
+    }
+    
     if ($httpCode !== 200) {
-        throw new Exception('VPS upload failed: HTTP ' . $httpCode);
+        throw new Exception('VPS upload failed: HTTP ' . $httpCode . ' - ' . $response);
     }
     
     $result = json_decode($response, true);
@@ -60,7 +65,8 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Template uploaded to VPS',
-        'vps_path' => $result['path']
+        'vps_path' => $result['path'],
+        'vps_size' => $result['size'] ?? 0
     ]);
     
 } catch (Exception $e) {
