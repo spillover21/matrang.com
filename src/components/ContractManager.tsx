@@ -270,6 +270,76 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
+  const fillTestData = () => {
+    setFormData({
+      // Данные питомника
+      kennelName: "GREAT LEGACY BULLY",
+      kennelOwner: "Иванов Иван Иванович",
+      kennelAddress: "г. Каяани, Финляндия",
+      kennelPhone: "+7 (900) 455-27-16",
+      kennelEmail: "greatlegacybully@gmail.com",
+      kennelPassportSeries: "1234",
+      kennelPassportNumber: "567890",
+      kennelPassportIssuedBy: "УФМС России",
+      kennelPassportIssuedDate: "2015-01-15",
+      
+      // Данные покупателя
+      buyerName: "Петров Петр Петрович",
+      buyerAddress: "г. Москва, ул. Ленина, д. 1",
+      buyerPhone: "+7 (999) 123-45-67",
+      buyerEmail: "test@example.com",
+      buyerPassportSeries: "4321",
+      buyerPassportNumber: "098765",
+      buyerPassportIssuedBy: "УФМС Москвы",
+      buyerPassportIssuedDate: "2010-05-20",
+      
+      // Родители щенка
+      dogFatherName: "Champion Gold Star",
+      dogFatherRegNumber: "RKF-12345",
+      dogMotherName: "Princess Silver Moon",
+      dogMotherRegNumber: "RKF-67890",
+      
+      // Данные щенка
+      dogName: "Rocky",
+      dogBreed: "Американский булли",
+      dogBirthDate: "2024-10-15",
+      dogGender: "Кобель",
+      dogColor: "Триколор",
+      dogChipNumber: "643094100123456",
+      dogPuppyCard: "ABKC-2024-001",
+      
+      // Цель приобретения
+      purposeBreeding: false,
+      purposeCompanion: true,
+      purposeGeneral: false,
+      
+      // Финансовые условия
+      price: "150000",
+      depositAmount: "50000",
+      depositDate: "2024-11-01",
+      remainingAmount: "100000",
+      finalPaymentDate: "2024-12-15",
+      
+      // Вакцинация
+      dewormingDate: "2024-11-20",
+      vaccinationDates: "2024-11-25, 2024-12-10",
+      vaccineName: "Nobivac DHPPi",
+      nextDewormingDate: "2025-02-20",
+      nextVaccinationDate: "2025-01-25",
+      
+      // Дополнительные условия
+      specialFeatures: "Щенок очень активный и дружелюбный",
+      deliveryTerms: "Доставка по России авиа, стоимость 15000 руб",
+      additionalAgreements: "Первичная консультация по уходу включена",
+      recommendedFood: "Royal Canin Puppy",
+      
+      // Дата и место договора
+      contractDate: new Date().toISOString().split('T')[0],
+      contractPlace: "г. Каяани, Финляндия",
+    });
+    toast.success("✅ Форма заполнена тестовыми данными");
+  };
+
   const sendToDocumenso = async () => {
     if (!formData.buyerEmail || !formData.buyerName) {
       toast.error("Заполните email и имя покупателя!");
@@ -899,9 +969,20 @@ const ContractManager = ({ token }: ContractManagerProps) => {
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg p-6 space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-blue-900">🚀 Отправить договор на подпись</h2>
-                {pdfTemplate && (
-                  <span className="text-sm text-green-600">✅ Шаблон загружен</span>
-                )}
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fillTestData}
+                    className="bg-yellow-100 hover:bg-yellow-200 border-yellow-400"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Тестовые данные
+                  </Button>
+                  {pdfTemplate && (
+                    <span className="text-sm text-green-600">✅ Шаблон загружен</span>
+                  )}
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
