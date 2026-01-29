@@ -35,30 +35,22 @@ class DocumensoService {
             throw new Exception("Buyer email is required");
         }
 
-        // 1. Создаем документ из шаблона с указанием получателей и полей
-        $documentData = [
-            'templateId' => (int)$this->templateId,
+        // 1. Генерируем документ из шаблона (правильный endpoint)
+        $generateData = [
             'title' => "Contract for " . $customerName,
-            'metadata' => [
-                'internalUserId' => $internalUserId,
-                'source' => 'Great Legacy Bully CRM',
-                'createdAt' => date('c')
-            ],
+            'externalId' => $internalUserId,
             'recipients' => [
                 [
                     'email' => $customerEmail,
                     'name' => $customerName,
-                    'role' => 'SIGNER',
-                    'authOptions' => [
-                         'requireEmailAuth' => false
-                    ]
+                    'role' => 'SIGNER'
                 ]
             ],
-            // Передаём все поля договора для автозаполнения
-            'data' => $this->buildFieldData($contractData)
+            'data' => $this->buildFieldData($contractData),
+            'sendDocument' => false
         ];
 
-        $document = $this->request('POST', '/documents', $documentData);
+        $document = $this->request('POST', "/templates/{$this->templateId}/generate", $generateData);
         // Correctly handle response structure (V1 returns 'documentId')
         $documentId = $document['documentId'] ?? $document['id'];
         
