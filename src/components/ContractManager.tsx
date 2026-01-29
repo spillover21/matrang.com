@@ -564,20 +564,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       document.title = "Админ Панель - MATRANG";
     }
   };
-        
-        if (filledResult?.bytes) {
-          toast.info(`⏱️ bytesToBase64 START, bytes: ${filledResult.bytes.length}`, { duration: 2000 });
-          filledPdfBase64 = bytesToBase64(filledResult.bytes);
-          toast.success(`⏱️ bytesToBase64 DONE at ${(performance.now()-t0).toFixed(0)}ms\nBase64 length: ${filledPdfBase64.length}`, { duration: 3000 });
-          toast.success(`✅ PDF заполнен: ${filledResult.filledCount} полей`);
-        } else {
-          toast.error("❌ buildFilledPdfBytes вернул null!");
-        }
-      } catch (e) {
-        toast.error(`❌ EXCEPTION: ${(e as Error).message}`, { duration: 5000 });
-      }
 
-      toast.info(`⏱️ Before fetch at ${(performance.now()-t0).toFixed(0)}ms`, { duration: 2000 });
+  const handleSaveTemplate = async () => {
+    const t0 = performance.now();
+    toast.info(`⏱️ Before fetch at ${(performance.now()-t0).toFixed(0)}ms`, { duration: 2000 });
       const response = await fetch("/api/api.php?action=sendContractPdf", {
         method: "POST",
         headers: {
