@@ -35,6 +35,23 @@ class DocumensoBridgeClient {
     }
     
     /**
+     * Получить детали envelope
+     */
+    public function getEnvelope($envelopeId) {
+        return $this->request('get_envelope', ['envelopeId' => $envelopeId]);
+    }
+    
+    /**
+     * Получить ссылку для подписи
+     */
+    public function getSigningUrl($envelopeId, $email) {
+        return $this->request('get_signing_url', [
+            'envelopeId' => $envelopeId,
+            'email' => $email
+        ]);
+    }
+    
+    /**
      * Отправить HTTP запрос к bridge API
      */
     private function request($action, $params = []) {
