@@ -9,7 +9,7 @@ class DocumensoBridgeClient {
     private $apiKey;
     
     public function __construct() {
-        $this->bridgeUrl = 'http://72.62.114.139/documenso-bridge/';
+        $this->bridgeUrl = 'http://72.62.114.139:8080/';
         $this->apiKey = 'matrang_secret_key_2026';
     }
     
