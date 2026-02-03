@@ -556,6 +556,10 @@ if ($action === 'sendContractPdf') {
     // Подготавливаем данные для VPS
     $contractData = $input['data'];
     
+    // DEBUG LOG
+    file_put_contents(__DIR__ . '/debug_api.log', date('Y-m-d H:i:s') . " - Processing sendContractPdf\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/debug_api.log', "Data: " . json_encode($contractData) . "\n", FILE_APPEND);
+    
     // Отправляем на VPS для создания envelope в Documenso
     try {
         $ch = curl_init('http://72.62.114.139:8080/create_envelope.php');
@@ -575,6 +579,9 @@ if ($action === 'sendContractPdf') {
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
         curl_close($ch);
+        
+        file_put_contents(__DIR__ . '/debug_api.log', "CURL Response (" . $httpCode . "): " . $response . "\n", FILE_APPEND);
+        file_put_contents(__DIR__ . '/debug_api.log', "CURL Error: " . $curlError . "\n", FILE_APPEND);
         
         if ($curlError) {
             throw new Exception('VPS connection error: ' . $curlError);
