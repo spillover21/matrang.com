@@ -206,7 +206,7 @@ if ($action === 'getContracts') {
     // Проверяем наличие PDF шаблона
     $pdfTemplate = '';
     if (file_exists($pdfTemplateFile)) {
-        $pdfTemplate = '/uploads/pdf_template.pdf';
+        $pdfTemplate = '/uploads/pdf_template.pdf?t=' . time();
     }
     
     http_response_code(200);
@@ -529,7 +529,7 @@ if ($action === 'uploadcontract') {
     exit();
 }
 
-// Отправка контракта в PDF по email
+// Отправка контракта в PDF по email + создание envelope в Documenso
 if ($action === 'sendContractPdf') {
     if (!checkAuth()) {
         http_response_code(401);
@@ -539,7 +539,113 @@ if ($action === 'sendContractPdf') {
 
     $input = json_decode(file_get_contents('php://input'), true);
     
-    if (!$input || !isset($input['email']) || !isset($input['pdfData'])) {
+    // Новый формат: просто данные договора (data)
+    if (!$input || !isset($input['data'])) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Invalid request - missing data',
+            'debug' => [
+                'hasInput' => !empty($input),
+                'receivedKeys' => $input ? array_keys($input) : []
+            ]
+        ]);
+        exit();
+    }
+    
+    // Подготавливаем данные для VPS
+    $contractData = $input['data'];
+    
+    // Отправляем на VPS для создания envelope в Documenso
+    try {
+        $ch = curl_init('http://72.62.114.139:8080/create_envelope.php');
+        
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($contractData),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'X-API-Key: matrang_secret_key_2026'
+            ],
+            CURLOPT_TIMEOUT => 60
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        if ($curlError) {
+            throw new Exception('VPS connection error: ' . $curlError);
+        }
+        
+        if ($httpCode !== 200) {
+            throw new Exception('VPS returned HTTP ' . $httpCode . ': ' . $response);
+        }
+        
+        $vpsResult = json_decode($response, true);
+        
+        if (!$vpsResult || !$vpsResult['success']) {
+            throw new Exception($vpsResult['error'] ?? 'Unknown error from VPS');
+        }
+        
+        // Сохраняем договор в локальную БД
+        $contractsFile = __DIR__ . '/../data/contracts.json';
+        $existingData = [];
+        
+        if (file_exists($contractsFile)) {
+            $existingData = json_decode(file_get_contents($contractsFile), true);
+            
+            if (is_array($existingData) && !isset($existingData['contracts'])) {
+                $existingData = [
+                    'contracts' => $existingData,
+                    'templates' => []
+                ];
+            }
+        } else {
+            $existingData = [
+                'contracts' => [],
+                'templates' => []
+            ];
+        }
+        
+        // Добавляем новый договор
+        $newContract = [
+            'id' => $vpsResult['envelope_id'],
+            'data' => $contractData,
+            'createdAt' => date('c'),
+            'sentAt' => date('c'),
+            'documensoUrl' => $vpsResult['document_url'],
+            's3Path' => $vpsResult['s3_path'],
+            'status' => 'sent'
+        ];
+        
+        $existingData['contracts'][] = $newContract;
+        
+        file_put_contents($contractsFile, json_encode($existingData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'contract' => $newContract,
+            'emailSent' => false, // Email пока отключен, используем Documenso
+            'message' => 'Договор создан в Documenso',
+            'vpsResponse' => $vpsResult
+        ]);
+        exit();
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to create contract: ' . $e->getMessage()
+        ]);
+        exit();
+    }
+    
+    /* СТАРЫЙ КОД ОТПРАВКИ EMAIL - ВРЕМЕННО ОТКЛЮЧЕН
+    if (!isset($input['email']) || !isset($input['pdfData'])) {
         http_response_code(400);
         echo json_encode([
             'success' => false, 
@@ -553,6 +659,7 @@ if ($action === 'sendContractPdf') {
         ]);
         exit();
     }
+    */
 
     // Реальная отправка email через PHPMailer (SMTP)
     require_once __DIR__ . '/vendor/autoload.php';

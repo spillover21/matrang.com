@@ -3,8 +3,8 @@
         "logoText": "GREAT LEGACY BULLY",
         "logoImage": "\/uploads\/1767891439_85337ea8.png",
         "tagline": "Home of Matrang",
-        "logoTextSize": 31,
-        "taglineSize": 14,
+        "logoTextSize": 28,
+        "taglineSize": 12,
         "favicon": "\/uploads\/1767891363_d6d38c69.png",
         "siteTitle": "MATRANG DOGS",
         "ogTitle": "MATRANG",
@@ -24,7 +24,7 @@
                     "ru": "American Bully",
                     "en": "American Bully"
                 },
-                "size": 80
+                "size": 62
             },
             {
                 "text": {
@@ -38,14 +38,14 @@
                     "ru": "Генетика ",
                     "en": "Genetics"
                 },
-                "size": 80
+                "size": 64
             },
             {
                 "text": {
                     "ru": "Характер ",
                     "en": "Character"
                 },
-                "size": 80
+                "size": 64
             }
         ],
         "subtitle": "",
@@ -590,6 +590,14 @@
                     "en": "Ivanna, Sochi"
                 },
                 "image": "\/uploads\/1768334860_dda9af23.jpeg"
+            },
+            {
+                "id": 1769850137631,
+                "title": {
+                    "ru": "Татьяна .Москва",
+                    "en": ""
+                },
+                "image": "\/uploads\/1769850160_b89d7563.jpeg"
             }
         ]
     },

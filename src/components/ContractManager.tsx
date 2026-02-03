@@ -231,7 +231,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       
       if (data.success) {
         console.log('✅ Template uploaded to VPS:', data.vps_path);
-        setPdfTemplate(data.vps_path); // Устанавливаем путь на VPS
+        
+        let previewPath = data.vps_path;
+        // Fix: If VPS returns absolute path, switch to local URL for preview
+        if (previewPath && previewPath.includes('/var/www')) {
+             previewPath = '/uploads/pdf_template.pdf?t=' + Date.now();
+        }
+
+        setPdfTemplate(previewPath); // Устанавливаем путь для предпросмотра
         toast.success("✅ PDF шаблон загружен на VPS!");
         
         // Проверяем поля в PDF

@@ -24,13 +24,24 @@ try {
     }
     
     $file = $_FILES['template'];
-    $filePath = $file['tmp_name'];
     $fileName = basename($file['name']);
     
-    // Отправляем файл на VPS через Bridge API
+    // 1. Сначала сохраняем локально, чтобы работал предпросмотр
+    $uploadDir = __DIR__ . '/../uploads/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    $localPath = $uploadDir . 'pdf_template.pdf';
+    
+    if (!move_uploaded_file($file['tmp_name'], $localPath)) {
+        throw new Exception('Failed to save file locally');
+    }
+    
+    // 2. Отправляем файл на VPS через Bridge API
+    // (Используем локальный сохраненный файл)
     $ch = curl_init('http://72.62.114.139:8080/upload_template.php');
     
-    $cfile = new CURLFile($filePath, 'application/pdf', $fileName);
+    $cfile = new CURLFile($localPath, 'application/pdf', $fileName);
     $postData = ['template' => $cfile];
     
     curl_setopt_array($ch, [
@@ -64,8 +75,9 @@ try {
     
     echo json_encode([
         'success' => true,
-        'message' => 'Template uploaded to VPS',
-        'vps_path' => $result['path'],
+        'message' => 'Template uploaded to VPS and saved locally',
+        'vps_path' => '/uploads/pdf_template.pdf?t=' . time(), // Возвращаем локальный URL для предпросмотра
+        'remote_path' => $result['path'],
         'vps_size' => $result['size'] ?? 0
     ]);
     
