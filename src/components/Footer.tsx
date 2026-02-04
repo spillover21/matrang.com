@@ -1,9 +1,10 @@
 import { useContent } from "@/hooks/useContent";
 import { useLanguage } from "@/hooks/useLanguage";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const { content, loading } = useContent();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   if (loading || !content.footer) {
     return null;
@@ -42,9 +43,14 @@ const Footer = () => {
           </div>
           
           {copyright && (
-            <p className="font-body text-sm text-muted-foreground text-center">
-              {t(copyright)}
-            </p>
+            <div className="flex flex-col items-center gap-2">
+              <p className="font-body text-sm text-muted-foreground text-center">
+                {t(copyright)}
+              </p>
+              <Link to="/rules" className="text-xs text-muted-foreground/60 hover:text-primary transition-colors uppercase tracking-wider">
+                 {language === 'ru' ? 'Правила' : 'Rules'}
+              </Link>
+            </div>
           )}
           
           <div className="flex items-center gap-6">

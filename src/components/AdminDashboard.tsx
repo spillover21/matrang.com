@@ -358,6 +358,8 @@ const AdminDashboard = ({ token, onLogout }: AdminDashboardProps) => {
                        field === 'taglineSize' ? 'Размер подзаголовка' :
                        field === 'titleSize' ? 'Размер заголовка Hero' :
                        field === 'titles' ? 'Заголовки Hero (множественные)' :
+                       field === 'title' ? 'Заголовок' :
+                       field === 'content' ? 'Содержание (HTML)' :
                        field}
                     </label>
 

@@ -702,5 +702,15 @@
                 "url": "https:\/\/www.tiktok.com\/@matrang_dog?_t=8qFAqbZglbM&_r=1"
             }
         ]
+    },
+    "rules": {
+        "title": {
+            "ru": "Правила электронного документооборота",
+            "en": "Rules of Electronic Document Management"
+        },
+        "content": {
+            "ru": "<p>1. <strong>Электронная подпись (ПЭП)</strong> используется для подписания всех документов в рамках сделок на платформе. Она имеет ту же юридическую силу, что и собственноручная подпись.</p><p>2. <strong>Усовершенствованная подпись (AES)</strong> применяется для подписания договоров, связанных с отчуждением прав и значительных финансовых операций, обеспечивая повышенную надежность и защиту от изменений.</p><p>3. <strong>Система аудита</strong> фиксирует все действия сторон: время отправки, просмотра и подписания документов, а также IP-адреса и устройства участников.</p><p>4. <strong>Депозит и Оферта</strong>: Внесение депозита подтверждает принятие условий Оферты и намерение заключить сделку. Депозит является обеспечительным платежом.</p>",
+            "en": "<p>1. <strong>Simple Electronic Signature (SES)</strong> is used for signing all documents within transactions on the platform. It has the same legal validity as a handwritten signature.</p><p>2. <strong>Advanced Electronic Signature (AES)</strong> is applied for signing contracts involving the transfer of rights and significant financial operations, ensuring enhanced reliability and protection against modifications.</p><p>3. <strong>Audit System</strong> records all actions of the parties: time of sending, viewing, and signing documents, as well as IP addresses and devices of the participants.</p><p>4. <strong>Deposit and Offer</strong>: Making a deposit confirms the acceptance of the Offer terms and the intention to conclude the transaction. The deposit serves as a security payment.</p>"
+        }
     }
 }

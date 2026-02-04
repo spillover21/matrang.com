@@ -7,6 +7,7 @@ import { useState } from "react";
 import { LanguageContext, Language } from "@/hooks/useLanguage";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
+import Rules from "./pages/Rules";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/rules" element={<Rules />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

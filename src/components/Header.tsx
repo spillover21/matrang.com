@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Phone, Globe } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
 import { useLanguage } from "@/hooks/useLanguage";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { content, loading } = useContent();
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const headerContent = !loading ? content.header : null;
   const logoImage = headerContent?.logoImage;
@@ -56,9 +59,19 @@ const Header = () => {
   }, [headerContent]);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
     setIsMenuOpen(false);
   };
@@ -118,6 +131,13 @@ const Header = () => {
             >
               {language === 'ru' ? 'Контакты' : 'Contact'}
             </button>
+
+            <Link
+              to="/rules"
+              className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
+            >
+              {language === 'ru' ? 'Правила' : 'Rules'}
+            </Link>
             
             {/* Language Switcher */}
             <button
@@ -166,6 +186,13 @@ const Header = () => {
               >
                 {language === 'ru' ? 'Контакты' : 'Contact'}
               </button>
+              <Link
+                to="/rules"
+                onClick={() => setIsMenuOpen(false)}
+                className="font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors text-left"
+              >
+                {language === 'ru' ? 'Правила' : 'Rules'}
+              </Link>
               <button
                 onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
                 className="flex items-center gap-2 font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
