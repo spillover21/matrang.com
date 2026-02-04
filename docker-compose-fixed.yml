@@ -19,21 +19,21 @@ services:
       # Database
       - NEXT_PRIVATE_DATABASE_URL=postgresql://documenso:documenso123@postgres:5432/documenso?schema=public
       - NEXT_PRIVATE_DIRECT_DATABASE_URL=postgresql://documenso:documenso123@postgres:5432/documenso?schema=public
-      # SMTP Settings (Legacy)
-      - SMTP_HOST=smtp.hostinger.com
-      - SMTP_PORT=587
-      - SMTP_USER=noreply@matrang.com
-      - SMTP_PASSWORD=Gibson2104)))
+      # SMTP Settings (DISABLED to prevent system emails)
+      - SMTP_HOST=
+      - SMTP_PORT=
+      - SMTP_USER=
+      - SMTP_PASSWORD=
       - SMTP_FROM_NAME="Great Legacy Bully"
       - SMTP_FROM_ADDRESS=noreply@matrang.com
 
-      # SMTP Settings (New - Required by V2)
-      - NEXT_PRIVATE_SMTP_HOST=smtp.hostinger.com
-      - NEXT_PRIVATE_SMTP_PORT=587
-      - NEXT_PRIVATE_SMTP_USERNAME=noreply@matrang.com
-      - NEXT_PRIVATE_SMTP_PASSWORD=Gibson2104)))
+      # SMTP Settings (New - Required by V2 - DISABLED)
+      - NEXT_PRIVATE_SMTP_HOST=
+      - NEXT_PRIVATE_SMTP_PORT=
+      - NEXT_PRIVATE_SMTP_USERNAME=
+      - NEXT_PRIVATE_SMTP_PASSWORD=
       - NEXT_PRIVATE_SMTP_SECURE=false
-      - NEXT_PRIVATE_SMTP_TRANSPORT=smtp-auth
+      - NEXT_PRIVATE_SMTP_TRANSPORT=
       - NEXT_PRIVATE_SMTP_SERVICE=
       - NEXT_PRIVATE_SMTP_FROM_ADDRESS=noreply@matrang.com
       - NEXT_PRIVATE_SMTP_FROM_NAME=Matrang
