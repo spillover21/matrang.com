@@ -58,12 +58,45 @@ try {
     
     debug_log("Result: " . print_r($result, true));
     
+    // Сохраняем договор в локальную базу
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    $existingData = ['contracts' => [], 'templates' => []];
+    
+    if (file_exists($contractsFile)) {
+        $fileContent = file_get_contents($contractsFile);
+        $existingData = json_decode($fileContent, true);
+        
+        // Поддержка старого формата
+        if (isset($existingData[0])) {
+            $existingData = ['contracts' => $existingData, 'templates' => []];
+        }
+    }
+    
+    // Создаем запись договора
+    $contractRecord = [
+        'id' => 'contract-' . time() . '-' . rand(1000, 9999),
+        'contractNumber' => 'DOG-' . date('Y') . '-' . str_pad(count($existingData['contracts']) + 1, 4, '0', STR_PAD_LEFT),
+        'createdAt' => date('c'),
+        'sentAt' => date('c'),
+        'status' => 'sent',
+        'data' => $data,
+        'adobeSignAgreementId' => $result['envelope_id'] ?? null,
+        'buyerSigningUrl' => $result['signing_url'] ?? null,
+        'sellerSigningUrl' => $result['seller_signing_url'] ?? null,
+    ];
+    
+    $existingData['contracts'][] = $contractRecord;
+    
+    file_put_contents($contractsFile, json_encode($existingData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    debug_log("Contract saved to database: " . $contractRecord['id']);
+    
     echo json_encode([
         'success' => true,
         'message' => 'Договор создан и отправлен на подпись',
         'envelope_id' => $result['envelope_id'],
         'signing_url' => $result['signing_url'],
-        'recipient_id' => $result['recipient_id']
+        'recipient_id' => $result['recipient_id'],
+        'contract_id' => $contractRecord['id']
     ], JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
