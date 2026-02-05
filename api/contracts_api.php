@@ -9,7 +9,8 @@ ini_set('log_errors', 1);
 
 // Debug log to confirm execution start
 function debug_log($msg) {
-    file_put_contents('/tmp/debug_contracts.log', date('Y-m-d H:i:s') . " - " . $msg . "\n", FILE_APPEND);
+    $logFile = __DIR__ . '/../data/debug_contracts.log';
+    file_put_contents($logFile, date('Y-m-d H:i:s') . " - " . $msg . "\n", FILE_APPEND);
 }
 
 debug_log("Script started");
