@@ -826,6 +826,46 @@ if ($action === 'signContract') {
 }
 
 // -------------------------------------------------------------
+// SELLER PROFILE ENDPOINTS (для кнопок Сохранить/Вставить)
+// -------------------------------------------------------------
+if ($action === 'save_seller_profile') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+    
+    $input = json_decode(file_get_contents('php://input'), true);
+    if ($input) {
+        $profileFile = __DIR__ . '/../data/seller_profile.json';
+        file_put_contents($profileFile, json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        echo json_encode(['success' => true]);
+    } else {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid data']);
+    }
+    exit();
+}
+
+if ($action === 'get_seller_profile') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+    
+    $profileFile = __DIR__ . '/../data/seller_profile.json';
+    if (file_exists($profileFile)) {
+        $data = file_get_contents($profileFile);
+        header('Content-Type: application/json');
+        echo $data;
+    } else {
+        echo json_encode([]);
+    }
+    exit();
+}
+
+// -------------------------------------------------------------
 
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action']);
