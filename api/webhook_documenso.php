@@ -56,8 +56,12 @@ if (!$testMode) {
 }
 
 $payload = json_decode($rawBody, true);
-$event = $payload['type'] ?? '';
-$data = $payload['data'] ?? [];
+
+// Documenso может отправлять в двух форматах:
+// 1. {"type":"DOCUMENT_COMPLETED","data":{...}} - старый формат
+// 2. {"event":"DOCUMENT_COMPLETED","payload":{...}} - новый формат
+$event = $payload['event'] ?? $payload['type'] ?? '';
+$data = $payload['payload'] ?? $payload['data'] ?? [];
 
 error_log('[WEBHOOK] Event: ' . $event . ', Data: ' . json_encode($data));
 
