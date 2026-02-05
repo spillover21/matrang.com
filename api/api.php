@@ -19,6 +19,17 @@ $action = $_GET['action'] ?? '';
 $dataFile = __DIR__ . '/../data/content.json';
 $uploadDir = __DIR__ . '/../uploads/';
 
+// ТЕСТОВЫЕ ЭНДПОИНТЫ - УДАЛИТЬ ПОСЛЕ ОТЛАДКИ
+if ($action === 'save_seller_profile') {
+    echo json_encode(['success' => true, 'test' => 'TEST ENDPOINT WORKS', 'timestamp' => time()]);
+    exit();
+}
+
+if ($action === 'get_seller_profile') {
+    echo json_encode(['test' => 'TEST GET WORKS', 'timestamp' => time()]);
+    exit();
+}
+
 // Проверка аутентификации
 function checkAuth() {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
