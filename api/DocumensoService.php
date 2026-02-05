@@ -114,6 +114,21 @@ class DocumensoService {
     }
 
     /**
+     * Получает список всех документов
+     */
+    public function listDocuments($page = 1, $perPage = 100) {
+        $response = $this->request('GET', "/documents?page={$page}&perPage={$perPage}");
+        return $response['documents'] ?? [];
+    }
+
+    /**
+     * Получает детали конкретного документа
+     */
+    public function getDocument($documentId) {
+        return $this->request('GET', "/documents/{$documentId}");
+    }
+
+    /**
      * Вспомогательный метод для запросов
      */
     private function request($method, $endpoint, $data = [], $rawOutput = false) {
