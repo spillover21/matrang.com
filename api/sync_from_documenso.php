@@ -57,6 +57,7 @@ try {
 
 $results = [];
 $completedDocs = [];
+$fullDocumentSample = null;
 
 // Для каждого COMPLETED документа обновляем статус в базе
 foreach ($documents as $doc) {
@@ -64,6 +65,11 @@ foreach ($documents as $doc) {
         // Получаем полную информацию о документе
         try {
             $fullDoc = $documenso->getDocument($doc['id']);
+            
+            // Сохраняем первый полный документ для отладки
+            if ($fullDocumentSample === null) {
+                $fullDocumentSample = $fullDoc;
+            }
             
             // Получаем email получателя из полного документа
             $buyerEmail = null;
@@ -105,7 +111,8 @@ echo json_encode([
     'success' => true,
     'totalDocuments' => count($documents),
     'completedDocuments' => count($completedDocs),
-    'completedDetails' => $completedDocs,
+    'completedDetails' => array_slice($completedDocs, 0, 5), // Только первые 5
     'updatedContracts' => count($results),
-    'updateDetails' => $results
+    'updateDetails' => array_slice($results, 0, 5), // Только первые 5
+    'fullDocumentSample' => $fullDocumentSample // Полный документ для отладки
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
