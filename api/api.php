@@ -826,7 +826,7 @@ if ($action === 'signContract') {
 }
 
 // -------------------------------------------------------------
-// SELLER PROFILE ENDPOINTS (для кнопок Сохранить/Вставить)
+// SELLER PROFILE SAVE/LOAD
 // -------------------------------------------------------------
 if ($action === 'save_seller_profile') {
     if (!checkAuth()) {
