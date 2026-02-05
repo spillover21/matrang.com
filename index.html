@@ -87,6 +87,7 @@
 
       document.getElementById('btn-save-profile').addEventListener('click', async () => {
          const data = scrapeSellerInfo();
+         console.log('💾 SAVING DATA:', data);
          if (!data.kennelOwner) { alert('❌ Сначала заполните ФИО и другие свои данные, затем жмите сохранение.'); return; }
          try {
              await fetch('/api/api.php?action=save_seller_profile', {
@@ -102,6 +103,7 @@
          try {
              const res = await fetch('/api/api.php?action=get_seller_profile', { headers: getHeaders() });
              let data = await res.json();
+             console.log('📥 LOADED DATA:', data);
              if (!data || Object.keys(data).length === 0) {
                  alert('⚠️ Нет сохраненных данных.'); return;
              }
