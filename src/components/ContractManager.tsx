@@ -1617,6 +1617,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                           </Button>
                         )}
                         
+                        {contract.signedAt && !contract.signedDocumentUrl && (
+                          <div className="text-sm text-muted-foreground p-2 bg-muted rounded-md w-full text-center">
+                            <Download className="w-4 h-4 mx-auto mb-1" />
+                            PDF отправлен в письме
+                          </div>
+                        )}
+                        
                         {contract.buyerSigningUrl && !contract.signedAt && (
                           <Button variant="outline" size="sm" asChild className="w-full">
                             <a href={contract.buyerSigningUrl} target="_blank" rel="noopener noreferrer">
