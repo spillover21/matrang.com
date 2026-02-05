@@ -16,6 +16,16 @@ $webhookSecret = $config['WEBHOOK_SECRET'];
 $rawBody = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_DOCUMENSO_SIGNATURE'] ?? '';
 
+// ДЕБАГ: логируем ВСЕ входящие запросы до проверки подписи
+$debugLog = [
+    'timestamp' => date('Y-m-d H:i:s'),
+    'all_headers' => getallheaders(),
+    'signature_header' => $signature,
+    'body_preview' => substr($rawBody, 0, 500),
+    'calculated_signature' => hash_hmac('sha256', $rawBody, $webhookSecret),
+];
+error_log('[WEBHOOK DEBUG] ' . json_encode($debugLog, JSON_UNESCAPED_UNICODE));
+
 // 2. Проверка подписи (HMAC-SHA256)
 // LEGAL COMPLIANCE: Критически важно проверять подлинность вебхука, 
 // чтобы никто не мог подделать факт подписания договора.
@@ -29,6 +39,7 @@ if ($testMode) {
     echo "Signature: " . $signature . "\n\n";
 } else {
     if (empty($signature)) {
+        error_log('[WEBHOOK ERROR] Signature missing');
         http_response_code(401);
         die('Signature missing');
     }
@@ -37,6 +48,7 @@ if ($testMode) {
 
     // Сравнение подписей (timing-attack safe)
     if (!hash_equals($calculatedSignature, $signature)) {
+        error_log('[WEBHOOK ERROR] Invalid signature. Expected: ' . $calculatedSignature . ', Got: ' . $signature);
         http_response_code(403);
         die('Invalid signature');
     }
