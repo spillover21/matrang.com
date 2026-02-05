@@ -56,6 +56,7 @@ try {
 }
 
 $results = [];
+$completedDocs = [];
 
 // Для каждого COMPLETED документа обновляем статус в базе
 foreach ($documents as $doc) {
@@ -70,6 +71,13 @@ foreach ($documents as $doc) {
                 }
             }
         }
+        
+        $completedDocs[] = [
+            'id' => $doc['id'],
+            'title' => $doc['title'] ?? 'N/A',
+            'email' => $buyerEmail,
+            'completedAt' => $doc['completedAt'] ?? null
+        ];
         
         if ($buyerEmail) {
             $result = updateContractStatusByEmail($buyerEmail, 'signed');
@@ -86,6 +94,8 @@ foreach ($documents as $doc) {
 echo json_encode([
     'success' => true,
     'totalDocuments' => count($documents),
+    'completedDocuments' => count($completedDocs),
+    'completedDetails' => $completedDocs,
     'updatedContracts' => count($results),
-    'details' => $results
+    'updateDetails' => $results
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
