@@ -1617,6 +1617,15 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                           </Button>
                         )}
                         
+                        {contract.buyerSigningUrl && !contract.signedAt && (
+                          <Button variant="outline" size="sm" asChild className="w-full">
+                            <a href={contract.buyerSigningUrl} target="_blank" rel="noopener noreferrer">
+                              <Send className="w-4 h-4 mr-2" />
+                              Ссылка покупателя
+                            </a>
+                          </Button>
+                        )}
+                        
                         {contract.sellerSigningUrl && !contract.signedAt && (
                           <Button variant="default" size="sm" asChild className="w-full">
                             <a href={contract.sellerSigningUrl} target="_blank" rel="noopener noreferrer">
@@ -1626,13 +1635,32 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                           </Button>
                         )}
 
+                        {!contract.signedAt && contract.adobeSignAgreementId && (
+                          <Button 
+                            variant="secondary" 
+                            size="sm"
+                            className="w-full"
+                            onClick={async () => {
+                              try {
+                                await loadContracts();
+                                toast.success('Статус обновлен');
+                              } catch (e) {
+                                toast.error('Ошибка обновления');
+                              }
+                            }}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Обновить статус
+                          </Button>
+                        )}
+
                         {contract.adobeSignAgreementId && (
                           <Button 
                             variant="ghost" 
                             size="sm"
                             className="w-full"
                             onClick={() => {
-                              const details = `Договор №${contract.contractNumber}\n\nПокупатель: ${contract.data.buyerName}\nEmail: ${contract.data.buyerEmail}\nЩенок: ${contract.data.dogName}\nЦена: ${contract.data.price} ₽\n\nAdobe Sign ID: ${contract.adobeSignAgreementId}`;
+                              const details = `Договор №${contract.contractNumber}\n\nПокупатель: ${contract.data.buyerName}\nEmail: ${contract.data.buyerEmail}\nЩенок: ${contract.data.dogName}\nЦена: ${contract.data.price} ₽\n\nDocumenso ID: ${contract.adobeSignAgreementId}`;
                               alert(details);
                             }}
                           >
