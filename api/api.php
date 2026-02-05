@@ -829,57 +829,46 @@ if ($action === 'signContract') {
 // SELLER PROFILE SAVE/LOAD
 // -------------------------------------------------------------
 if ($action === 'save_seller_profile') {
-    try {
-        // Убираем проверку авторизации временно для отладки
-        // if (!checkAuth()) {
-        //     http_response_code(401);
-        //     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-        //     exit();
-        // }
-        
-        $input = json_decode(file_get_contents('php://input'), true);
-        if ($input) {
-            $profileFile = __DIR__ . '/../data/seller_profile.json';
-            $result = file_put_contents($profileFile, json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-            if ($result === false) {
-                throw new Exception('Failed to write file');
-            }
-            echo json_encode(['success' => true, 'message' => 'Profile saved']);
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+    
+    $input = json_decode(file_get_contents('php://input'), true);
+    $profileFile = __DIR__ . '/../data/seller_profile.json';
+    
+    // Создаем папку если её нет
+    $dataDir = __DIR__ . '/../data';
+    if (!is_dir($dataDir)) {
+        mkdir($dataDir, 0755, true);
+    }
+    
+    if ($input && is_array($input)) {
+        $result = file_put_contents($profileFile, json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        if ($result !== false) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => true, 'message' => 'Saved ' . $result . ' bytes']);
         } else {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid JSON data']);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'message' => 'File write failed', 'path' => $profileFile]);
         }
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    } else {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'message' => 'Invalid input', 'received' => $input]);
     }
     exit();
 }
 
 if ($action === 'get_seller_profile') {
-    try {
-        // Убираем проверку авторизации временно для отладки
-        // if (!checkAuth()) {
-        //     http_response_code(401);
-        //     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-        //     exit();
-        // }
-        
-        $profileFile = __DIR__ . '/../data/seller_profile.json';
-        if (file_exists($profileFile)) {
-            $data = file_get_contents($profileFile);
-            if ($data === false) {
-                throw new Exception('Failed to read file');
-            }
-            header('Content-Type: application/json; charset=utf-8');
-            echo $data;
-        } else {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([]);
-        }
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+    
+    $profileFile = __DIR__ . '/../data/seller_profile.json';
+    
+    header('Content-Type: application/json; charset=utf-8');
+    if (file_exists($profileFile)) {
+        $data = file_get_contents($profileFile);
+        echo $data;
+    } else {
+        echo json_encode(['message' => 'No profile found', 'path' => $profileFile]);
     }
     exit();
 }
