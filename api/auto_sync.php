@@ -4,6 +4,9 @@
  * Скачивает PDF и обновляет статусы
  */
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 $silent = isset($_GET['silent']) || (php_sapi_name() === 'cli');
 
 require_once __DIR__ . '/DocumensoService.php';
