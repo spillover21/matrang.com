@@ -1554,8 +1554,11 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     if (contract.status === 'signed' || contract.signedAt) {
                       return <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium">✓ Подписан</span>;
                     }
+                    if (contract.status === 'rejected') {
+                      return <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-medium">✗ Отклонен</span>;
+                    }
                     if (contract.status === 'sent' || contract.sentAt) {
-                      return <span className="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-medium">📧 Отправлен на подпись</span>;
+                      return <span className="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-medium">⏳ На подписании</span>;
                     }
                     if (contract.status === 'sent_by_email') {
                       return <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-medium">✉️ Отправлен Email</span>;
@@ -1564,79 +1567,102 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                   };
                   
                   return (
-                  <div key={contract.id} className="bg-card border border-border rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold">Договор №{contract.contractNumber}</h3>
+                  <div key={contract.id} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-base">Договор №{contract.contractNumber}</h3>
                           {getStatusBadge()}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Покупатель: {contract.data.buyerName} ({contract.data.buyerEmail})
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Щенок: {contract.data.dogName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Цена: {contract.data.price} ₽
-                        </p>
-                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>Создан: {new Date(contract.createdAt).toLocaleDateString('ru-RU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}</span>
-                          {contract.sentAt && (
-                            <span>Отправлен: {new Date(contract.sentAt).toLocaleDateString('ru-RU', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}</span>
-                          )}
-                          {contract.signedAt && (
-                            <span className="text-green-600 font-medium">Подписан: {new Date(contract.signedAt).toLocaleDateString('ru-RU', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}</span>
-                          )}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Дата:</span>{' '}
+                            <span className="font-medium">{new Date(contract.createdAt).toLocaleDateString('ru-RU')}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Покупатель:</span>{' '}
+                            <span className="font-medium">{contract.data.buyerName}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Щенок:</span>{' '}
+                            <span className="font-medium">{contract.data.dogName}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Цена:</span>{' '}
+                            <span className="font-medium">{contract.data.price} ₽</span>
+                          </div>
                         </div>
-                        {contract.adobeSignAgreementId && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Adobe Sign ID: {contract.adobeSignAgreementId}
-                          </p>
+
+                        {contract.signedAt && (
+                          <div className="mt-2 text-xs text-green-600 font-medium">
+                            ✓ Подписан: {new Date(contract.signedAt).toLocaleDateString('ru-RU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
                         )}
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {contract.signedDocumentUrl && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={contract.signedDocumentUrl} download>
-                            <Download className="w-4 h-4 mr-2" />
-                            Скачать подписанный
-                          </a>
+
+                      <div className="flex flex-col gap-2 shrink-0">
+                        {contract.signedDocumentUrl && (
+                          <Button variant="outline" size="sm" asChild className="w-full">
+                            <a href={contract.signedDocumentUrl} target="_blank" rel="noopener noreferrer">
+                              <Download className="w-4 h-4 mr-2" />
+                              Скачать PDF
+                            </a>
+                          </Button>
+                        )}
+                        
+                        {contract.sellerSigningUrl && !contract.signedAt && (
+                          <Button variant="default" size="sm" asChild className="w-full">
+                            <a href={contract.sellerSigningUrl} target="_blank" rel="noopener noreferrer">
+                              <FileText className="w-4 h-4 mr-2" />
+                              Подписать (продавец)
+                            </a>
+                          </Button>
+                        )}
+
+                        {contract.adobeSignAgreementId && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              const details = `Договор №${contract.contractNumber}\n\nПокупатель: ${contract.data.buyerName}\nEmail: ${contract.data.buyerEmail}\nЩенок: ${contract.data.dogName}\nЦена: ${contract.data.price} ₽\n\nAdobe Sign ID: ${contract.adobeSignAgreementId}`;
+                              alert(details);
+                            }}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Детали
+                          </Button>
+                        )}
+
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          className="w-full"
+                          onClick={async () => {
+                            if (!confirm(`Удалить договор №${contract.contractNumber}?`)) return;
+                            try {
+                              await fetch(`/api/api.php?action=deleteContract&id=${contract.id}`, {
+                                method: 'DELETE',
+                                headers: getHeaders()
+                              });
+                              await loadContracts();
+                              alert('✓ Договор удален');
+                            } catch (e) {
+                              alert('Ошибка удаления: ' + e);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Удалить
                         </Button>
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => {
-                          // Показать детали договора
-                          const details = Object.entries(contract.data)
-                            .map(([key, value]) => `${key}: ${value}`)
-                            .join('\n');
-                          alert(`Детали договора №${contract.contractNumber}\n\n${details}`);
-                        }}
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Детали
-                      </Button>
+                      </div>
                     </div>
                   </div>
                   );

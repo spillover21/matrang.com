@@ -176,6 +176,58 @@ if ($action === 'login') {
 }
 
 // Получение контрактов и шаблонов
+// Удаление договора
+if ($action === 'deleteContract') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $contractId = $_GET['id'] ?? '';
+    if (!$contractId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Contract ID required']);
+        exit();
+    }
+
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    
+    if (file_exists($contractsFile)) {
+        $fileContent = file_get_contents($contractsFile);
+        $data = json_decode($fileContent, true);
+        
+        $contracts = [];
+        $templates = [];
+        
+        // Определяем формат
+        if (isset($data['contracts']) && isset($data['templates'])) {
+            $contracts = $data['contracts'];
+            $templates = $data['templates'];
+        } else if (is_array($data)) {
+            $contracts = $data;
+        }
+        
+        // Удаляем договор
+        $contracts = array_filter($contracts, function($c) use ($contractId) {
+            return $c['id'] !== $contractId;
+        });
+        
+        // Перенумеровываем массив
+        $contracts = array_values($contracts);
+        
+        // Сохраняем
+        $saveData = empty($templates) ? $contracts : ['contracts' => $contracts, 'templates' => $templates];
+        file_put_contents($contractsFile, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        echo json_encode(['success' => true, 'message' => 'Contract deleted']);
+    } else {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Contracts file not found']);
+    }
+    exit();
+}
+
 if ($action === 'getContracts') {
     if (!checkAuth()) {
         http_response_code(401);
