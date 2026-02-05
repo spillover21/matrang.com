@@ -225,6 +225,31 @@ if ($action === 'updateContractStatus') {
     exit();
 }
 
+// 5. Профиль продавца (для кнопок "Сохранить/Вставить")
+if ($action === 'save_seller_profile') {
+    if (!checkAuth()) { http_response_code(401); echo json_encode(['success'=>false, 'message'=>'Unauthorized']); exit(); }
+    $input = json_decode(file_get_contents('php://input'), true);
+    if ($input) {
+        file_put_contents(__DIR__ . '/../data/seller_profile.json', json_encode($input, JSON_UNESCAPED_UNICODE));
+        echo json_encode(['success' => true]);
+    } else {
+        http_response_code(400); echo json_encode(['success'=>false]);
+    }
+    exit();
+}
+
+if ($action === 'get_seller_profile') {
+    if (!checkAuth()) { http_response_code(401); echo json_encode(['success'=>false, 'message'=>'Unauthorized']); exit(); }
+    $file = __DIR__ . '/../data/seller_profile.json';
+    if (file_exists($file)) {
+        header('Content-Type: application/json');
+        echo file_get_contents($file);
+    } else {
+        echo json_encode([]); 
+    }
+    exit();
+}
+
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action']);
 

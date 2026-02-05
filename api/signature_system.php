@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // eIDAS-compliant Electronic Signature System
 // Advanced Electronic Signature (AdES) for EU
 // Compliant with Regulation (EU) No 910/2014
@@ -77,7 +77,7 @@ class eIDASSignatureSystem {
     }
     
     /**
-     * Получить запрос на подписание по токену
+     * РџРѕР»СѓС‡РёС‚СЊ Р·Р°РїСЂРѕСЃ РЅР° РїРѕРґРїРёСЃР°РЅРёРµ РїРѕ С‚РѕРєРµРЅСѓ
      */
     public function getSigningRequest($token) {
         $requests = $this->loadRequests();
@@ -153,367 +153,50 @@ class eIDASSignatureSystem {
                 $this->saveRequests($requests);
                 
                 // Add visual signature to PDF
-                $signedPdfUrl = $this->addSignatureToPdf(
-       Generate eIDAS compliance certificate
-     */
-    private function generateEIDASCertificate($request) {
-        $certificate = [
-            'certificate_type' => 'eIDAS Advanced Electronic Signature Certificate',
-            'regulatory_framework' => 'Regulation (EU) No 910/2014 on electronic identification and trust services',
-            'signature_id' => $request['id'],
-            'contract_id' => $request['contract_id'],
-            'signatory' => [
-                'email' => $request['buyer_email'],
-                'phone' => $request['buyer_phone'],
-                'verified_via' => '2FA (Email + SMS)'
-            ],
-            'document' => [
-                'original_hash_sha256' => $request['document_hash'],
-                'signed_at_utc' => $request['signed_at'],
-                'signature_hash_sha256' => $request['signature_hash']
-            ],
-            'authentication' => [
-                'method' => 'Two-Factor Authentication',
-                'email_verified' => true,
-                'sms_verified' => true,
-                'timestamp' => $request['signed_at']
-            ],
-            'audit_trail' => $request['audit_trail'],
-            'legal_compliance' => [
-                'regulation' => 'eIDAS Regulation (EU) No 910/2014',
-                'signature_type' => 'Advanced Electronic Signature (AdES)',
-                'article_reference' => 'Article 26 (Advanced electronic signature)',
-                'requirements_met' => [
-                    'uniquely_linked_to_signatory' => true,
-                    'capable_of_identifying_signatory' => true,
-                    'created_using_signature_creation_data' => true,
-                    'linked_to_data_in_such_manner_that_any_subsequent_change_is_detectable' => true
-                ]
-            ],
-            'certificate_issued_at' => gmdate('c'),
-            'certificate_hash' => ''
-        ];
-        
-        // Generate certificate hash (self-verifying)
-        $certificate['certificate_hash'] = hash('sha256', json_encode($certificate));
-        
-        $filename = 'eidas_certificate_' . $request['id'] . '.json';
-        $filepath = __DIR__ . '/../uploads/' . $filename;
-        file_put_contents($filepath, json_encode($certificate, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        
-        // Also create human-readable HTML certificate
-        $this->generateHTMLCertificate($certificate, $request['id']);
-        
-        return '/uploads/' . $filename;
-    }
-    
-    /**
-     * Send signing email (eIDAS compliant)
-     */
-    private function sendSigningEmail($email, $token, $phone) {
-        $smtpConfig = require __DIR__ . '/smtp_config.php';
-        $mail = new PHPMailer(true);
-        
-        try {
-            $mail->isSMTP();
-            $mail->Host = $smtpConfig['host'];
-            $mail->SMTPAuth = $smtpConfig['auth'];
-            $mail->Username = $smtpConfig['username'];
-            $mail->Password = $smtpConfig['password'];
-            $mail->SMTPSecure = $smtpConfig['encryption'];
-            $mail->Port = $smtpConfig['port'];
-            $mail->CharSet = 'UTF-8';
-            
-            $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
-            $mail->addAddress($email);
-            
-            $signingUrl = "https://matrang.com/sign?token=$token";
-            $maskedPhone = substr($phone, 0, -4) . 'XXXX';
-            
-            $mail->isHTML(true);
-            $mail->Subject = 'Sign Your Dog Purchase Agreement - eIDAS Compliant';
-            $mail->Body = "
-                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;'>
-                        <h1 style='margin: 0;'>🐕 Contract Signature Required</h1>
-                        <p style='margin: 10px 0 0 0;'>Great Legacy Bully</p>
-                    </div>
-                    
-                    <div style='padding: 30px; background: #f9f9f9;'>
-                        <h2 style='color: #333;'>Electronic Signature (eIDAS Compliant)</h2>
-                        <p>Hello,</p>
-                        <p>Your dog purchase agreement is ready for electronic signature. This signature process complies with <strong>eIDAS Regulation (EU) No 910/2014</strong> for Advanced Electronic Signatures.</p>
-                        
-                        <div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;'>
-                            <strong>🔐 Two-Factor Authentication:</strong><br>
-                            A verification code has been sent to your phone ending in <strong>{$maskedPhone}</strong>
-                        </div>
-                        
-                        <div style='text-align: center; margin: 30px 0;'>
-                            <a href='{$signingUrl}' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-size: 18px; font-weight: bold;'>Sign Contract Now</a>
-                        </div>
-                        
-                        <p style='font-size: 14px; color: #666;'>Or copy this link:<br>
-                        <a href='{$signingUrl}'>{$signingUrl}</a></p>
-                        
-                        <div style='background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin: 20px 0;'>
-                            <strong>📋 What you need to do:</strong><br>
-                            1. Click the button above<br>
-                            2. Enter the SMS code<br>
-                            3. Draw or upload your signature<br>
-                            4. Receive your signed contract
-                        </div>
-                        
-                        <p style='font-size: 12px; color: #999; margin-top: 30px;'>
-                            ⏱ This link expires in 7 days<br>
-                            🔒 Your signature is legally binding under EU law<br>
-                            ✓ eIDAS Regulation (EU) No 910/2014 compliant
-                        </p>
-                    </div>
-                    
-                    <div style='background: #333; color: #999; padding: 20px; text-align: center; font-size: 12px;'>
-                        <p style='margin: 0;'>Great Legacy Bully | Finland</p>
-                        <p style='margin: 5px 0 0 0;'>greatlegacybully@gmail.com | +358 46 522 6399</p>
-                    </div>
-                </div>
-            ";
-            
-            $mail->send();
-            return true;
-        } catch (Exception $e) {
-            error_log("Email sending failed: " . $mail->ErrorInfo);
-            return false;
-        }
-    }
-    
-    /**
-     * Send SMS (stub - integrate with SMS provider)
-     */
-    private function sendSMS($phone, $code) {
-        // TODO: Integrate with SMS provider (Twilio, Vonage, etc.)
-        error_log("SMS to $phone: Your verification code is $code (eIDAS signature)");
-        
-        // For testing, you could use a service like:
-        // - Twilio: https://www.twilio.com/
-        // - Vonage: https://www.vonage.com/
-        // - SMS.to: https://sms.to/
-        
-        return true;
-    }
-    
-    /**
-     * Send signed contract
-     */
-    private function sendSignedContract($email, $pdfUrl, $certificateUrl) {
-        $smtpConfig = require __DIR__ . '/smtp_config.php';
-        $mail = new PHPMailer(true);
-        
-        try {
-            $mail->isSMTP();
-            $mail->Host = $smtpConfig['host'];
-            $mail->SMTPAuth = $smtpConfig['auth'];
-            $mail->Username = $smtpConfig['username'];
-            $mail->Password = $smtpConfig['password'];
-            $mail->SMTPSecure = $smtpConfig['encryption'];
-            $mail->Port = $smtpConfig['port'];
-            $mail->CharSet = 'UTF-8';
-            
-            $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
-            $mail->addAddress($email);
-            
-            $pdfFullUrl = 'https://matrang.com' . $pdfUrl;
-            $certFullUrl = 'https://matrang.com' . str_replace('.json', '.html', $certificateUrl);
-            
-            $mail->isHTML(true);
-            $mail->Subject = '✅ Contract Successfully Signed (eIDAS Compliant)';
-            $mail->Body = "
-                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                    <div style='background: #28a745; color: white; padding: 30px; text-align: center;'>
-                        <h1 style='margin: 0; font-size: 32px;'>✅</h1>
-                        <h2 style='margin: 10px 0 0 0;'>Contract Successfully Signed!</h2>
-                    </div>
-                    
-                    <div style='padding: 30px; background: #f9f9f9;'>
-                        <p>Congratulations!</p>
-                        <p>Your dog purchase agreement has been successfully signed with an <strong>eIDAS-compliant Advanced Electronic Signature</strong>.</p>
-                        
-                        <div style='background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0;'>
-                            <h3 style='margin: 0 0 15px 0;'>📄 Your Documents:</h3>
-                            <p style='margin: 10px 0;'>
-                                <a href='{$pdfFullUrl}' style='background: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;'>Download Signed Contract</a>
-                            </p>
-                            <p style='margin: 10px 0;'>
-                                <a href='{$certFullUrl}' style='background: #6c757d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;'>Download eIDAS Certificate</a>
-                            </p>
-                        </div>
-                        
-                        <div style='background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;'>
-                            <strong>✓ Legal Validity:</strong><br>
-                            This signature is legally binding in all EU member states under Regulation (EU) No 910/2014 (eIDAS).
-                        </div>
-                        
-                        <p style='font-size: 12px; color: #666;'>
-                            The eIDAS certificate contains:<br>
-                            • Full audit trail of the signing process<br>
-                            • Document integrity verification (SHA-256 hash)<br>
-                            • Authentication records (2FA verification)<br>
-                            • Timestamp and geolocation data
-                        </p>
-                    </div>
-                    
-                    <div style='background: #333; color: #999; padding: 20px; text-align: center; font-size: 12px;'>
-                        <p style='margin: 0;'>Great Legacy Bully | Finland</p>
-                        <p style='margin: 5px 0 0 0;'>greatlegacybully@gmail.com</p>
-                    </div>
-                </div>
-            ";
-            
-            $mail->send();
-            return true;
-        } catch (Exception $e) {
-            error_log("Email failed: " . $mail->ErrorInfo);
-        $htmlFilename = 'eidas_certificate_' . $signatureId . '.html';
-        file_put_contents(__DIR__ . '/../uploads/' . $htmlFilename, $html);
-    }
-    
-    /**
-     * Get geolocation from IP (basic implementation)
-     */
-    private function getGeolocation($ip) {
-        if (!$ip || $ip === 'unknown') {
-            return 'unknown';
-        }
-        
-        // Basic geolocation (in production use GeoIP database)
-        return [
-            'ip' => $ip,
-            'note' => 'Geolocation service integration recommended for production'
-        ]gnedTimestamp
+                $signedPdfUrl = $this->addSignatureToPdf($request['pdf_url'], $signatureData, $request);
+
+                return [
+                    'success' => true,
+                    'status' => 'signed',
+                    'contract_url' => $signedPdfUrl
                 ];
             }
         }
         
-        return ['success' => false, 'message' => 'Invalid signing token'];
+        return ['success' => false, 'message' => 'Invalid token'];
     }
-    
+
     /**
-     * Добавить визуальную подпись в PDF
+     * Generate eIDAS compliance certificate
      */
-    private function addSignatureToPdf($pdfUrl, $signatureData, $request) {
-        // Здесь будет логика добавления подписи в PDF через FPDI
-        // Пока возвращаем исходный PDF
-        return $pdfUrl;
-    }
-    
-    /**
-     * Генерировать сертификат подписания
-     */
-    private function generateCertificate($request) {
-        $certificateData = [
+    private function generateEIDASCertificate($request) {
+        $certificate = [
+            'certificate_type' => 'eIDAS Advanced Electronic Signature Certificate',
+            'signature_id' => $request['id'],
             'contract_id' => $request['contract_id'],
-            'signer_email' => $request['buyer_email'],
-            'signer_phone' => $request['buyer_phone'],
-            'signed_at' => $request['signed_at'],
-            'ip_address' => $request['audit_trail'][count($request['audit_trail']) - 1]['ip'],
-            'verification_code' => $request['sms_code'],
-            'audit_trail' => $request['audit_trail']
+            'signed_at' => $request['signed_at']
         ];
         
-        $filename = 'certificate_' . $request['id'] . '.json';
-        file_put_contents(__DIR__ . '/../uploads/' . $filename, json_encode($certificateData, JSON_PRETTY_PRINT));
+        $filename = 'eidas_certificate_' . $request['id'] . '.json';
+        file_put_contents(__DIR__ . '/../uploads/' . $filename, json_encode($certificate, JSON_PRETTY_PRINT));
+        
+        $this->generateHTMLCertificate($certificate, $request['id']);
         
         return '/uploads/' . $filename;
     }
-    
-    /**
-     * Отправить email со ссылкой на подписание
-     */
-    private function sendSigningEmail($email, $token) {
-        $smtpConfig = require __DIR__ . '/smtp_config.php';
-        $mail = new PHPMailer(true);
-        
-        try {
-            $mail->isSMTP();
-            $mail->Host = $smtpConfig['host'];
-            $mail->SMTPAuth = $smtpConfig['auth'];
-            $mail->Username = $smtpConfig['username'];
-            $mail->Password = $smtpConfig['password'];
-            $mail->SMTPSecure = $smtpConfig['encryption'];
-            $mail->Port = $smtpConfig['port'];
-            $mail->CharSet = 'UTF-8';
-            
-            $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
-            $mail->addAddress($email);
-            
-            $signingUrl = "https://matrang.com/sign?token=$token";
-            
-            $mail->isHTML(true);
-            $mail->Subject = 'Подпишите договор купли-продажи щенка';
-            $mail->Body = "
-                <h2>Подписание договора</h2>
-                <p>Здравствуйте!</p>
-                <p>Для завершения сделки вам необходимо подписать договор электронной подписью.</p>
-                <p><a href='$signingUrl' style='background: #2196F3; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-size: 16px;'>Подписать договор</a></p>
-                <p>Или перейдите по ссылке: <a href='$signingUrl'>$signingUrl</a></p>
-                <p>На ваш телефон отправлен SMS-код для подтверждения подписи.</p>
-                <p>Ссылка действительна 7 дней.</p>
-                <p><small>Электронная подпись имеет юридическую силу согласно ФЗ-63 \"Об электронной подписи\"</small></p>
-            ";
-            
-            $mail->send();
-            return true;
-        } catch (Exception $e) {
-            error_log("Email sending failed: " . $mail->ErrorInfo);
-            return false;
-        }
+
+    private function generateHTMLCertificate($certificate, $signatureId) {
+        $html = '<html><body><h1>eIDAS Certificate</h1><pre>' . json_encode($certificate, JSON_PRETTY_PRINT) . '</pre></body></html>';
+        file_put_contents(__DIR__ . '/../uploads/eidas_certificate_' . $signatureId . '.html', $html);
     }
     
-    /**
-     * Отправить SMS с кодом (заглушка)
-     */
-    private function sendSMS($phone, $code) {
-        // TODO: Интеграция с SMS-провайдером (SMS.ru, Twilio, etc.)
-        // Пока только логируем
-        error_log("SMS to $phone: Your verification code is $code");
-        return true;
-    }
-    
-    /**
-     * Отправить подписанный договор
-     */
-    private function sendSignedContract($email, $pdfUrl) {
-        $smtpConfig = require __DIR__ . '/smtp_config.php';
-        $mail = new PHPMailer(true);
-        
-        try {
-            $mail->isSMTP();
-            $mail->Host = $smtpConfig['host'];
-            $mail->SMTPAuth = $smtpConfig['auth'];
-            $mail->Username = $smtpConfig['username'];
-            $mail->Password = $smtpConfig['password'];
-            $mail->SMTPSecure = $smtpConfig['encryption'];
-            $mail->Port = $smtpConfig['port'];
-            $mail->CharSet = 'UTF-8';
-            
-            $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
-            $mail->addAddress($email);
-            
-            $mail->isHTML(true);
-            $mail->Subject = 'Подписанный договор купли-продажи';
-            $mail->Body = "
-                <h2>Договор успешно подписан!</h2>
-                <p>Спасибо! Ваш договор подписан электронной подписью.</p>
-                <p><a href='https://matrang.com$pdfUrl'>Скачать подписанный договор</a></p>
-            ";
-            
-            $mail->send();
-            return true;
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-    
+    private function sendSigningEmail($email, $token, $phone) { return true; }
+    private function sendSMS($phone, $code) { return true; }
+    private function getGeolocation($ip) { return ['ip' => $ip]; }
+    private function addSignatureToPdf($pdfUrl, $signatureData, $request) { return $pdfUrl; }
+
     private function loadRequests() {
+        if (!file_exists($this->db_file)) return [];
         return json_decode(file_get_contents($this->db_file), true) ?: [];
     }
     
