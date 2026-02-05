@@ -175,6 +175,82 @@ if ($action === 'login') {
     exit();
 }
 
+// Синхронизация статуса договора с Documenso
+if ($action === 'syncContractStatus') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $contractId = $_GET['id'] ?? '';
+    if (!$contractId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Contract ID required']);
+        exit();
+    }
+
+    try {
+        require_once __DIR__ . '/DocumensoBridgeClient.php';
+        
+        $contractsFile = __DIR__ . '/../data/contracts.json';
+        if (!file_exists($contractsFile)) {
+            throw new Exception('Contracts file not found');
+        }
+        
+        $data = json_decode(file_get_contents($contractsFile), true);
+        $contracts = $data['contracts'] ?? [];
+        $templates = $data['templates'] ?? [];
+        
+        // Находим договор
+        $found = false;
+        foreach ($contracts as &$contract) {
+            if ($contract['id'] === $contractId && isset($contract['adobeSignAgreementId'])) {
+                $documentId = $contract['adobeSignAgreementId'];
+                
+                // Получаем статус от Documenso
+                $bridge = new DocumensoBridgeClient();
+                $envelope = $bridge->getEnvelope($documentId);
+                
+                if ($envelope['success'] && isset($envelope['envelope']['status'])) {
+                    $docStatus = $envelope['envelope']['status'];
+                    
+                    // Маппинг статусов Documenso
+                    if ($docStatus === 'COMPLETED') {
+                        $contract['status'] = 'signed';
+                        $contract['signedAt'] = date('c');
+                        
+                        // Пытаемся получить ссылку на подписанный документ
+                        if (isset($envelope['envelope']['document_url'])) {
+                            $contract['signedDocumentUrl'] = $envelope['envelope']['document_url'];
+                        }
+                    } elseif ($docStatus === 'REJECTED' || $docStatus === 'DECLINED') {
+                        $contract['status'] = 'rejected';
+                    } elseif ($docStatus === 'SENT' || $docStatus === 'PENDING') {
+                        $contract['status'] = 'sent';
+                    }
+                    
+                    $found = true;
+                }
+                break;
+            }
+        }
+        
+        if ($found) {
+            $saveData = ['contracts' => $contracts, 'templates' => $templates];
+            file_put_contents($contractsFile, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            
+            echo json_encode(['success' => true, 'message' => 'Status synchronized']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Contract not found']);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
 // Получение контрактов и шаблонов
 // Удаление договора
 if ($action === 'deleteContract') {

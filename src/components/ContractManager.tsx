@@ -1642,10 +1642,18 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                             className="w-full"
                             onClick={async () => {
                               try {
-                                await loadContracts();
-                                toast.success('Статус обновлен');
+                                const res = await fetch(`/api/api.php?action=syncContractStatus&id=${contract.id}`, {
+                                  headers: getHeaders()
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  await loadContracts();
+                                  toast.success('Статус обновлен');
+                                } else {
+                                  toast.error(data.message || 'Ошибка обновления');
+                                }
                               } catch (e) {
-                                toast.error('Ошибка обновления');
+                                toast.error('Ошибка сети');
                               }
                             }}
                           >
