@@ -59,34 +59,60 @@ $payload = json_decode($rawBody, true);
 $event = $payload['type'] ?? '';
 $data = $payload['data'] ?? [];
 
+error_log('[WEBHOOK] Event: ' . $event . ', Data: ' . json_encode($data));
+
 // 3. Обработка событий
-switch ($event) {
-    case 'DOCUMENT_COMPLETED': // Документ подписан всеми сторонами
-    case 'document.completed': // На случай если формат изменится
-        handleDocumentCompleted($data);
-        break;
+try {
+    switch ($event) {
+        case 'DOCUMENT_COMPLETED': // Документ подписан всеми сторонами
+        case 'document.completed': // На случай если формат изменится
+            handleDocumentCompleted($data);
+            break;
 
-    case 'DOCUMENT_REJECTED': // Документ отклонен получателем
-    case 'document.rejected':
-    case 'RECIPIENT_REJECTED': 
-        handleDocumentRejected($data);
-        break;
+        case 'DOCUMENT_REJECTED': // Документ отклонен получателем
+        case 'document.rejected':
+        case 'RECIPIENT_REJECTED': 
+            handleDocumentRejected($data);
+            break;
+        
+        default:
+            error_log('[WEBHOOK] Unknown event type: ' . $event);
+    }
+
+    http_response_code(200);
+    echo json_encode(['status' => 'ok', 'event' => $event]);
+} catch (Exception $e) {
+    error_log('[WEBHOOK ERROR] Exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
-
-http_response_code(200);
-echo json_encode(['status' => 'ok']);
 
 // --- Helper Functions ---
 
 function handleDocumentCompleted($data) {
-    $documentId = $data['id'];
+    $documentId = $data['id'] ?? null;
+    
+    if (!$documentId) {
+        error_log('[WEBHOOK ERROR] No document ID in data: ' . json_encode($data));
+        return;
+    }
+    
     $internalUserId = $data['metadata']['internalUserId'] ?? 'unknown';
+    
+    error_log("[WEBHOOK] Processing document ID: $documentId");
     
     try {
         $service = new DocumensoService();
         
         // Получаем полный документ от Documenso для доступа к envelopeId
+        error_log("[WEBHOOK] Fetching document $documentId from Documenso");
         $fullDocument = $service->getDocument($documentId);
+        
+        if (!$fullDocument) {
+            error_log("[WEBHOOK ERROR] Document $documentId not found in Documenso");
+            return;
+        }
+        
         $envelopeId = null;
         
         // Ищем envelopeId в полях документа
