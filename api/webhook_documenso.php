@@ -59,6 +59,16 @@ function handleDocumentCompleted($data) {
     $documentId = $data['id'];
     $internalUserId = $data['metadata']['internalUserId'] ?? 'unknown';
     
+    // Получаем email покупателя из recipients
+    $buyerEmail = null;
+    $recipients = $data['recipients'] ?? [];
+    foreach ($recipients as $recipient) {
+        if (!empty($recipient['email'])) {
+            $buyerEmail = $recipient['email'];
+            break;
+        }
+    }
+    
     try {
         $service = new DocumensoService();
         
@@ -71,13 +81,12 @@ function handleDocumentCompleted($data) {
         // Скачиваем PDF
         $service->downloadDocument($documentId, $savePath);
         
-        // Обновляем статус договора в базе
-        updateContractStatus($documentId, 'signed', '/uploads/contracts/' . $filename);
+        // Обновляем статус договора в базе (ищем по email)
+        updateContractStatusByEmail($buyerEmail, 'signed', '/uploads/contracts/' . $filename);
         
         error_log("WEBHOOK: Document $documentId signed and saved to $savePath");
 
         // Отправка клиенту финального письма с вложением
-        $recipients = $data['recipients'] ?? [];
         foreach ($recipients as $recipient) {
             if (!empty($recipient['email'])) {
                 sendClientWithAttachment($recipient['email'], $savePath);
@@ -186,6 +195,61 @@ function sendClientWithAttachment($email, $filePath) {
         error_log("WEBHOOK: Final email sent to $email");
     } catch (Exception $e) {
         error_log("WEBHOOK EMAIL ERROR: Message could not be sent to client $email. Mailer Error: {$mail->ErrorInfo}");
+    }
+}
+
+/**
+ * Обновить статус договора в базе данных по email покупателя
+ */
+function updateContractStatusByEmail($buyerEmail, $status, $signedDocumentUrl = null) {
+    if (!$buyerEmail) {
+        error_log("WEBHOOK: No buyer email provided");
+        return;
+    }
+    
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    
+    if (!file_exists($contractsFile)) {
+        error_log("WEBHOOK: contracts.json not found");
+        return;
+    }
+    
+    $data = json_decode(file_get_contents($contractsFile), true);
+    
+    $contracts = [];
+    $templates = [];
+    
+    // Определяем формат
+    if (isset($data['contracts']) && isset($data['templates'])) {
+        $contracts = $data['contracts'];
+        $templates = $data['templates'];
+    } else if (is_array($data)) {
+        $contracts = $data;
+    }
+    
+    // Ищем договор по email покупателя
+    $updated = false;
+    foreach ($contracts as &$contract) {
+        $contractEmail = $contract['data']['buyerEmail'] ?? '';
+        if ($contractEmail === $buyerEmail) {
+            $contract['status'] = $status;
+            $contract['signedAt'] = date('c');
+            
+            if ($signedDocumentUrl) {
+                $contract['signedDocumentUrl'] = $signedDocumentUrl;
+            }
+            
+            $updated = true;
+            error_log("WEBHOOK: Updated contract " . $contract['id'] . " for email $buyerEmail to status: $status");
+            break;
+        }
+    }
+    
+    if ($updated) {
+        $saveData = ['contracts' => $contracts, 'templates' => $templates];
+        file_put_contents($contractsFile, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    } else {
+        error_log("WEBHOOK: Contract with buyer email $buyerEmail not found in database");
     }
 }
 
