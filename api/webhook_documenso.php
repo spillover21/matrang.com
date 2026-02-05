@@ -69,18 +69,32 @@ function handleDocumentCompleted($data) {
     $documentId = $data['id'];
     $internalUserId = $data['metadata']['internalUserId'] ?? 'unknown';
     
-    // Получаем email покупателя из recipients
-    $buyerEmail = null;
-    $recipients = $data['recipients'] ?? [];
-    foreach ($recipients as $recipient) {
-        if (!empty($recipient['email'])) {
-            $buyerEmail = $recipient['email'];
-            break;
-        }
-    }
-    
     try {
         $service = new DocumensoService();
+        
+        // Получаем полный документ от Documenso для доступа к envelopeId
+        $fullDocument = $service->getDocument($documentId);
+        $envelopeId = null;
+        
+        // Ищем envelopeId в полях документа
+        if (isset($fullDocument['fields']) && is_array($fullDocument['fields'])) {
+            foreach ($fullDocument['fields'] as $field) {
+                if (isset($field['envelopeId'])) {
+                    $envelopeId = $field['envelopeId'];
+                    break;
+                }
+            }
+        }
+        
+        // Получаем email покупателя из recipients
+        $buyerEmail = null;
+        $recipients = $fullDocument['recipients'] ?? $data['recipients'] ?? [];
+        foreach ($recipients as $recipient) {
+            if (!empty($recipient['email'])) {
+                $buyerEmail = $recipient['email'];
+                break;
+            }
+        }
         
         $uploadDir = __DIR__ . '/../uploads/contracts/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -91,10 +105,14 @@ function handleDocumentCompleted($data) {
         // Скачиваем PDF
         $service->downloadDocument($documentId, $savePath);
         
-        // Обновляем статус договора в базе (ищем по email)
-        updateContractStatusByEmail($buyerEmail, 'signed', '/uploads/contracts/' . $filename);
+        // Обновляем статус договора в базе (ищем по envelopeId или email)
+        if ($envelopeId) {
+            updateContractStatusByEnvelopeId($envelopeId, 'signed', '/uploads/contracts/' . $filename);
+        } else {
+            updateContractStatusByEmail($buyerEmail, 'signed', '/uploads/contracts/' . $filename);
+        }
         
-        error_log("WEBHOOK: Document $documentId signed and saved to $savePath");
+        error_log("WEBHOOK: Document $documentId (envelope: $envelopeId) signed and saved to $savePath");
 
         // Отправка клиенту финального письма с вложением
         foreach ($recipients as $recipient) {
@@ -215,6 +233,61 @@ function sendClientWithAttachment($email, $filePath) {
         error_log("WEBHOOK: Final email sent to $email");
     } catch (Exception $e) {
         error_log("WEBHOOK EMAIL ERROR: Message could not be sent to client $email. Mailer Error: {$mail->ErrorInfo}");
+    }
+}
+
+/**
+ * Обновить статус договора в базе данных по envelopeId
+ */
+function updateContractStatusByEnvelopeId($envelopeId, $status, $signedDocumentUrl = null) {
+    if (!$envelopeId) {
+        error_log("WEBHOOK: No envelopeId provided");
+        return;
+    }
+    
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    
+    if (!file_exists($contractsFile)) {
+        error_log("WEBHOOK: contracts.json not found");
+        return;
+    }
+    
+    $data = json_decode(file_get_contents($contractsFile), true);
+    
+    $contracts = [];
+    $templates = [];
+    
+    // Определяем формат
+    if (isset($data['contracts']) && isset($data['templates'])) {
+        $contracts = $data['contracts'];
+        $templates = $data['templates'];
+    } else if (is_array($data)) {
+        $contracts = $data;
+    }
+    
+    // Ищем договор по envelopeId
+    $updated = false;
+    foreach ($contracts as &$contract) {
+        $contractEnvelopeId = $contract['adobeSignAgreementId'] ?? '';
+        if ($contractEnvelopeId === $envelopeId) {
+            $contract['status'] = $status;
+            $contract['signedAt'] = date('c');
+            
+            if ($signedDocumentUrl) {
+                $contract['signedDocumentUrl'] = $signedDocumentUrl;
+            }
+            
+            $updated = true;
+            error_log("WEBHOOK: Updated contract " . $contract['id'] . " (envelope: $envelopeId) to status: $status");
+            break;
+        }
+    }
+    
+    if ($updated) {
+        $saveData = ['contracts' => $contracts, 'templates' => $templates];
+        file_put_contents($contractsFile, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    } else {
+        error_log("WEBHOOK: Contract with envelopeId $envelopeId not found in database");
     }
 }
 
