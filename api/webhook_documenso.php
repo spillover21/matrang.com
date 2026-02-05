@@ -15,45 +15,24 @@ $webhookSecret = $config['WEBHOOK_SECRET'];
 // 1. Получаем сырое тело запроса и заголовки
 $rawBody = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_DOCUMENSO_SIGNATURE'] ?? '';
+$documensoSecret = $_SERVER['HTTP_X_DOCUMENSO_SECRET'] ?? '';
 
-// ДЕБАГ: логируем ВСЕ входящие запросы до проверки подписи
-$debugLog = [
-    'timestamp' => date('Y-m-d H:i:s'),
-    'all_headers' => getallheaders(),
-    'signature_header' => $signature,
-    'body_preview' => substr($rawBody, 0, 500),
-    'calculated_signature' => hash_hmac('sha256', $rawBody, $webhookSecret),
-];
-error_log('[WEBHOOK DEBUG] ' . json_encode($debugLog, JSON_UNESCAPED_UNICODE));
-
-// 2. Проверка подписи (HMAC-SHA256)
-// LEGAL COMPLIANCE: Критически важно проверять подлинность вебхука, 
-// чтобы никто не мог подделать факт подписания договора.
-
-// ТЕСТОВЫЙ РЕЖИМ: ВРЕМЕННО пропускаем проверку подписи для отладки
-// TODO: Включить проверку после выяснения формата подписи Documenso
-$testMode = true; // isset($_GET['test']) || isset($_REQUEST['test']);
-
-if ($testMode) {
-    error_log('[WEBHOOK] Test mode - signature check DISABLED');
+// 2. Проверка подписи
+// LEGAL COMPLIANCE: Критически важно проверять подлинность вебхука
+// Documenso отправляет X-Documenso-Secret с секретом вебхука
+if (empty($documensoSecret)) {
+    error_log('[WEBHOOK ERROR] X-Documenso-Secret header missing');
+    http_response_code(401);
+    die('Unauthorized: Missing secret');
 }
 
-if (!$testMode) {
-    if (empty($signature)) {
-        error_log('[WEBHOOK ERROR] Signature missing');
-        http_response_code(401);
-        die('Signature missing');
-    }
-
-    $calculatedSignature = hash_hmac('sha256', $rawBody, $webhookSecret);
-
-    // Сравнение подписей (timing-attack safe)
-    if (!hash_equals($calculatedSignature, $signature)) {
-        error_log('[WEBHOOK ERROR] Invalid signature. Expected: ' . $calculatedSignature . ', Got: ' . $signature);
-        http_response_code(403);
-        die('Invalid signature');
-    }
+if ($documensoSecret !== $webhookSecret) {
+    error_log('[WEBHOOK ERROR] Invalid secret. Expected: ' . $webhookSecret . ', Got: ' . $documensoSecret);
+    http_response_code(403);
+    die('Forbidden: Invalid secret');
 }
+
+error_log('[WEBHOOK] Secret validated successfully');
 
 $payload = json_decode($rawBody, true);
 
