@@ -302,6 +302,57 @@ if ($action === 'getContracts') {
     exit();
 }
 
+// Удаление шаблона контракта
+if ($action === 'deleteContractTemplate') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $templateId = $_GET['id'] ?? '';
+    if (!$templateId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Template ID required']);
+        exit();
+    }
+
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    
+    if (file_exists($contractsFile)) {
+        $data = json_decode(file_get_contents($contractsFile), true);
+        
+        $contracts = [];
+        $templates = [];
+        
+        // Определяем формат
+        if (isset($data['contracts']) && isset($data['templates'])) {
+            $contracts = $data['contracts'];
+            $templates = $data['templates'];
+        } else if (is_array($data)) {
+            $contracts = $data;
+        }
+        
+        // Удаляем шаблон
+        $templates = array_filter($templates, function($t) use ($templateId) {
+            return $t['id'] !== $templateId;
+        });
+        
+        // Перенумеровываем массив
+        $templates = array_values($templates);
+        
+        // Сохраняем
+        $saveData = ['contracts' => $contracts, 'templates' => $templates];
+        file_put_contents($contractsFile, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        echo json_encode(['success' => true, 'message' => 'Template deleted']);
+    } else {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Contracts file not found']);
+    }
+    exit();
+}
+
 // DOCUMENSO INTEGRATION
 if ($action === 'createDocumensoSigning') {
     // Включаем перехват фатальных ошибок
