@@ -108,7 +108,31 @@ class DocumensoService {
      * Скачивает подписанный PDF
      */
     public function downloadDocument($documentId, $savePath) {
-        $pdfContent = $this->request('GET', "/documents/{$documentId}/download", [], true);
+        // Получаем JSON с URL для скачивания
+        $response = $this->request('GET', "/documents/{$documentId}/download");
+        
+        if (!isset($response['downloadUrl'])) {
+            throw new Exception('Download URL not found in response');
+        }
+        
+        $downloadUrl = $response['downloadUrl'];
+        
+        // Заменяем внутренний адрес minio на публичный адрес VPS
+        $downloadUrl = str_replace('http://minio:9000', 'http://72.62.114.139:9002', $downloadUrl);
+        
+        // Скачиваем PDF по полученному URL
+        $curl = curl_init($downloadUrl);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        $pdfContent = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        
+        if ($httpCode !== 200 || empty($pdfContent)) {
+            throw new Exception("Failed to download PDF from URL: HTTP $httpCode");
+        }
+        
+        // Сохраняем PDF
         file_put_contents($savePath, $pdfContent);
         return true;
     }
