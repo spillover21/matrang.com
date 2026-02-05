@@ -213,6 +213,33 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
+  const saveDefaultKennelData = () => {
+    const kennelData = {
+      kennelName: formData.kennelName,
+      kennelOwner: formData.kennelOwner,
+      kennelAddress: formData.kennelAddress,
+      kennelPhone: formData.kennelPhone,
+      kennelEmail: formData.kennelEmail,
+      kennelPassportSeries: formData.kennelPassportSeries,
+      kennelPassportNumber: formData.kennelPassportNumber,
+      kennelPassportIssuedBy: formData.kennelPassportIssuedBy,
+      kennelPassportIssuedDate: formData.kennelPassportIssuedDate,
+    };
+    localStorage.setItem('kennelDefaultData', JSON.stringify(kennelData));
+    toast.success("Данные питомника сохранены как шаблон");
+  };
+
+  const loadDefaultKennelData = () => {
+    const saved = localStorage.getItem('kennelDefaultData');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setFormData(prev => ({ ...prev, ...parsed }));
+      toast.success("Данные питомника загружены");
+    } else {
+      toast.error("Нет сохраненных данных питомника");
+    }
+  };
+
   const uploadPdfTemplate = async (file: File) => {
     // Загружаем сразу на VPS, локальное хранилище не нужно
     try {
@@ -1023,7 +1050,16 @@ const ContractManager = ({ token }: ContractManagerProps) => {
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Данные питомника / Заводчика</h2>
-                <div id="vanilla-profile-buttons-container" className="flex gap-2"></div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={saveDefaultKennelData} title="Сохранить текущие данные как шаблон">
+                    <Save className="w-4 h-4 mr-2" />
+                    Сохранить
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={loadDefaultKennelData} title="Вставить сохраненные данные">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Вставить
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

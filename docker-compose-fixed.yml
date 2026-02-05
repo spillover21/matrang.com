@@ -54,6 +54,13 @@ services:
       - NEXT_PRIVATE_UPLOAD_BUCKET=documenso
       - NEXT_PRIVATE_UPLOAD_ACCESS_KEY_ID=minioadmin
       - NEXT_PRIVATE_UPLOAD_SECRET_ACCESS_KEY=minioadmin123
+      
+      # Signing
+      - NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH=/app/cert.p12
+      
+    volumes:
+      - /var/www/documenso-source/apps/remix/example/cert.p12:/app/cert.p12
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,7 +105,7 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9001/minio/health/live"]    
+      test: ["CMD", "curl", "-f", "http://localhost:9001/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3

@@ -62,7 +62,9 @@ function handleDocumentCompleted($data) {
     try {
         $service = new DocumensoService();
         
-        $uploadDir = __DIR__ . '/../uploads/contracts/';
+        // Save to public HTML folder so it can be downloaded
+        //$uploadDir = __DIR__ . '/../uploads/contracts/'; 
+        $uploadDir = __DIR__ . '/../html/uploads/contracts/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         
         $filename = "contract_{$internalUserId}_{$documentId}.pdf";
@@ -71,10 +73,38 @@ function handleDocumentCompleted($data) {
         // Скачиваем PDF
         $service->downloadDocument($documentId, $savePath);
         
-        // Тут логика обновления БД
-        // updateContractStatus($documentId, 'signed', $filename);
-        
         error_log("WEBHOOK: Document $documentId signed and saved to $savePath");
+
+        // Обновляем статус в основной системе (Hostinger)
+        $fileUrl = 'http://72.62.114.139/uploads/contracts/' . $filename;
+        $mainSiteUrl = 'https://matrang.com/api/api.php?action=updateContractStatus';
+        
+        $ch = curl_init($mainSiteUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode([
+                'documentId' => $documentId,
+                'status' => 'signed',
+                'signedUrl' => $fileUrl
+            ]),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'X-API-Key: matrang_secret_key_2026'
+            ],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($error || $httpCode !== 200) {
+            error_log("WEBHOOK WARNING: Failed to update main site status. Error: $error, HTTP: $httpCode, Response: $response");
+        } else {
+            error_log("WEBHOOK: Updated main site status successfully.");
+        }
 
         // Отправка клиенту финального письма с вложением
         $recipients = $data['recipients'] ?? [];
