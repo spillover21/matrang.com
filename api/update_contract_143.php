@@ -1,9 +1,8 @@
 <?php
 /**
  * Вручную обновляет договор DOG-2026-0010 (document 143)
+ * БЕЗ скачивания PDF (так как URL истек)
  */
-
-require_once __DIR__ . '/DocumensoService.php';
 
 $contractsFile = __DIR__ . '/../data/contracts.json';
 $data = json_decode(file_get_contents($contractsFile), true);
@@ -15,30 +14,16 @@ foreach ($data['contracts'] as &$contract) {
         echo "Found contract: " . $contract['id'] . "\n";
         echo "Current status: " . $contract['status'] . "\n";
         
-        // Скачиваем PDF для document 143
-        try {
-            $service = new DocumensoService();
-            $uploadDir = __DIR__ . '/../uploads/contracts/';
-            $filename = "contract_unknown_143.pdf";
-            $savePath = $uploadDir . $filename;
-            
-            echo "Downloading PDF to: $savePath\n";
-            $service->downloadDocument(143, $savePath);
-            
-            // Обновляем статус
-            $contract['status'] = 'signed';
-            $contract['signedAt'] = date('c');
-            $contract['signedDocumentUrl'] = '/uploads/contracts/' . $filename;
-            
-            echo "Status updated to: signed\n";
-            echo "PDF URL: /uploads/contracts/$filename\n";
-            
-            $found = true;
-            break;
-        } catch (Exception $e) {
-            echo "ERROR: " . $e->getMessage() . "\n";
-            exit(1);
-        }
+        // Обновляем статус БЕЗ PDF (пользователь уже получил PDF в письме)
+        $contract['status'] = 'signed';
+        $contract['signedAt'] = date('c');
+        // Не добавляем signedDocumentUrl, так как PDF получен только в письме
+        
+        echo "Status updated to: signed\n";
+        echo "Note: PDF was delivered via email but not saved on server\n";
+        
+        $found = true;
+        break;
     }
 }
 
@@ -50,3 +35,4 @@ if (!$found) {
 // Сохраняем
 file_put_contents($contractsFile, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 echo "Database updated successfully!\n";
+echo "Please refresh the admin panel to see the changes.\n";
