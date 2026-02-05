@@ -19,14 +19,34 @@ $action = $_GET['action'] ?? '';
 $dataFile = __DIR__ . '/../data/content.json';
 $uploadDir = __DIR__ . '/../uploads/';
 
-// ТЕСТОВЫЕ ЭНДПОИНТЫ - УДАЛИТЬ ПОСЛЕ ОТЛАДКИ
+// SELLER PROFILE ENDPOINTS
 if ($action === 'save_seller_profile') {
-    echo json_encode(['success' => true, 'test' => 'TEST ENDPOINT WORKS', 'timestamp' => time()]);
+    $input = json_decode(file_get_contents('php://input'), true);
+    $profileFile = __DIR__ . '/../data/seller_profile.json';
+    
+    $dataDir = __DIR__ . '/../data';
+    if (!is_dir($dataDir)) {
+        mkdir($dataDir, 0755, true);
+    }
+    
+    if ($input && is_array($input)) {
+        file_put_contents($profileFile, json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        echo json_encode(['success' => true, 'message' => 'Profile saved']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid input']);
+    }
     exit();
 }
 
 if ($action === 'get_seller_profile') {
-    echo json_encode(['test' => 'TEST GET WORKS', 'timestamp' => time()]);
+    $profileFile = __DIR__ . '/../data/seller_profile.json';
+    
+    header('Content-Type: application/json; charset=utf-8');
+    if (file_exists($profileFile)) {
+        echo file_get_contents($profileFile);
+    } else {
+        echo json_encode([]);
+    }
     exit();
 }
 
