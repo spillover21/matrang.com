@@ -61,31 +61,41 @@ $completedDocs = [];
 // Для каждого COMPLETED документа обновляем статус в базе
 foreach ($documents as $doc) {
     if ($doc['status'] === 'COMPLETED') {
-        // Получаем email получателя
-        $buyerEmail = null;
-        if (isset($doc['recipients'])) {
-            foreach ($doc['recipients'] as $recipient) {
-                if (!empty($recipient['email'])) {
-                    $buyerEmail = $recipient['email'];
-                    break;
+        // Получаем полную информацию о документе
+        try {
+            $fullDoc = $documenso->getDocument($doc['id']);
+            
+            // Получаем email получателя из полного документа
+            $buyerEmail = null;
+            if (isset($fullDoc['recipients'])) {
+                foreach ($fullDoc['recipients'] as $recipient) {
+                    if (!empty($recipient['email'])) {
+                        $buyerEmail = $recipient['email'];
+                        break;
+                    }
                 }
             }
-        }
-        
-        $completedDocs[] = [
-            'id' => $doc['id'],
-            'title' => $doc['title'] ?? 'N/A',
-            'email' => $buyerEmail,
-            'completedAt' => $doc['completedAt'] ?? null
-        ];
-        
-        if ($buyerEmail) {
-            $result = updateContractStatusByEmail($buyerEmail, 'signed');
-            $results[] = [
-                'docId' => $doc['id'],
-                'email' => $buyerEmail,
+            
+            $completedDocs[] = [
+                'id' => $doc['id'],
                 'title' => $doc['title'] ?? 'N/A',
-                'result' => $result
+                'email' => $buyerEmail,
+                'completedAt' => $doc['completedAt'] ?? null
+            ];
+            
+            if ($buyerEmail) {
+                $result = updateContractStatusByEmail($buyerEmail, 'signed');
+                $results[] = [
+                    'docId' => $doc['id'],
+                    'email' => $buyerEmail,
+                    'title' => $doc['title'] ?? 'N/A',
+                    'result' => $result
+                ];
+            }
+        } catch (Exception $e) {
+            $completedDocs[] = [
+                'id' => $doc['id'],
+                'error' => $e->getMessage()
             ];
         }
     }
