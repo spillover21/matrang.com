@@ -184,7 +184,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   });
 
   useEffect(() => {
-    loadData();
+    // Автоматическая синхронизация при загрузке
+    fetch('/api/auto_sync.php?silent=1').catch(() => {});
+    setTimeout(() => loadData(), 2000);
   }, []);
 
   useEffect(() => {

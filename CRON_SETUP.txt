@@ -1,0 +1,1 @@
+*/5 * * * * cd /home/u654127295/domains/matrang.com/public_html && /usr/bin/php api/auto_sync.php?silent=1 > /dev/null 2>&1
