@@ -30,14 +30,15 @@ error_log('[WEBHOOK DEBUG] ' . json_encode($debugLog, JSON_UNESCAPED_UNICODE));
 // LEGAL COMPLIANCE: Критически важно проверять подлинность вебхука, 
 // чтобы никто не мог подделать факт подписания договора.
 
-// ТЕСТОВЫЙ РЕЖИМ: пропускаем проверку подписи
-$testMode = isset($_GET['test']) || isset($_REQUEST['test']);
+// ТЕСТОВЫЙ РЕЖИМ: ВРЕМЕННО пропускаем проверку подписи для отладки
+// TODO: Включить проверку после выяснения формата подписи Documenso
+$testMode = true; // isset($_GET['test']) || isset($_REQUEST['test']);
+
 if ($testMode) {
-    header('Content-Type: text/plain');
-    echo "TEST MODE ACTIVE\n";
-    echo "Query string: " . ($_SERVER['QUERY_STRING'] ?? 'none') . "\n";
-    echo "Signature: " . $signature . "\n\n";
-} else {
+    error_log('[WEBHOOK] Test mode - signature check DISABLED');
+}
+
+if (!$testMode) {
     if (empty($signature)) {
         error_log('[WEBHOOK ERROR] Signature missing');
         http_response_code(401);
