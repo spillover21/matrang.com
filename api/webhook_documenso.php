@@ -111,12 +111,19 @@ function handleDocumentCompleted($data) {
         // Получаем email покупателя из recipients
         $buyerEmail = null;
         $recipients = $fullDocument['recipients'] ?? $data['recipients'] ?? [];
+        
+        error_log("[WEBHOOK DEBUG] Recipients count: " . count($recipients));
+        
+        // Ищем покупателя (не noreply@matrang.com)
         foreach ($recipients as $recipient) {
-            if (!empty($recipient['email'])) {
+            if (!empty($recipient['email']) && $recipient['email'] !== 'noreply@matrang.com') {
                 $buyerEmail = $recipient['email'];
+                error_log("[WEBHOOK DEBUG] Found buyer email: $buyerEmail");
                 break;
             }
         }
+        
+        error_log("[WEBHOOK DEBUG] EnvelopeId: " . ($envelopeId ?: 'NULL') . ", BuyerEmail: " . ($buyerEmail ?: 'NULL'));
         
         $uploadDir = __DIR__ . '/../uploads/contracts/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -126,12 +133,17 @@ function handleDocumentCompleted($data) {
         
         // Скачиваем PDF
         $service->downloadDocument($documentId, $savePath);
+        error_log("[WEBHOOK DEBUG] PDF downloaded to: $savePath");
         
         // Обновляем статус договора в базе (ищем по envelopeId или email)
         if ($envelopeId) {
+            error_log("[WEBHOOK] Updating contract by envelopeId: $envelopeId");
             updateContractStatusByEnvelopeId($envelopeId, 'signed', '/uploads/contracts/' . $filename);
-        } else {
+        } else if ($buyerEmail) {
+            error_log("[WEBHOOK] Updating contract by email: $buyerEmail");
             updateContractStatusByEmail($buyerEmail, 'signed', '/uploads/contracts/' . $filename);
+        } else {
+            error_log("[WEBHOOK ERROR] No envelopeId or buyerEmail found for document $documentId");
         }
         
         error_log("WEBHOOK: Document $documentId (envelope: $envelopeId) signed and saved to $savePath");
@@ -322,6 +334,8 @@ function updateContractStatusByEmail($buyerEmail, $status, $signedDocumentUrl = 
         return;
     }
     
+    error_log("[WEBHOOK] Searching contract by email: $buyerEmail");
+    
     $contractsFile = __DIR__ . '/../data/contracts.json';
     
     if (!file_exists($contractsFile)) {
@@ -342,12 +356,39 @@ function updateContractStatusByEmail($buyerEmail, $status, $signedDocumentUrl = 
         $contracts = $data;
     }
     
-    // Ищем договор по email покупателя
+    error_log("[WEBHOOK] Total contracts in database: " . count($contracts));
+    
+    // Ищем договор по email покупателя (последний с этим email и статусом sent)
     $updated = false;
-    foreach ($contracts as &$contract) {
+    for ($i = count($contracts) - 1; $i >= 0; $i--) {
+        $contract = &$contracts[$i];
         $contractEmail = $contract['data']['buyerEmail'] ?? '';
-        if ($contractEmail === $buyerEmail) {
+        $contractStatus = $contract['status'] ?? '';
+        
+        error_log("[WEBHOOK DEBUG] Checking contract " . $contract['id'] . " - email: $contractEmail, status: $contractStatus");
+        
+        if ($contractEmail === $buyerEmail && $contractStatus === 'sent') {
             $contract['status'] = $status;
+            $contract['signedAt'] = date('c');
+            
+            if ($signedDocumentUrl) {
+                $contract['signedDocumentUrl'] = $signedDocumentUrl;
+            }
+            
+            $updated = true;
+            error_log("WEBHOOK: Updated contract " . $contract['id'] . " (email: $buyerEmail) to status: $status");
+            break;
+        }
+    }
+    
+    if ($updated) {
+        $saveData = ['contracts' => $contracts, 'templates' => $templates];
+        file_put_contents($contractsFile, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        error_log("[WEBHOOK] Database file updated successfully");
+    } else {
+        error_log("WEBHOOK: Contract with email $buyerEmail (status 'sent') not found in database");
+    }
+}
             $contract['signedAt'] = date('c');
             
             if ($signedDocumentUrl) {
