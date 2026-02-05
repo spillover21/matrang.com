@@ -21,8 +21,12 @@ $signature = $_SERVER['HTTP_X_DOCUMENSO_SIGNATURE'] ?? '';
 // чтобы никто не мог подделать факт подписания договора.
 
 // ТЕСТОВЫЙ РЕЖИМ: пропускаем проверку подписи
-if (isset($_GET['test'])) {
-    error_log("TEST MODE: Skipping signature verification");
+$testMode = isset($_GET['test']) || isset($_REQUEST['test']);
+if ($testMode) {
+    header('Content-Type: text/plain');
+    echo "TEST MODE ACTIVE\n";
+    echo "Query string: " . ($_SERVER['QUERY_STRING'] ?? 'none') . "\n";
+    echo "Signature: " . $signature . "\n\n";
 } else {
     if (empty($signature)) {
         http_response_code(401);

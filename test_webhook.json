@@ -1,0 +1,16 @@
+{
+  "type": "DOCUMENT_COMPLETED",
+  "data": {
+    "id": "134",
+    "title": "Contract DOG-2026-0001",
+    "recipients": [
+      {
+        "email": "kharynadenis@gmail.com",
+        "name": "Buyer",
+        "role": "SIGNER",
+        "signedAt": "2026-02-05T12:30:00.000Z"
+      }
+    ],
+    "metadata": {}
+  }
+}
