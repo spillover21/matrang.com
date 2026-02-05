@@ -3,22 +3,208 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- TODO: Set the document title to the name of your application -->
     <title>MATRANG App</title>
     <meta name="description" content="MATRANG Project" />
     <meta name="author" content="MATRANG" />
+
+    <!-- TODO: Update og:title to match your application name -->
     <meta property="og:title" content="MATRANG App" />
     <meta property="og:description" content="MATRANG Project" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@MATRANG" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script type="module" crossorigin src="/assets/index-CCLTNDL3-1770185098751.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-D3AusCOs.css">
+    <script>console.log("🚀 MATRANG PDF: LAYOUT V4.0 (CLEAN BUILD)");</script>
+    <script type="module" crossorigin src="/assets/index-nsFWc5Ml.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CtzaG6Py.css">
   </head>
+
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
+    
+    <!-- VANILLA JS BRIDGE - PROFILE BUTTONS ONLY -->
+    <div id="vanilla-profile-ui" style="display: none; gap: 8px;">
+         <button id="btn-save-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">💾 Сохранить данные</button>
+         <button id="btn-load-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">📥 Вставить данные</button>
+    </div>
+
+    <style>
+      #vanilla-profile-ui button { transition: all 0.2s; }
+      #vanilla-profile-ui button:active { transform: scale(0.95); }
+    </style>
+    
+    <script>
+    (function() {
+      const { PDFDocument } = PDFLib;
+      let filledPdfBytes = null;
+      let pdfTemplatePath = null;
+      
+      const getStatusEl = () => document.getElementById('vanilla-status');
+      const setStatus = (msg) => { 
+          const el = getStatusEl();
+          if (el) el.textContent = msg; 
+          console.log('[VANILLA]', msg); 
+          if (!el && msg) alert(msg); // Fallback if no status element
+      };
+      
+      // Helper to find input by placeholder
+      const getValByPlaceholder = (ph, index = 0) => {
+        const els = document.querySelectorAll(`input[placeholder="${ph}"], textarea[placeholder="${ph}"]`);
+        return els[index] ? els[index].value : '';
+      };
+      
+      const getValByPlaceholderEx = (ph, index = 0) => {
+         const els = document.querySelectorAll(`input[placeholder="${ph}"]`);
+         return els[index] ? els[index].value : '';
+      };
+
+      // Date formatter
+      const formatDate = (isoDate) => {
+          if (!isoDate || !isoDate.includes('-')) return isoDate;
+          const [y, m, d] = isoDate.split('-');
+          return `${d}.${m}.${y}`;
+      };
+
+      // Helper to find input/select/textarea by Label text
+      const getValByLabel = (labelText, type = 'text', index = 0) => {
+        const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText && l.innerText.includes(labelText));
+        const labelEl = labels[index]; 
+        if (!labelEl) return '';
+        const parent = labelEl.parentElement;
+        if (!parent) return '';
+
+        let input;
+        if (type === 'checkbox') {
+             input = parent.querySelector('input[type="checkbox"]') || labelEl.querySelector('input[type="checkbox"]');
+             return input ? input.checked : false;
+        }
+
+        input = parent.querySelector('input, select, textarea');
+        let val = input ? input.value : '';
+        if (input && input.type === 'date' && val) val = formatDate(val);
+        return val;
+      };
+
+      // *** HACK: Change date input to text to allow custom text ***
+      setInterval(() => {
+         const labels = Array.from(document.querySelectorAll('label'));
+         const labelEl = labels.find(l => l.innerText.includes('Срок окончательного расчета'));
+         if (labelEl && labelEl.parentElement) {
+            const dateInput = labelEl.parentElement.querySelector('input[type="date"]');
+            if (dateInput) {
+                dateInput.type = 'text';
+                dateInput.placeholder = 'Введите дату или условия...';
+            }
+         }
+      }, 2000);
+
+      const getHeaders = () => {
+        const token = localStorage.getItem("admin_token");
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+      };
+      
+      // Helper to scrape only Seller info
+      const scrapeSellerInfo = () => {
+          return {
+             kennelOwner: getValByLabel('Владелец питомника'), 
+             kennelAddress: getValByLabel('Адрес', 'text', 0), 
+             kennelPhone: getValByLabel('Телефон', 'text', 0),
+             kennelEmail: getValByLabel('Email', 'text', 0),
+             kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0),
+             kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0),
+             kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0),
+             kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0)
+          };
+      };
+
+      // Helper to set input by Label
+      const setValByLabel = (labelText, value, index = 0) => {
+         const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText && l.innerText.includes(labelText));
+         const labelEl = labels[index];
+         if (!labelEl) return;
+         const parent = labelEl.parentElement;
+         if (!parent) return;
+         const input = parent.querySelector('input, select, textarea');
+         if (input) {
+             const proto = Object.getPrototypeOf(input);
+             const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+             if (setter) setter.call(input, value); else input.value = value;
+             input.dispatchEvent(new Event('input', { bubbles: true }));
+             input.dispatchEvent(new Event('change', { bubbles: true }));
+         }
+      };
+
+      document.getElementById('btn-save-profile').addEventListener('click', async () => {
+         const data = scrapeSellerInfo();
+         if (!data.kennelOwner) { alert('❌ Сначала заполните ФИО и другие свои данные, затем жмите сохранение.'); return; }
+         try {
+             setStatus('Сохранение...');
+             await fetch('/api/api.php?action=save_seller_profile', {
+                 method: 'POST',
+                 headers: getHeaders(),
+                 body: JSON.stringify(data)
+             });
+             alert('✅ Ваши данные сохранены! Теперь можно не вводить их вручную.');
+             setStatus('✅ Данные сохранены');
+         } catch(e) { alert('Error: ' + e.message); }
+      });
+
+      document.getElementById('btn-load-profile').addEventListener('click', async () => {
+         try {
+             setStatus('Загрузка...');
+             const res = await fetch('/api/api.php?action=get_seller_profile', { headers: getHeaders() });
+             let data = await res.json();
+             if (!data || Object.keys(data).length === 0) {
+                 alert('⚠️ Нет сохраненных данных.'); return;
+             }
+             setValByLabel('Владелец питомника', data.kennelOwner || '');
+             setValByLabel('Адрес', data.kennelAddress || '', 0);
+             setValByLabel('Телефон', data.kennelPhone || '', 0);
+             setValByLabel('Email', data.kennelEmail || '', 0);
+             setValByLabel('Паспорт серия', data.kennelPassportSeries || '', 0);
+             setValByLabel('Паспорт номер', data.kennelPassportNumber || '', 0);
+             setValByLabel('Паспорт выдан', data.kennelPassportIssuedBy || '', 0);
+             
+             let dateVal = data.kennelPassportIssuedDate;
+             if (dateVal && dateVal.includes('.')) {
+                 const [d, m, y] = dateVal.split('.');
+                 dateVal = `${y}-${m}-${d}`;
+             }
+             setValByLabel('Дата выдачи паспорта', dateVal || '', 0);
+             alert('✅ Ваши данные успешно вставлены!');
+             setStatus('✅ Готово');
+         } catch(e) { console.error(e); alert('Error loading profile: ' + e.message); }
+      });
+      
+      // REMOVED VANILLA ACTION BUTTONS - HANDLED BY REACT
+      
+      // VISIBILITY LOGIC
+      const checkUiVisibility = async () => {
+         let ui = document.getElementById('vanilla-profile-ui');
+         if (!ui) return;
+
+         // TARGET CONTAINER IN REACT APP (ContractManager.tsx)
+         const container = document.getElementById('vanilla-profile-buttons-container');
+         
+         if (container) {
+             ui.style.display = 'flex';
+             if (ui.parentElement !== container) {
+                 console.log('[VANILLA] Injected into Profile container');
+                 container.appendChild(ui);
+             }
+         } else {
+             ui.style.display = 'none';
+         }
+      };
+      setInterval(checkUiVisibility, 1000);
+      checkUiVisibility();
+    })();
+    </script>
   </body>
 </html>
