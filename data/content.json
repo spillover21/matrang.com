@@ -1,145 +1,716 @@
 {
-  "header": {
-    "logoText": "MATRANG DOGS",
-    "logoImage": "",
-    "tagline": "ЭЛИТНЫЙ ПИТОМНИК"
-  },
-  "hero": {
-    "tag": "Элитный питомник",
-    "title": "СИЛА.\nМОЩЬ.\nПРЕДАННОСТЬ.",
-    "subtitle": "Разводим чемпионов с безупречной родословной. Каждый щенок — это воплощение силы, интеллекта и верности.",
-    "image": "/assets/hero-pitbull.jpg"
-  },
-  "about": {
-    "tag": "Почему мы",
-    "title": "ПОРОДА ЧЕМПИОНОВ",
-    "description": "Американский питбультерьер — это не просто собака. Это символ силы, преданности и несгибаемого характера.",
-    "features": [
-      {
-        "icon": "Shield",
-        "title": "Защитник",
-        "description": "Непоколебимая преданность и готовность защитить свою семью в любой ситуации."
-      },
-      {
-        "icon": "Heart",
-        "title": "Верный друг",
-        "description": "Безграничная любовь к хозяину и нежность с детьми делают его идеальным компаньоном."
-      },
-      {
-        "icon": "Zap",
-        "title": "Атлет",
-        "description": "Мощное телосложение, выносливость и невероятная физическая сила."
-      },
-      {
-        "icon": "Award",
-        "title": "Чемпион",
-        "description": "Родословная от титулованных предков с многочисленными наградами."
-      }
-    ],
-    "stats": [
-      { "value": "15+", "label": "Лет опыта" },
-      { "value": "200+", "label": "Щенков выращено" },
-      { "value": "50+", "label": "Чемпионских титулов" },
-      { "value": "100%", "label": "Довольных клиентов" }
-    ]
-  },
-  "gallery": {
-    "tag": "Наши питомцы",
-    "title": "ГАЛЕРЕЯ",
-    "description": "Познакомьтесь с нашими питомцами. Каждый из них — результат тщательной селекции и заботливого воспитания.",
-    "dogs": [
-      {
-        "id": 1,
-        "name": "TITAN",
-        "age": "8 месяцев",
-        "color": "Blue Fawn",
-        "price": "150 000 ₽",
-        "image": "/assets/pitbull-1.jpg",
-        "imageZoom": 100,
-        "imageHeight": 100,
-        "imagePositionX": 50,
-        "imagePositionY": 50,
-        "available": true
-      },
-      {
-        "id": 2,
-        "name": "ZEUS",
-        "age": "2 года",
-        "color": "Red Nose",
-        "price": "Производитель",
-        "image": "/assets/pitbull-2.jpg",
-        "imageZoom": 100,
-        "imageHeight": 100,
-        "imagePositionX": 50,
-        "imagePositionY": 50,
-        "available": false
-      },
-      {
-        "id": 3,
-        "name": "STORM",
-        "age": "6 месяцев",
-        "color": "Red Nose",
-        "price": "180 000 ₽",
-        "image": "/assets/pitbull-3.jpg",
-        "imageZoom": 100,
-        "imageHeight": 100,
-        "imagePositionX": 50,
-        "imagePositionY": 50,
-        "available": true
-      }
-    ]
-  },
-  "contact": {
-    "tag": "Свяжитесь с нами",
-    "title": "ГОТОВЫ НАЧАТЬ?",
-    "description": "Ответим на все вопросы о породе, поможем выбрать щенка и организуем доставку в любой город России.",
-    "phone": "+7 (900) 123-45-67",
-    "email": "info@pitbullelite.ru",
-    "address": "Москва, Россия"
-  },
-  "testimonials": {
-    "tag": "Отзывы",
-    "title": "ЧТО О НАС ГОВОРЯТ",
-    "description": "Отзывы наших клиентов — наша лучшая рекомендация. Читайте, что говорят владельцы наших щенков.",
-    "items": [
-      {
-        "id": 1,
-        "title": "Мария, Москва",
-        "image": "/assets/testimonial-1.jpg"
-      },
-      {
-        "id": 2,
-        "title": "Александр, Санкт-Петербург",
-        "image": "/assets/testimonial-2.jpg"
-      },
-      {
-        "id": 3,
-        "title": "Екатерина, Казань",
-        "image": "/assets/testimonial-3.jpg"
-      }
-    ]
-  },
-  "geography": {
-    "tag": "География",
-    "title": "НАШИ ЩЕНКИ ПО ВСЕЙ РОССИИ",
-    "description": "Мы доставили щенков в десятки городов России. Организуем безопасную доставку в любой регион.",
-    "locations": [
-      { "id": 1, "city": "Москва", "count": 45, "lat": 55.7558, "lng": 37.6173 },
-      { "id": 2, "city": "Санкт-Петербург", "count": 28, "lat": 59.9311, "lng": 30.3609 },
-      { "id": 3, "city": "Казань", "count": 15, "lat": 55.7964, "lng": 49.1089 },
-      { "id": 4, "city": "Нижний Новгород", "count": 12, "lat": 56.3269, "lng": 44.0075 },
-      { "id": 5, "city": "Екатеринбург", "count": 18, "lat": 56.8389, "lng": 60.6057 },
-      { "id": 6, "city": "Краснодар", "count": 20, "lat": 45.0355, "lng": 38.9753 },
-      { "id": 7, "city": "Сочи", "count": 10, "lat": 43.5855, "lng": 39.7231 },
-      { "id": 8, "city": "Воронеж", "count": 8, "lat": 51.6605, "lng": 39.2006 }
-    ]
-  },
-  "footer": {
-    "copyright": "© 2024 PitbullElite. Все права защищены.",
-    "social": [
-      { "name": "Instagram", "url": "#" },
-      { "name": "Telegram", "url": "#" },
-      { "name": "WhatsApp", "url": "#" }
-    ]
-  }
+    "header": {
+        "logoText": "GREAT LEGACY BULLY",
+        "logoImage": "\/uploads\/1767891439_85337ea8.png",
+        "tagline": "Home of Matrang",
+        "logoTextSize": 28,
+        "taglineSize": 12,
+        "favicon": "\/uploads\/1767891363_d6d38c69.png",
+        "siteTitle": "MATRANG DOGS",
+        "ogTitle": "MATRANG",
+        "ogDescription": {
+            "ru": "питомник американских булли Great Legacy bully",
+            "en": "American Bully Kennel Great Legacy Bully"
+        }
+    },
+    "hero": {
+        "tag": {
+            "ru": "AMERICAN BULLY ",
+            "en": "AMERICAN BULLY "
+        },
+        "titles": [
+            {
+                "text": {
+                    "ru": "American Bully",
+                    "en": "American Bully"
+                },
+                "size": 62
+            },
+            {
+                "text": {
+                    "ru": "Качество ",
+                    "en": "Quality"
+                },
+                "size": 80
+            },
+            {
+                "text": {
+                    "ru": "Генетика ",
+                    "en": "Genetics"
+                },
+                "size": 64
+            },
+            {
+                "text": {
+                    "ru": "Характер ",
+                    "en": "Character"
+                },
+                "size": 64
+            }
+        ],
+        "subtitle": "",
+        "image": "\/uploads\/1767643974_896813a9.jpg",
+        "titleSize": 80,
+        "imagePositionX": 85,
+        "imagePositionY": 55
+    },
+    "about": {
+        "tag": {
+            "ru": "Почему мы",
+            "en": "Why us"
+        },
+        "title": {
+            "ru": "American bully - как образ жизни ",
+            "en": "American bully as a way of life"
+        },
+        "description": {
+            "ru": "American Bully — это не просто собака. Это сочетание силы, уверенности и стабильного характера.  Мы — семейный питомник Great Legacy Bully, где каждый щенок растёт в любви, внимании и заботе. Мы не гонимся за количеством — для нас важны качество, генетика и правильное развитие.  Наши собаки обладают мощной родословной, устойчивой психикой и выразительным экстерьером. Каждый щенок проходит раннюю социализацию и получает индивидуальный подход, чтобы вы получили не просто красивую собаку, а надёжного компаньона и члена семьи.  Мы также активно ведём профиль в Instagram, где показываем жизнь питомника такой, какая она есть — без приукрашенной «инстаграмной картинки». Мы честно рассказываем не только о радостях, но и о сложностях, с которыми сталкивается каждый ответственный заводчик. В нашем профиле вы сможете ближе познакомиться с нашими собаками, увидеть их развитие и узнать нас как семью, для которой American Bully — это не бизнес, а образ жизни.",
+            "en": "An American Bully is more than just a dog. It's a combination of strength, confidence, and a stable character. We are a family-run kennel, Great Legacy Bully, where every puppy grows with love, attention, and care. We don't strive for quantity—we prioritize quality, genetics, and proper development. Our dogs have strong pedigrees, stable personalities, and distinctive exteriors. Each puppy undergoes early socialization and receives personalized attention to ensure you get not just a beautiful dog, but a reliable companion and family member. We also maintain an active Instagram account, where we show kennel life as it really is—without the sugarcoated \"Instagram image.\" We honestly share not only the joys but also the challenges that every responsible breeder faces. On our profile, you can get to know our dogs better, witness their development, and get to know us as a family for whom American Bullying isn't just a business, but a way of life."
+        },
+        "features": [
+            {
+                "icon": "Heart",
+                "title": "American Bully XL",
+                "description": {
+                    "ru": "American Bully XL — это впечатляющее сочетание силы, баланса и уравновешенного характера. Это самая крупная разновидность породы, созданная для тех, кто ценит мощный экстерьер, но при этом ищет надёжного и адекватного семейного компаньона.\n\nXL-булли отличаются массивным костяком, широкой грудью, развитой мускулатурой и уверенной, спокойной манерой поведения. Несмотря на грозный внешний вид, эти собаки ориентированы на человека, отлично ладят с детьми и при правильном воспитании демонстрируют стабильную психику и высокий уровень социализации.\n\nВ нашем питомнике Great Legacy Bully мы уделяем особое внимание здоровью, генетике и характеру XL-линии. Все щенки проходят раннюю социализацию, растут в семейной среде и получают индивидуальный подход с первых дней жизни.",
+                    "en": "The American Bully XL is an impressive combination of strength, balance, and a balanced personality. This is the largest variety of the breed, created for those who value a powerful exterior but are also looking for a reliable and capable family companion.\n\nXL Bullies are distinguished by their massive bones, broad chest, well-developed muscles, and confident, calm demeanor. Despite their formidable appearance, these dogs are people-oriented, get along well with children, and, with proper training, demonstrate a stable psyche and a high level of socialization.\n\nAt our Great Legacy Bully kennel, we pay special attention to the health, genetics, and character of our XL line. All puppies undergo early socialization, grow up in a family environment, and receive individual attention from the very first days of life."
+                }
+            },
+            {
+                "icon": "Heart",
+                "title": "American Bully Standard",
+                "description": {
+                    "ru": "American Bully Standard — это идеальный баланс между атлетичностью, силой и подвижностью. Эта разновидность считается классическим представителем породы и отлично подходит для активной жизни в семье.\n\nСтандарты обладают компактным, гармоничным телосложением, выраженной мускулатурой и уверенным, но дружелюбным характером. Они энергичны, обучаемы и легко адаптируются как к жизни в доме, так и к городской среде.\n\nСобаки формата Standard особенно ценятся за универсальность: они одинаково хорошо подходят как для выставок и разведения, так и для роли верного семейного компаньона.",
+                    "en": "The American Bully Standard is the perfect balance between athleticism, strength, and agility. This variety is considered the classic representative of the breed and is ideal for an active family life.\n\nStandards have a compact, harmonious build, pronounced muscles, and a confident yet friendly nature. They are energetic, trainable, and easily adapt to both indoor and urban life.\n\nStandard dogs are particularly prized for their versatility: they are equally well suited for show and breeding, as well as for being loyal family companions."
+                }
+            },
+            {
+                "icon": "Shield",
+                "title": {
+                    "ru": "ХАРАКТЕР И ПСИХИКА",
+                    "en": "CHARACTER AND MENTALITY"
+                },
+                "description": {
+                    "ru": "Для нас важна\nне только внешность,\nно и устойчивый характер.\nНаши собаки растут\nв семейной среде,\nпроходят раннюю социализацию\nи готовы к жизни с человеком.\n",
+                    "en": "For us, it's not just appearance that matters,\nbut also a stable character.\nOur dogs are raised\nin a family environment,\nare socialized early, and are prepared for life with people."
+                }
+            },
+            {
+                "icon": "Zap",
+                "title": {
+                    "ru": "ЧЕСТНОЕ РАЗВЕДЕНИЕ",
+                    "en": "HONEST BREEDING"
+                },
+                "description": {
+                    "ru": "Мы не гонимся\nза количеством.\nОткрыто показываем\nжизнь питомника,\nговорим о сложностях\nи берём ответственность\nза каждого щенка.\n",
+                    "en": "We don't chase\nquantity.\nWe openly show\nkennel life,\nwe talk about the challenges\nand take responsibility\nfor each puppy."
+                }
+            }
+        ],
+        "stats": []
+    },
+    "gallery": {
+        "tag": {
+            "ru": "Наши питомцы",
+            "en": "Our pets"
+        },
+        "title": {
+            "ru": "ГАЛЕРЕЯ",
+            "en": "GALLERY"
+        },
+        "description": {
+            "ru": "В этом разделе вы познакомитесь с нашими семейными собаками, на которых строится и развивается питомник.\nЗдесь представлены наши воспитанники — щенки, уже уехавшие в новые дома, а также щенки, которые сейчас доступны для бронирования и продажи.\nМы с любовью вкладываемся в каждого нашего питомца и гордимся результатом.",
+            "en": "In this section, you'll learn about our family dogs, who are the foundation and foundation of our kennel.\n\nHere you'll find our fosterlings—puppies that have already gone to new homes, as well as puppies currently available for reservation and sale.\nWe lovingly invest in each of our pets and are proud of the results."
+        },
+        "availableText": {
+            "ru": "В продаже",
+            "en": "On sale"
+        },
+        "notAvailableText": {
+            "ru": "Производитель",
+            "en": "Manufacturer"
+        },
+        "categories": [
+            {
+                "name": {
+                    "ru": "Щенки в продаже",
+                    "en": "Puppies for sale"
+                },
+                "dogs": [
+                    {
+                        "id": 1768336977419,
+                        "name": {
+                            "ru": "Мальчик (синий ошейник)",
+                            "en": "Boy (blue collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched"
+                        },
+                        "price": {
+                            "ru": "700.000 руб",
+                            "en": "700,000 rur"
+                        },
+                        "image": "\/uploads\/1768781200_a6553aac.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781227065,
+                        "name": {
+                            "ru": "Мальчик (черный ошейник)",
+                            "en": "Boy (black collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "700.000 руб",
+                            "en": "700,000 rur"
+                        },
+                        "image": "\/uploads\/1768781282_84e55942.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781287057,
+                        "name": {
+                            "ru": "Девочка (красный ошейник)",
+                            "en": "Girl (red collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "700.000  руб",
+                            "en": "700,000 rur"
+                        },
+                        "image": "\/uploads\/1768781307_78527c71.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781382448,
+                        "name": {
+                            "ru": "Девочка (серый ошейник)",
+                            "en": "Girl (gray collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
+                        "image": "\/uploads\/1768781498_72cb7de6.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781568735,
+                        "name": {
+                            "ru": "Девочка (оранжевый ошейник)",
+                            "en": "Girl (orange collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
+                        "image": "\/uploads\/1768781687_1d15d7a8.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781933947,
+                        "name": {
+                            "ru": "Девочка (бордовый ошейник)",
+                            "en": "Girl (burgundy collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
+                        "image": "\/uploads\/1768782046_4d9c0ca5.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768781935193,
+                        "name": {
+                            "ru": "Девочка (зеленый ошейник) ",
+                            "en": "Girl (green collar)"
+                        },
+                        "age": {
+                            "ru": "2 недели ",
+                            "en": "2 weeks"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "600.000 руб",
+                            "en": "600,000 rur"
+                        },
+                        "image": "\/uploads\/1768782094_edeae44d.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    }
+                ]
+            },
+            {
+                "name": {
+                    "ru": "Производители и выпускники ",
+                    "en": "Manufacturers and graduates"
+                },
+                "dogs": [
+                    {
+                        "id": 1,
+                        "name": {
+                            "ru": "MATRANG  ",
+                            "en": "MATRANG  "
+                        },
+                        "age": {
+                            "ru": "2 года ",
+                            "en": "2 years"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Производитель ",
+                            "en": "Stud dog"
+                        },
+                        "image": "\/uploads\/1767901714_2f0c67b4.jpeg",
+                        "imageZoom": 130,
+                        "imageHeight": 130,
+                        "imagePositionX": 50,
+                        "imagePositionY": 20,
+                        "available": false
+                    },
+                    {
+                        "id": 2,
+                        "name": {
+                            "ru": "Meloni ",
+                            "en": "Meloni "
+                        },
+                        "age": {
+                            "ru": "2 года",
+                            "en": "2 years"
+                        },
+                        "color": {
+                            "ru": "Lilac tan with ",
+                            "en": "Lilac tan with "
+                        },
+                        "price": {
+                            "ru": "Производитель",
+                            "en": "Stud dog"
+                        },
+                        "image": "\/uploads\/1767901811_5343bb97.jpeg",
+                        "imageZoom": 135,
+                        "imageHeight": 125,
+                        "imagePositionX": 50,
+                        "imagePositionY": 45,
+                        "available": false
+                    },
+                    {
+                        "id": 3,
+                        "name": {
+                            "ru": "Arianna",
+                            "en": "Arianna"
+                        },
+                        "age": {
+                            "ru": "4 месяца ",
+                            "en": "4 months"
+                        },
+                        "color": {
+                            "ru": "Lilac tric",
+                            "en": "Lilac tric"
+                        },
+                        "price": {
+                            "ru": " Будущий производитель ",
+                            "en": "Stud dog"
+                        },
+                        "image": "\/uploads\/1767902984_620c925d.jpeg",
+                        "imageZoom": 115,
+                        "imageHeight": 105,
+                        "imagePositionX": 60,
+                        "imagePositionY": 100,
+                        "available": false
+                    },
+                    {
+                        "id": 1767257700892,
+                        "name": {
+                            "ru": "Tayron ",
+                            "en": "Tayron "
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
+                        "image": "\/uploads\/1767902918_ba90e5ea.jpeg",
+                        "imageZoom": 115,
+                        "imageHeight": 115,
+                        "imagePositionX": 45,
+                        "imagePositionY": 50,
+                        "available": false
+                    },
+                    {
+                        "id": 1767903027178,
+                        "name": {
+                            "ru": "Kiara",
+                            "en": "Kiara"
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
+                        "image": "\/uploads\/1767903701_cfcccbd5.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 110,
+                        "imagePositionX": 60,
+                        "imagePositionY": 45,
+                        "available": false
+                    },
+                    {
+                        "id": 1767906000199,
+                        "name": {
+                            "ru": "Meltar",
+                            "en": "Meltar"
+                        },
+                        "age": {
+                            "ru": "8 месяцев",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac tan white",
+                            "en": "Lilac tan white"
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
+                        "image": "\/uploads\/1767906063_75666ae6.jpeg",
+                        "imageZoom": 130,
+                        "imageHeight": 130,
+                        "imagePositionX": 50,
+                        "imagePositionY": 95,
+                        "available": false
+                    },
+                    {
+                        "id": 1768782515716,
+                        "name": {
+                            "ru": "Gennady",
+                            "en": "Gennady"
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника ",
+                            "en": "Nursery graduate"
+                        },
+                        "image": "\/uploads\/1768782534_0d5518c6.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    },
+                    {
+                        "id": 1768786316340,
+                        "name": {
+                            "ru": "Max",
+                            "en": "Max"
+                        },
+                        "age": {
+                            "ru": "8 месяцев ",
+                            "en": "8 months"
+                        },
+                        "color": {
+                            "ru": "Lilac blotched ",
+                            "en": "Lilac blotched "
+                        },
+                        "price": {
+                            "ru": "Выпускник питомника",
+                            "en": "Nursery graduate"
+                        },
+                        "image": "\/uploads\/1768786357_f44a220b.jpeg",
+                        "imageZoom": 100,
+                        "imageHeight": 100,
+                        "imagePositionX": 50,
+                        "imagePositionY": 50,
+                        "available": true
+                    }
+                ]
+            }
+        ]
+    },
+    "contact": {
+        "tag": {
+            "ru": "Свяжитесь с нами",
+            "en": "Contact us"
+        },
+        "title": {
+            "ru": "ГОТОВЫ НАЧАТЬ?",
+            "en": "READY TO START?"
+        },
+        "description": {
+            "ru": "Ответим на все вопросы о породе, поможем выбрать щенка и организуем доставку в любой город России.",
+            "en": "We'll answer all your questions about the breed, help you choose a puppy, and arrange delivery to any city in Russia."
+        },
+        "phone": "+7 (900) 455-27-16",
+        "email": "greatlegacybully@gmail.com",
+        "address": "Finland, Kajaani",
+        "social": [
+            {
+                "icon": "MessageCircle",
+                "label": "WhatsApp",
+                "value": "+79004552716",
+                "link": "https:\/\/wa.me\/79004552716"
+            },
+            {
+                "icon": "Instagram",
+                "label": "Instagram",
+                "value": "@matrang_dogs",
+                "link": "https:\/\/instagram.com\/matrang_dogs"
+            },
+            {
+                "icon": "Youtube",
+                "label": "YouTube",
+                "value": "MATRANG_DOG_FAMILY",
+                "link": "https:\/\/youtube.com\/@matrang_dog_family?si=xw_RTDTWKtVXGOTA"
+            }
+        ]
+    },
+    "testimonials": {
+        "tag": {
+            "ru": "Отзывы",
+            "en": "Reviews"
+        },
+        "title": {
+            "ru": "ЧТО О НАС ГОВОРЯТ",
+            "en": "WHAT THEY SAY ABOUT US"
+        },
+        "description": {
+            "ru": "Отзывы наших клиентов — наша лучшая рекомендация. Читайте, что говорят владельцы наших щенков.",
+            "en": "Our clients' reviews are our best recommendations. Read what our puppy owners have to say."
+        },
+        "items": [
+            {
+                "id": 1,
+                "title": {
+                    "ru": "Виктория , Москва",
+                    "en": "Victoria, Moscow"
+                },
+                "image": "\/uploads\/1768334695_85a8c32e.jpeg"
+            },
+            {
+                "id": 1768334845066,
+                "title": {
+                    "ru": "Иванна ,Сочи",
+                    "en": "Ivanna, Sochi"
+                },
+                "image": "\/uploads\/1768334860_dda9af23.jpeg"
+            },
+            {
+                "id": 1769850137631,
+                "title": {
+                    "ru": "Татьяна .Москва",
+                    "en": ""
+                },
+                "image": "\/uploads\/1769850160_b89d7563.jpeg"
+            }
+        ]
+    },
+    "geography": {
+        "tag": {
+            "ru": "География",
+            "en": "Geography"
+        },
+        "title": {
+            "ru": "НАШИ ЩЕНКИ УЕЗЖАЮТ ПО РАЗНЫМ СТРАНАМ",
+            "en": "OUR PUPPIES ARE GOING TO DIFFERENT COUNTRIES"
+        },
+        "description": {
+            "ru": "Мы доставили щенков в десятки городов России. Организуем безопасную доставку в любой регион.",
+            "en": "We've delivered puppies to dozens of cities across Russia. We offer safe delivery to any region."
+        },
+        "locations": [
+            {
+                "id": 1,
+                "city": {
+                    "ru": "Москва",
+                    "en": "Moscow"
+                },
+                "count": 3,
+                "lat": 55.7558,
+                "lng": 37.6173
+            },
+            {
+                "id": 2,
+                "city": {
+                    "ru": "Воронеж ",
+                    "en": "Voronezh"
+                },
+                "count": 1,
+                "lat": 51.672,
+                "lng": 39.1843
+            },
+            {
+                "id": 3,
+                "city": {
+                    "ru": "Сочи ",
+                    "en": "Sochi"
+                },
+                "count": 1,
+                "lat": 43.5853,
+                "lng": 39.7203
+            },
+            {
+                "id": 5,
+                "city": {
+                    "ru": "Франция",
+                    "en": "France"
+                },
+                "count": 1,
+                "lat": 46.6034,
+                "lng": 1.8883
+            },
+            {
+                "id": 6,
+                "city": {
+                    "ru": "Болгария ",
+                    "en": "Bulgaria"
+                },
+                "count": 1,
+                "lat": 42.7339,
+                "lng": 25.4858
+            },
+            {
+                "id": 7,
+                "city": {
+                    "ru": "Финляндия ",
+                    "en": "Finland"
+                },
+                "count": 1,
+                "lat": 64,
+                "lng": 26
+            }
+        ]
+    },
+    "footer": {
+        "copyright": {
+            "ru": "© 2025 Great Legacy bully. Все права защищены.",
+            "en": "© 2025 Great Legacy bully. All rights reserved."
+        },
+        "social": [
+            {
+                "name": "Instagram",
+                "url": "https:\/\/www.instagram.com\/matrang_dog2\/",
+                "icon": "Instagram"
+            },
+            {
+                "name": "Telegram",
+                "url": "https:\/\/www.t.me\/matrang_dog2",
+                "icon": "Instagram"
+            },
+            {
+                "name": "ВК",
+                "url": "https:\/\/www.vk.com\/club228655819"
+            },
+            {
+                "name": "TikTok",
+                "url": "https:\/\/www.tiktok.com\/@matrang_dog?_t=8qFAqbZglbM&_r=1"
+            }
+        ]
+    },
+    "rules": {
+        "title": {
+            "ru": "Правила электронного документооборота",
+            "en": "Rules of Electronic Document Management"
+        },
+        "content": {
+            "ru": "<p>1. <strong>Электронная подпись (ПЭП)<\/strong> используется для подписания всех документов в рамках сделок на платформе. Она имеет ту же юридическую силу, что и собственноручная подпись.<\/p><p>2. <strong>Усовершенствованная подпись (AES)<\/strong> применяется для подписания договоров, связанных с отчуждением прав и значительных финансовых операций, обеспечивая повышенную надежность и защиту от изменений.<\/p><p>3. <strong>Система аудита<\/strong> фиксирует все действия сторон: время отправки, просмотра и подписания документов, а также IP-адреса и устройства участников.<\/p><p>4. <strong>Депозит и Оферта<\/strong>: Внесение депозита подтверждает принятие условий Оферты и намерение заключить сделку. Депозит является обеспечительным платежом.<\/p>",
+            "en": "<p>1. <strong>Simple Electronic Signature (SES)<\/strong> is used for signing all documents within transactions on the platform. It has the same legal validity as a handwritten signature.<\/p><p>2. <strong>Advanced Electronic Signature (AES)<\/strong> is applied for signing contracts involving the transfer of rights and significant financial operations, ensuring enhanced reliability and protection against modifications.<\/p><p>3. <strong>Audit System<\/strong> records all actions of the parties: time of sending, viewing, and signing documents, as well as IP addresses and devices of the participants.<\/p><p>4. <strong>Deposit and Offer<\/strong>: Making a deposit confirms the acceptance of the Offer terms and the intention to conclude the transaction. The deposit serves as a security payment.<\/p>"
+        }
+    }
 }

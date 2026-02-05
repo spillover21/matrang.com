@@ -6,6 +6,10 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
+// PHPMailer для отправки email
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -139,6 +143,689 @@ if ($action === 'login') {
     }
     exit();
 }
+
+// Получение контрактов и шаблонов
+if ($action === 'getContracts') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    $pdfTemplateFile = __DIR__ . '/../uploads/pdf_template.pdf';
+    
+    // Загружаем контракты
+    $contracts = [];
+    $templates = [];
+    
+    if (file_exists($contractsFile)) {
+        $fileContent = file_get_contents($contractsFile);
+        $data = json_decode($fileContent, true);
+        
+        // Проверяем формат: старый (массив) или новый (объект с contracts и templates)
+        if (isset($data['contracts']) && isset($data['templates'])) {
+            // Новый формат
+            $contracts = $data['contracts'];
+            $templates = $data['templates'];
+        } else if (is_array($data) && isset($data[0])) {
+            // Старый формат - массив контрактов
+            $contracts = $data;
+            // Добавляем шаблон по умолчанию
+            $templates = [
+                [
+                    'id' => 'template-1',
+                    'name' => 'Стандартный договор',
+                    'fields' => [
+                        ['id' => 'buyerName', 'label' => 'ФИО покупателя', 'type' => 'text', 'x' => 100, 'y' => 150, 'fontSize' => 12],
+                        ['id' => 'sellerName', 'label' => 'ФИО продавца', 'type' => 'text', 'x' => 100, 'y' => 200, 'fontSize' => 12],
+                        ['id' => 'dogName', 'label' => 'Кличка собаки', 'type' => 'text', 'x' => 100, 'y' => 250, 'fontSize' => 12],
+                        ['id' => 'price', 'label' => 'Цена', 'type' => 'text', 'x' => 100, 'y' => 300, 'fontSize' => 12],
+                        ['id' => 'date', 'label' => 'Дата', 'type' => 'date', 'x' => 100, 'y' => 350, 'fontSize' => 12]
+                    ]
+                ]
+            ];
+        }
+    } else {
+        // Файл не существует - создаем шаблон по умолчанию
+        $templates = [
+            [
+                'id' => 'template-1',
+                'name' => 'Стандартный договор',
+                'fields' => [
+                    ['id' => 'buyerName', 'label' => 'ФИО покупателя', 'type' => 'text', 'x' => 100, 'y' => 150, 'fontSize' => 12],
+                    ['id' => 'sellerName', 'label' => 'ФИО продавца', 'type' => 'text', 'x' => 100, 'y' => 200, 'fontSize' => 12],
+                    ['id' => 'dogName', 'label' => 'Кличка собаки', 'type' => 'text', 'x' => 100, 'y' => 250, 'fontSize' => 12],
+                    ['id' => 'price', 'label' => 'Цена', 'type' => 'text', 'x' => 100, 'y' => 300, 'fontSize' => 12],
+                    ['id' => 'date', 'label' => 'Дата', 'type' => 'date', 'x' => 100, 'y' => 350, 'fontSize' => 12]
+                ]
+            ]
+        ];
+    }
+    
+    // Проверяем наличие PDF шаблона
+    $pdfTemplate = '';
+    if (file_exists($pdfTemplateFile)) {
+        $pdfTemplate = '/uploads/pdf_template.pdf?t=' . time();
+    }
+    
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'contracts' => $contracts,
+        'templates' => $templates,
+        'pdfTemplate' => $pdfTemplate
+    ]);
+    exit();
+}
+
+// DOCUMENSO INTEGRATION
+if ($action === 'createDocumensoSigning') {
+    // Включаем перехват фатальных ошибок
+    register_shutdown_function(function() {
+        $error = error_get_last();
+        if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_COMPILE_ERROR)) {
+            // Очищаем буфер вывода, если там был мусор
+            while (ob_get_level()) ob_end_clean();
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Critical PHP Error: ' . $error['message'] . ' in ' . basename($error['file']) . ':' . $error['line']]);
+            exit();
+        }
+    });
+
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    // Извлекаем все поля договора
+    $contractData = [
+        'buyerEmail' => $input['buyerEmail'] ?? $input['email'] ?? '',
+        'buyerName' => $input['buyerName'] ?? $input['name'] ?? 'Customer',
+        'internalId' => $input['internalId'] ?? 'user_'.time(),
+        
+        // Все остальные поля из формы
+        'contractDate' => $input['contractDate'] ?? date('d.m.Y'),
+        'contractPlace' => $input['contractPlace'] ?? '',
+        
+        'kennelOwner' => $input['kennelOwner'] ?? '',
+        'kennelAddress' => $input['kennelAddress'] ?? '',
+        'kennelPhone' => $input['kennelPhone'] ?? '',
+        'kennelEmail' => $input['kennelEmail'] ?? '',
+        'kennelPassportSeries' => $input['kennelPassportSeries'] ?? '',
+        'kennelPassportNumber' => $input['kennelPassportNumber'] ?? '',
+        'kennelPassportIssuedBy' => $input['kennelPassportIssuedBy'] ?? '',
+        'kennelPassportIssuedDate' => $input['kennelPassportIssuedDate'] ?? '',
+        
+        'buyerAddress' => $input['buyerAddress'] ?? '',
+        'buyerPhone' => $input['buyerPhone'] ?? '',
+        'buyerPassportSeries' => $input['buyerPassportSeries'] ?? '',
+        'buyerPassportNumber' => $input['buyerPassportNumber'] ?? '',
+        'buyerPassportIssuedBy' => $input['buyerPassportIssuedBy'] ?? '',
+        'buyerPassportIssuedDate' => $input['buyerPassportIssuedDate'] ?? '',
+        
+        'dogFatherName' => $input['dogFatherName'] ?? '',
+        'dogFatherRegNumber' => $input['dogFatherRegNumber'] ?? '',
+        'dogMotherName' => $input['dogMotherName'] ?? '',
+        'dogMotherRegNumber' => $input['dogMotherRegNumber'] ?? '',
+        
+        'dogName' => $input['dogName'] ?? '',
+        'dogBirthDate' => $input['dogBirthDate'] ?? '',
+        'dogColor' => $input['dogColor'] ?? '',
+        'dogChipNumber' => $input['dogChipNumber'] ?? '',
+        'dogPuppyCard' => $input['dogPuppyCard'] ?? '',
+        
+        'purposeBreeding' => $input['purposeBreeding'] ?? false,
+        'purposeCompanion' => $input['purposeCompanion'] ?? false,
+        'purposeGeneral' => $input['purposeGeneral'] ?? false,
+        
+        'price' => $input['price'] ?? '',
+        'depositAmount' => $input['depositAmount'] ?? '',
+        'depositDate' => $input['depositDate'] ?? '',
+        'remainingAmount' => $input['remainingAmount'] ?? '',
+        'finalPaymentDate' => $input['finalPaymentDate'] ?? '',
+        
+        'dewormingDate' => $input['dewormingDate'] ?? '',
+        'vaccinationDates' => $input['vaccinationDates'] ?? '',
+        'vaccineName' => $input['vaccineName'] ?? '',
+        'nextDewormingDate' => $input['nextDewormingDate'] ?? '',
+        'nextVaccinationDate' => $input['nextVaccinationDate'] ?? '',
+        
+        'specialFeatures' => $input['specialFeatures'] ?? '',
+        'deliveryTerms' => $input['deliveryTerms'] ?? '',
+        'additionalAgreements' => $input['additionalAgreements'] ?? '',
+        'recommendedFood' => $input['recommendedFood'] ?? ''
+    ];
+
+    if (empty($contractData['buyerEmail'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Buyer email is required']);
+        exit();
+    }
+
+    try {
+        if (!file_exists(__DIR__ . '/DocumensoService.php')) {
+            throw new Exception("DocumensoService.php not found");
+        }
+        require_once __DIR__ . '/DocumensoService.php';
+        
+        $service = new DocumensoService();
+        $result = $service->createSigningSession($contractData);
+        
+        echo json_encode([
+            'success' => true,
+            'url' => $result['signingUrl'],
+            'documentId' => $result['documentId']
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500); 
+        echo json_encode([
+            'success' => false, 
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit();
+}
+
+// Сохранение контрактов и шаблонов
+if ($action === 'saveContracts') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid JSON']);
+        exit();
+    }
+
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    
+    // Загружаем существующие данные
+    $existingData = [];
+    if (file_exists($contractsFile)) {
+        $existingData = json_decode(file_get_contents($contractsFile), true);
+        
+        // Если старый формат (массив), конвертируем в новый
+        if (is_array($existingData) && !isset($existingData['contracts'])) {
+            $existingData = [
+                'contracts' => $existingData,
+                'templates' => []
+            ];
+        }
+    } else {
+        $existingData = [
+            'contracts' => [],
+            'templates' => []
+        ];
+    }
+    
+    // Обновляем только переданные поля
+    if (isset($input['contracts'])) {
+        $existingData['contracts'] = $input['contracts'];
+    }
+    if (isset($input['templates'])) {
+        $existingData['templates'] = $input['templates'];
+    }
+    
+    if (file_put_contents($contractsFile, json_encode($existingData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+        http_response_code(200);
+        echo json_encode(['success' => true, 'message' => 'Contracts saved successfully']);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Failed to save contracts']);
+    }
+    exit();
+}
+
+// Сохранение шаблона контракта
+if ($action === 'saveContractTemplate') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input || !isset($input['name']) || !isset($input['data'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        exit();
+    }
+
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    
+    // Загружаем существующие данные
+    $existingData = [];
+    if (file_exists($contractsFile)) {
+        $existingData = json_decode(file_get_contents($contractsFile), true);
+        
+        // Если старый формат (массив), конвертируем в новый
+        if (is_array($existingData) && !isset($existingData['contracts'])) {
+            $existingData = [
+                'contracts' => $existingData,
+                'templates' => []
+            ];
+        }
+    } else {
+        $existingData = [
+            'contracts' => [],
+            'templates' => []
+        ];
+    }
+    
+    // Добавляем новый шаблон
+    $newTemplate = [
+        'id' => 'template-' . time(),
+        'name' => $input['name'],
+        'data' => $input['data']
+    ];
+    
+    $existingData['templates'][] = $newTemplate;
+    
+    if (file_put_contents($contractsFile, json_encode($existingData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+        http_response_code(200);
+        echo json_encode(['success' => true, 'message' => 'Template saved successfully']);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Failed to save template']);
+    }
+    exit();
+}
+
+// Загрузка PDF шаблона
+if ($action === 'uploadPdfTemplate') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    if (!isset($_FILES['file'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'No file provided']);
+        exit();
+    }
+
+    $file = $_FILES['file'];
+    
+    if ($file['type'] !== 'application/pdf') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid file type']);
+        exit();
+    }
+
+    if ($file['size'] > 10 * 1024 * 1024) { // 10MB
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'File too large']);
+        exit();
+    }
+
+    $filepath = $uploadDir . 'pdf_template.pdf';
+
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        $url = '/uploads/pdf_template.pdf';
+        http_response_code(200);
+        echo json_encode(['success' => true, 'url' => $url]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
+    }
+    exit();
+}
+
+// Загрузка заполненного PDF контракта
+if ($action === 'uploadcontract') {
+    // TODO: Временно отключена проверка токена для отладки
+    // Проверка токена из query параметра (для FormData запросов)
+    // $token = $_GET['token'] ?? '';
+    // if (empty($token)) {
+    //     http_response_code(401);
+    //     echo json_encode(['success' => false, 'message' => 'Unauthorized - no token']);
+    //     exit();
+    // }
+
+    if (!isset($_FILES['file'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'No file provided']);
+        exit();
+    }
+
+    $file = $_FILES['file'];
+    
+    if ($file['type'] !== 'application/pdf') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid file type']);
+        exit();
+    }
+
+    if ($file['size'] > 10 * 1024 * 1024) { // 10MB
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'File too large']);
+        exit();
+    }
+
+    // Сохраняем с уникальным именем
+    $filename = 'contract_' . time() . '.pdf';
+    $filepath = $uploadDir . $filename;
+
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        $url = '/uploads/' . $filename;
+        http_response_code(200);
+        echo json_encode(['success' => true, 'url' => $url, 'filename' => $filename]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
+    }
+    exit();
+}
+
+// Отправка контракта в PDF по email + создание envelope в Documenso
+if ($action === 'sendContractPdf') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    // Новый формат: просто данные договора (data)
+    if (!$input || !isset($input['data'])) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Invalid request - missing data',
+            'debug' => [
+                'hasInput' => !empty($input),
+                'receivedKeys' => $input ? array_keys($input) : []
+            ]
+        ]);
+        exit();
+    }
+    
+    // Подготавливаем данные для VPS
+    $contractData = $input['data'];
+    
+    // DEBUG LOG
+    file_put_contents(__DIR__ . '/debug_api.log', date('Y-m-d H:i:s') . " - Processing sendContractPdf\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/debug_api.log', "Data: " . json_encode($contractData) . "\n", FILE_APPEND);
+    
+    // Отправляем на VPS для создания envelope в Documenso
+    try {
+        $ch = curl_init('http://72.62.114.139:8080/create_envelope.php');
+        
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($contractData),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'X-API-Key: matrang_secret_key_2026'
+            ],
+            CURLOPT_TIMEOUT => 60
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        file_put_contents(__DIR__ . '/debug_api.log', "CURL Response (" . $httpCode . "): " . $response . "\n", FILE_APPEND);
+        file_put_contents(__DIR__ . '/debug_api.log', "CURL Error: " . $curlError . "\n", FILE_APPEND);
+        
+        if ($curlError) {
+            throw new Exception('VPS connection error: ' . $curlError);
+        }
+        
+        if ($httpCode !== 200) {
+            throw new Exception('VPS returned HTTP ' . $httpCode . ': ' . $response);
+        }
+        
+        $vpsResult = json_decode($response, true);
+        
+        if (!$vpsResult || !$vpsResult['success']) {
+            throw new Exception($vpsResult['error'] ?? 'Unknown error from VPS');
+        }
+        
+        // Сохраняем договор в локальную БД
+        $contractsFile = __DIR__ . '/../data/contracts.json';
+        $existingData = [];
+        
+        if (file_exists($contractsFile)) {
+            $existingData = json_decode(file_get_contents($contractsFile), true);
+            
+            if (is_array($existingData) && !isset($existingData['contracts'])) {
+                $existingData = [
+                    'contracts' => $existingData,
+                    'templates' => []
+                ];
+            }
+        } else {
+            $existingData = [
+                'contracts' => [],
+                'templates' => []
+            ];
+        }
+        
+        // Добавляем новый договор
+        $newContract = [
+            'id' => $vpsResult['envelope_id'],
+            'data' => $contractData,
+            'createdAt' => date('c'),
+            'sentAt' => date('c'),
+            'documensoUrl' => $vpsResult['document_url'],
+            's3Path' => $vpsResult['s3_path'],
+            'status' => 'sent'
+        ];
+        
+        $existingData['contracts'][] = $newContract;
+        
+        file_put_contents($contractsFile, json_encode($existingData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'contract' => $newContract,
+            'emailSent' => false, // Email пока отключен, используем Documenso
+            'message' => 'Договор создан в Documenso',
+            'vpsResponse' => $vpsResult
+        ]);
+        exit();
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to create contract: ' . $e->getMessage()
+        ]);
+        exit();
+    }
+    
+    /* СТАРЫЙ КОД ОТПРАВКИ EMAIL - ВРЕМЕННО ОТКЛЮЧЕН
+    if (!isset($input['email']) || !isset($input['pdfData'])) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Invalid request',
+            'debug' => [
+                'hasInput' => !empty($input),
+                'hasEmail' => isset($input['email']),
+                'hasPdfData' => isset($input['pdfData']),
+                'receivedKeys' => $input ? array_keys($input) : []
+            ]
+        ]);
+        exit();
+    }
+    */
+
+    // Реальная отправка email через PHPMailer (SMTP)
+    require_once __DIR__ . '/vendor/autoload.php';
+    
+    $email = $input['email'];
+    $pdfUrl = $input['pdfData'];
+    $smtpConfig = require __DIR__ . '/smtp_config.php';
+    
+    $mail = new PHPMailer(true);
+    
+    try {
+        // SMTP настройки
+        $mail->isSMTP();
+        $mail->Host = $smtpConfig['host'];
+        $mail->SMTPAuth = $smtpConfig['auth'];
+        $mail->Username = $smtpConfig['username'];
+        $mail->Password = $smtpConfig['password'];
+        $mail->SMTPSecure = $smtpConfig['encryption'];
+        $mail->Port = $smtpConfig['port'];
+        $mail->CharSet = 'UTF-8';
+        
+        // От кого
+        $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
+        $mail->addReplyTo($smtpConfig['reply_to'], $smtpConfig['from_name']);
+        
+        // Кому
+        $mail->addAddress($email);
+        
+        // Содержимое письма
+        $mail->isHTML(true);
+        $mail->Subject = 'Договор купли-продажи щенка';
+        $mail->Body = '
+            <html>
+            <body style="font-family: Arial, sans-serif;">
+                <h2>Договор купли-продажи щенка</h2>
+                <p>Здравствуйте!</p>
+                <p>Во вложении находится ваш договор купли-продажы щенка.</p>
+                <p><a href="https://matrang.com' . htmlspecialchars($pdfUrl) . '" style="background: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Скачать договор (PDF)</a></p>
+                <p>С уважением,<br><strong>Great Legacy Bully</strong></p>
+            </body>
+            </html>
+        ';
+        $mail->AltBody = "Здравствуйте!\n\nВаш договор купли-продажи щенка доступен по ссылке:\nhttps://matrang.com" . $pdfUrl . "\n\nС уважением,\nGreat Legacy Bully";
+        
+        $mail->send();
+        
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Contract sent successfully to ' . $email
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to send email: ' . $mail->ErrorInfo
+        ]);
+    }
+    exit();
+}
+
+// -------------------------------------------------------------
+// СИСТЕМА ЭЛЕКТРОННОЙ ПОДПИСИ (eIDAS)
+// -------------------------------------------------------------
+
+require_once __DIR__ . '/signature_system.php';
+
+// 1. Создание запроса на подписание
+if ($action === 'createSigningRequest') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    // Проверка входных данных
+    if (!$input || empty($input['buyer_email']) || empty($input['buyer_phone']) || empty($input['pdf_url'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields (email, phone, pdf_url)']);
+        exit();
+    }
+    
+    try {
+        $eidas = new eIDASSignatureSystem();
+        $result = $eidas->createSigningRequest(
+            $input['contract_id'] ?? 'DOG-'.date('Y-md-H'), 
+            $input['buyer_email'],
+            $input['buyer_phone'],
+            $input['pdf_url']
+        );
+        
+        http_response_code(200);
+        echo json_encode($result);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
+// 2. Получение информации о запросе (для страницы подписания)
+if ($action === 'getSigningRequest') {
+    $token = $_GET['token'] ?? '';
+    
+    if (empty($token)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Token required']);
+        exit();
+    }
+    
+    try {
+        $eidas = new eIDASSignatureSystem();
+        $request = $eidas->getSigningRequest($token);
+        
+        if (!$request) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Request not found or expired']);
+            exit();
+        }
+        
+        echo json_encode(['success' => true, 'request' => $request]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
+// 3. Подписание контракта (SMS код)
+if ($action === 'signContract') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input || empty($input['token']) || empty($input['sms_code']) || empty($input['signature_data'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+        exit();
+    }
+    
+    try {
+        $eidas = new eIDASSignatureSystem();
+        $result = $eidas->signContract(
+            $input['token'],
+            $input['sms_code'],
+            $input['signature_data'],
+            $input['client_metadata'] ?? []
+        );
+        
+        echo json_encode($result);
+    } catch (Exception $e) {
+        // SMS invalid code usually throws exception
+        http_response_code(400); // 400 for bad logic (e.g. wrong code)
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
+// -------------------------------------------------------------
 
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action']);

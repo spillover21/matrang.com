@@ -23,7 +23,9 @@ class ContractService {
         // Отправляем данные напрямую на VPS через Bridge API
         // VPS сам заполнит шаблон через Python pypdf, загрузит в Documenso и создаст envelope
         
-        $ch = curl_init('http://72.62.114.139/api/create_envelope.php');
+        $ch = curl_init('http://72.62.114.139:8080/create_envelope.php');
+
+
         
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
