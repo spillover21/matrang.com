@@ -6,6 +6,8 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
+require_once __DIR__ . '/signature_system.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -136,6 +138,89 @@ if ($action === 'login') {
     } else {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Invalid password']);
+    }
+    exit();
+}
+
+// 3. Подписание контракта (SMS код)
+if ($action === 'signContract') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input || empty($input['token']) || empty($input['sms_code']) || empty($input['signature_data'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+        exit();
+    }
+    
+    try {
+        $eidas = new eIDASSignatureSystem();
+        $result = $eidas->signContract(
+            $input['token'],
+            $input['sms_code'],
+            $input['signature_data'],
+            $input['client_metadata'] ?? []
+        );
+        
+        echo json_encode($result);
+    } catch (Exception $e) {
+        http_response_code(400); 
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+
+// 4. Обновление статуса контракта (webhook)
+if ($action === 'updateContractStatus') {
+    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
+    if ($apiKey !== 'matrang_secret_key_2026') {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Invalid API Key']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $documentId = $input['documentId'] ?? '';
+    $status = $input['status'] ?? '';
+    $signedUrl = $input['signedUrl'] ?? '';
+    
+    if (!$documentId || !$status) {
+         http_response_code(400);
+         echo json_encode(['success' => false, 'message' => 'Missing documentId or status']);
+         exit();
+    }
+
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    if (!file_exists($contractsFile)) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Database not found']);
+        exit();
+    }
+    
+    $data = json_decode(file_get_contents($contractsFile), true);
+    $contracts = isset($data['contracts']) ? $data['contracts'] : $data;
+
+    $found = false;
+    foreach ($contracts as &$contract) {
+        if (strval($contract['id']) === strval($documentId) || 
+            (isset($contract['envelope_id']) && strval($contract['envelope_id']) === strval($documentId))) {
+            $contract['status'] = $status;
+            $contract['signedAt'] = date('c');
+            if ($signedUrl) $contract['signedDocumentUrl'] = $signedUrl;
+            $found = true;
+            break;
+        }
+    }
+    
+    if ($found) {
+        if (isset($data['contracts'])) {
+            $data['contracts'] = $contracts;
+        } else {
+            $data = $contracts;
+        }
+        file_put_contents($contractsFile, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Contract not found']);
     }
     exit();
 }

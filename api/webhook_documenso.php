@@ -62,9 +62,7 @@ function handleDocumentCompleted($data) {
     try {
         $service = new DocumensoService();
         
-        // Save to public HTML folder so it can be downloaded
-        //$uploadDir = __DIR__ . '/../uploads/contracts/'; 
-        $uploadDir = __DIR__ . '/../html/uploads/contracts/';
+        $uploadDir = __DIR__ . '/../uploads/contracts/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         
         $filename = "contract_{$internalUserId}_{$documentId}.pdf";
@@ -73,46 +71,32 @@ function handleDocumentCompleted($data) {
         // Скачиваем PDF
         $service->downloadDocument($documentId, $savePath);
         
-        error_log("WEBHOOK: Document $documentId signed and saved to $savePath");
-
-        // Обновляем статус в основной системе (Hostinger)
-        $fileUrl = 'http://72.62.114.139/uploads/contracts/' . $filename;
-        $mainSiteUrl = 'https://matrang.com/api/api.php?action=updateContractStatus';
+        // Тут логика обновления БД
+        $apiUrl = "https://pitbull-powerhouse.com/api/api.php?action=updateContractStatus";
         
-        $ch = curl_init($mainSiteUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode([
-                'documentId' => $documentId,
-                'status' => 'signed',
-                'signedUrl' => $fileUrl
-            ]),
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'X-API-Key: matrang_secret_key_2026'
-            ],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 15
+        $ch = curl_init($apiUrl);
+        $payload = json_encode([
+            'documentId' => $documentId,
+            'status' => 'signed',
+            'signedUrl' => '/uploads/contracts/' . $filename
         ]);
         
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'X-API-KEY: matrang_secret_key_2026'
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        
+        if ($result === false) {
+             error_log("WEBHOOK WARNING: Failed to update DB via API. Curl error: " . curl_error($ch));
+        } else {
+             error_log("WEBHOOK: DB update response: " . $result);
+        }
         curl_close($ch);
         
-        if ($error || $httpCode !== 200) {
-            error_log("WEBHOOK WARNING: Failed to update main site status. Error: $error, HTTP: $httpCode, Response: $response");
-        } else {
-            error_log("WEBHOOK: Updated main site status successfully.");
-        }
-
-        // Отправка клиенту финального письма с вложением
-        $recipients = $data['recipients'] ?? [];
-        foreach ($recipients as $recipient) {
-            if (!empty($recipient['email'])) {
-                sendClientWithAttachment($recipient['email'], $savePath);
-            }
-        }
+        error_log("WEBHOOK: Document $documentId signed and saved to $savePath");
         
     } catch (Exception $e) {
         error_log("WEBHOOK ERROR: Failed to download signed document: " . $e->getMessage());
@@ -167,52 +151,6 @@ function sendManagerEmail($subject, $body) {
         $mail->send();
     } catch (Exception $e) {
         error_log("WEBHOOK EMAIL ERROR: Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
-    }
-}
-
-function sendClientWithAttachment($email, $filePath) {
-    $smtp = require __DIR__ . '/smtp_config.php';
-    
-    $mail = new PHPMailer(true);
-    try {
-        // SMTP Config
-        $mail->isSMTP();
-        $mail->Host       = $smtp['host'];
-        $mail->SMTPAuth   = $smtp['auth'];
-        $mail->Username   = $smtp['username'];
-        $mail->Password   = $smtp['password'];
-        $mail->SMTPSecure = $smtp['encryption'];
-        $mail->Port       = $smtp['port'];
-        $mail->CharSet    = 'UTF-8';
-
-        // Sender
-        $mail->setFrom($smtp['from_email'], $smtp['from_name']);
-        
-        // Recipient
-        $mail->addAddress($email);
-
-        // Attachment
-        if (file_exists($filePath)) {
-            $mail->addAttachment($filePath, 'Contract_Signed.pdf');
-        }
-
-        // Content
-        $mail->isHTML(true);
-        $mail->Subject = 'Ваш подписанный договор с питомником Matrang';
-        $mail->Body    = '
-            <p>Здравствуйте!</p>
-            <p>Процесс подписания успешно завершен. К письму прикреплен ваш экземпляр договора.</p>
-            <p>Данный файл содержит Лист Аудита, подтверждающий подлинность сделки.</p>
-            <p>Мы рекомендуем сохранить этот файл.</p>
-            <p><strong>Поздравляем с приобретением будущего члена семьи!</strong></p>
-            <br>
-            <p>С уважением,<br>Команда Matrang & Great Legacy Bully</p>
-        ';
-
-        $mail->send();
-        error_log("WEBHOOK: Final email sent to $email");
-    } catch (Exception $e) {
-        error_log("WEBHOOK EMAIL ERROR: Message could not be sent to client $email. Mailer Error: {$mail->ErrorInfo}");
     }
 }
 ?>
