@@ -95,37 +95,14 @@ function handleDocumentCompleted($data) {
         return;
     }
     
-    $internalUserId = $data['metadata']['internalUserId'] ?? 'unknown';
-    
     error_log("[WEBHOOK] Processing document ID: $documentId");
     
     try {
         $service = new DocumensoService();
         
-        // Получаем полный документ от Documenso для доступа к envelopeId
-        error_log("[WEBHOOK] Fetching document $documentId from Documenso");
-        $fullDocument = $service->getDocument($documentId);
-        
-        if (!$fullDocument) {
-            error_log("[WEBHOOK ERROR] Document $documentId not found in Documenso");
-            return;
-        }
-        
-        $envelopeId = null;
-        
-        // Ищем envelopeId в полях документа
-        if (isset($fullDocument['fields']) && is_array($fullDocument['fields'])) {
-            foreach ($fullDocument['fields'] as $field) {
-                if (isset($field['envelopeId'])) {
-                    $envelopeId = $field['envelopeId'];
-                    break;
-                }
-            }
-        }
-        
-        // Получаем email покупателя из recipients
+        // Получаем email покупателя из recipients (данные УЖЕ есть в $data!)
         $buyerEmail = null;
-        $recipients = $fullDocument['recipients'] ?? $data['recipients'] ?? [];
+        $recipients = $data['recipients'] ?? [];
         
         error_log("[WEBHOOK DEBUG] Recipients count: " . count($recipients));
         
@@ -138,34 +115,36 @@ function handleDocumentCompleted($data) {
             }
         }
         
-        error_log("[WEBHOOK DEBUG] EnvelopeId: " . ($envelopeId ?: 'NULL') . ", BuyerEmail: " . ($buyerEmail ?: 'NULL'));
+        if (!$buyerEmail) {
+            error_log("[WEBHOOK ERROR] Buyer email not found in recipients");
+            return;
+        }
+        
+        error_log("[WEBHOOK DEBUG] DocumentID: $documentId, BuyerEmail: $buyerEmail");
         
         $uploadDir = __DIR__ . '/../uploads/contracts/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         
-        $filename = "contract_{$internalUserId}_{$documentId}.pdf";
+        $filename = "contract_{$buyerEmail}_{$documentId}.pdf";
         $savePath = $uploadDir . $filename;
         
         // Скачиваем PDF
         $service->downloadDocument($documentId, $savePath);
         error_log("[WEBHOOK DEBUG] PDF downloaded to: $savePath");
         
-        // Обновляем статус договора в базе (ищем по envelopeId или email)
-        if ($envelopeId) {
-            error_log("[WEBHOOK] Updating contract by envelopeId: $envelopeId");
-            updateContractStatusByEnvelopeId($envelopeId, 'signed', '/uploads/contracts/' . $filename);
-        } else if ($buyerEmail) {
+        // Обновляем статус договора в базе (ищем по email покупателя)
+        if ($buyerEmail) {
             error_log("[WEBHOOK] Updating contract by email: $buyerEmail");
             updateContractStatusByEmail($buyerEmail, 'signed', '/uploads/contracts/' . $filename);
         } else {
-            error_log("[WEBHOOK ERROR] No envelopeId or buyerEmail found for document $documentId");
+            error_log("[WEBHOOK ERROR] No buyerEmail found for document $documentId");
         }
         
-        error_log("WEBHOOK: Document $documentId (envelope: $envelopeId) signed and saved to $savePath");
+        error_log("WEBHOOK: Document $documentId signed and saved to $savePath");
 
         // Отправка клиенту финального письма с вложением
         foreach ($recipients as $recipient) {
-            if (!empty($recipient['email'])) {
+            if (!empty($recipient['email']) && $recipient['email'] !== 'noreply@matrang.com') {
                 sendClientWithAttachment($recipient['email'], $savePath);
             }
         }
