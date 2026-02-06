@@ -16,7 +16,7 @@ $debugData = [
 ];
 file_put_contents($debugLog, "\n=== WEBHOOK CALLED ===\n" . print_r($debugData, true) . "\n", FILE_APPEND);
 
-require_once __DIR__ . '/DocumensoService.php';
+require_once __DIR__ . '/DocumensoServiceNew.php';  // Используем новую версию файла!
 $config = require __DIR__ . '/documenso_config.php';
 require_once __DIR__ . '/vendor/autoload.php'; // Подключаем PHPMailer
 
@@ -104,8 +104,8 @@ function handleDocumentCompleted($data) {
     file_put_contents($debugLog, "[DEBUG] Creating DocumensoService instance...\n", FILE_APPEND);
     
     try {
-        $service = new DocumensoService();
-        file_put_contents($debugLog, "[DEBUG] DocumensoService created successfully\n", FILE_APPEND);
+        $service = new DocumensoServiceNew();  // Используем новый класс!
+        file_put_contents($debugLog, "[DEBUG] DocumensoServiceNew created successfully\n", FILE_APPEND);
         
         // Получаем email покупателя из recipients (данные УЖЕ есть в $data!)
         $buyerEmail = null;
