@@ -2,6 +2,14 @@
   RewriteEngine On
   RewriteBase /
   
+  # Исключаем API директорию из переписывания - важно для работы PHP
+  RewriteCond %{REQUEST_URI} ^/api/
+  RewriteRule ^ - [L]
+  
+  # Исключаем data директорию
+  RewriteCond %{REQUEST_URI} ^/data/
+  RewriteRule ^ - [L]
+  
   # Маршрут для страницы подписания
   RewriteRule ^sign$ sign.html [QSA,L]
   
@@ -22,10 +30,18 @@
   AddType image/x-icon ico
 </IfModule>
 
+# Кеширование для статических файлов (НЕ применяется к PHP)
 <FilesMatch "\.(js|css|svg|woff2|woff|jpg|jpeg|png|gif|ico)$">
   Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
 
 <FilesMatch "\.html$">
   Header set Cache-Control "public, max-age=0, must-revalidate"
+</FilesMatch>
+
+# PHP файлы НЕ кешируются
+<FilesMatch "\.php$">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires 0
 </FilesMatch>
