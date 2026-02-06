@@ -1223,9 +1223,11 @@ if ($action === 'sendSigningLink') {
         }
 
         echo json_encode(['success' => true, 'message' => 'Emails sent successfully']);
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Mailer Error: ' . $e->getMessage()]);
+        $errorMsg = 'Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+        file_put_contents(__DIR__ . '/email_error.log', date('Y-m-d H:i:s') . ' - ' . $errorMsg . "\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => $errorMsg]);
     }
     exit();
 }
