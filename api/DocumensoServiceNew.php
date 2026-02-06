@@ -180,12 +180,12 @@ class DocumensoServiceNew {  // Переименован класс!
             
             error_log("[DOCUMENSO] Successfully downloaded document $documentId ($bytesWritten bytes) to $savePath");
             return true;
+            
+        } catch (Exception $e) {
             $errorMsg = "[DOCUMENSO ERROR] Download failed: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine();
             error_log($errorMsg);
             file_put_contents($debugLog, $errorMsg . "\n", FILE_APPEND);
-            file_put_contents($debugLog, "[DOCUMENSO TRACE] " . $e->getTraceAsString() . "\n", FILE_APPEND
-        } catch (Exception $e) {
-            error_log("[DOCUMENSO ERROR] Download failed: " . $e->getMessage());
+            file_put_contents($debugLog, "[DOCUMENSO TRACE] " . $e->getTraceAsString() . "\n", FILE_APPEND);
             throw $e;
         }
     }
