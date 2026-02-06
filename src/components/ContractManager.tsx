@@ -1590,7 +1590,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-base">Договор (UPDATED)</h3>
+                          <h3 className="font-semibold text-base">Договор (VERSION 6 FIXED)</h3>
                           {getStatusBadge()}
                         </div>
                         
