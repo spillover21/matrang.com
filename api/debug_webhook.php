@@ -9,10 +9,10 @@ echo "=== WEBHOOK DEBUG ===\n\n";
 // 1. Проверка файлов
 echo "1. Checking files...\n";
 $files = [
-    __DIR__ . '/api/webhook_documenso.php',
-    __DIR__ . '/api/DocumensoService.php',
-    __DIR__ . '/api/documenso_config.php',
-    __DIR__ . '/api/vendor/autoload.php'
+    __DIR__ . '/webhook_documenso.php',
+    __DIR__ . '/DocumensoService.php',
+    __DIR__ . '/documenso_config.php',
+    __DIR__ . '/vendor/autoload.php'
 ];
 
 foreach ($files as $file) {
@@ -23,22 +23,13 @@ foreach ($files as $file) {
     }
 }
 
-// 2. Проверка синтаксиса webhook
-echo "\n2. Checking webhook syntax...\n";
-$webhookFile = __DIR__ . '/api/webhook_documenso.php';
-$output = [];
-$return_var = 0;
-exec("php -l " . escapeshellarg($webhookFile) . " 2>&1", $output, $return_var);
-echo "   " . implode("\n   ", $output) . "\n";
+// 2. Проверка синтаксиса webhook (exec отключена на хостинге)
+echo "\n2. Syntax check skipped (exec disabled)\n";
 
 // 3. Попытка подключить webhook (без выполнения)
-echo "\n3. Testing webhook include...\n";
+echo "\n3. Testing DocumensoService...\n";
 try {
     ob_start();
-    
-    // Симулируем переменные окружения для webhook
-    $_SERVER['REQUEST_METHOD'] = 'POST';
-    $_SERVER['HTTP_X_DOCUMENSO_SECRET'] = 'test';
     
     // Используем буфер чтобы поймать любые ошибки
     $error = null;
@@ -47,9 +38,8 @@ try {
         return true;
     });
     
-    // НЕ include webhook - он сразу начнет выполняться
-    // Вместо этого проверим DocumensoService
-    require_once __DIR__ . '/api/DocumensoService.php';
+    // Проверим DocumensoService
+    require_once __DIR__ . '/DocumensoService.php';
     echo "   ✅ DocumensoService loaded\n";
     
     $service = new DocumensoService();
@@ -84,8 +74,8 @@ try {
 
 // 4. Проверка PHPMailer
 echo "\n4. Checking PHPMailer...\n";
-if (file_exists(__DIR__ . '/api/vendor/autoload.php')) {
-    require_once __DIR__ . '/api/vendor/autoload.php';
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
     
     if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
         echo "   ✅ PHPMailer loaded\n";
