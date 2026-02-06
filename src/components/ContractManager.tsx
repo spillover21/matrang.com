@@ -1682,7 +1682,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                                 });
                                 const data = await res.json();
                                 if (data.success) {
-                                  await loadContracts();
+                                  await loadData();
                                   toast.success('Статус обновлен');
                                 } else {
                                   toast.error(data.message || 'Ошибка обновления');
@@ -1723,7 +1723,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                                 method: 'DELETE',
                                 headers: getHeaders()
                               });
-                              await loadContracts();
+                              await loadData();
                               alert('✓ Договор удален');
                             } catch (e) {
                               alert('Ошибка удаления: ' + e);
