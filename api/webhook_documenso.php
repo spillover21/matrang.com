@@ -2,6 +2,18 @@
 // api/webhook_documenso.php
 // Эндпоинт для приема вебхуков от Documenso
 
+// ОТЛАДКА: Логируем ВСЁ в файл
+$debugLog = __DIR__ . '/../data/webhook_debug.log';
+$debugData = [
+    'timestamp' => date('Y-m-d H:i:s'),
+    'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
+    'headers' => getallheaders(),
+    'body' => file_get_contents('php://input'),
+    'get' => $_GET,
+    'post' => $_POST
+];
+file_put_contents($debugLog, "\n=== WEBHOOK CALLED ===\n" . print_r($debugData, true) . "\n", FILE_APPEND);
+
 require_once __DIR__ . '/DocumensoService.php';
 $config = require __DIR__ . '/documenso_config.php';
 require_once __DIR__ . '/vendor/autoload.php'; // Подключаем PHPMailer
@@ -16,6 +28,8 @@ $webhookSecret = $config['WEBHOOK_SECRET'];
 $rawBody = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_DOCUMENSO_SIGNATURE'] ?? '';
 $documensoSecret = $_SERVER['HTTP_X_DOCUMENSO_SECRET'] ?? '';
+
+file_put_contents($debugLog, "Secret check: received='$documensoSecret', expected='$webhookSecret'\n", FILE_APPEND);
 
 // 2. Проверка подписи
 // LEGAL COMPLIANCE: Критически важно проверять подлинность вебхука
