@@ -2,13 +2,15 @@
 // api/webhook_documenso.php
 // Эндпоинт для приема вебхуков от Documenso
 
-// ОТЛАДКА: Логируем ВСЁ в файл
+// ОТЛАДКА: Сохраняем тело запроса сразу (можно прочитать только ОДИН раз!)
+$rawBody = file_get_contents('php://input');
+
 $debugLog = __DIR__ . '/../data/webhook_debug.log';
 $debugData = [
     'timestamp' => date('Y-m-d H:i:s'),
     'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
     'headers' => getallheaders(),
-    'body' => file_get_contents('php://input'),
+    'body' => $rawBody,
     'get' => $_GET,
     'post' => $_POST
 ];
@@ -24,8 +26,7 @@ use PHPMailer\PHPMailer\Exception;
 // Конфигурация (в реальном проекте загружать из .env)
 $webhookSecret = $config['WEBHOOK_SECRET'];
 
-// 1. Получаем сырое тело запроса и заголовки
-$rawBody = file_get_contents('php://input');
+// 1. Получаем заголовки
 $signature = $_SERVER['HTTP_X_DOCUMENSO_SIGNATURE'] ?? '';
 $documensoSecret = $_SERVER['HTTP_X_DOCUMENSO_SECRET'] ?? '';
 
