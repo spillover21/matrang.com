@@ -1647,9 +1647,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                         
                         {contract.signedAt && !contract.signedDocumentUrl && (
                           <Button variant="outline" size="sm" asChild className="w-full">
-                            <a href={`http://72.62.114.139:9000/documents/${contract.adobeSignAgreementId}`} target="_blank" rel="noopener noreferrer">
+                            <a href="http://72.62.114.139:9000/documents" target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="w-4 h-4 mr-2" />
-                              Открыть в Documenso
+                              Все документы (Documenso)
                             </a>
                           </Button>
                         )}
