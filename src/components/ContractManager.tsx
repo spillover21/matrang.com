@@ -106,6 +106,15 @@ interface ContractManagerProps {
 
 const ContractManager = ({ token }: ContractManagerProps) => {
   const [activeTab, setActiveTab] = useState("new");
+  
+  // Define getHeaders inside component to be accessible
+  const getHeaders = () => {
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  };
+
   const [templates, setTemplates] = useState<ContractTemplate[]>([]);
   const [contracts, setContracts] = useState<SignedContract[]>([]);
   const [loading, setLoading] = useState(true);
