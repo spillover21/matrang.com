@@ -765,9 +765,45 @@ if ($action === 'sendContractPdf') {
     
     // Подготавливаем данные для VPS
     $contractData = $input['data'];
+
+    // --- FIX: Generate Sequential Contract Number ---
+    $contractsFile = __DIR__ . '/../data/contracts.json';
+    $nextNum = 1;
+    $currentYear = date('Y');
+    
+    if (file_exists($contractsFile)) {
+        $jsonContent = file_get_contents($contractsFile);
+        $jsonData = json_decode($jsonContent, true);
+        
+        $existingContracts = [];
+        if (isset($jsonData['contracts'])) {
+            $existingContracts = $jsonData['contracts'];
+        } elseif (is_array($jsonData)) {
+            $existingContracts = $jsonData;
+        }
+
+        foreach ($existingContracts as $c) {
+            // Check for contractNumber in top level OR in data
+            $cNum = $c['contractNumber'] ?? ($c['data']['contractNumber'] ?? '');
+            
+            if ($cNum && preg_match('/DOG-' . $currentYear . '-(\d+)/', $cNum, $matches)) {
+                $num = intval($matches[1]);
+                if ($num >= $nextNum) {
+                    $nextNum = $num + 1;
+                }
+            }
+        }
+    }
+    
+    // Generate new ID
+    $newContractNumber = 'DOG-' . $currentYear . '-' . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
+    
+    // Add to payload
+    $contractData['contractNumber'] = $newContractNumber;
+    // --- END FIX ---
     
     // DEBUG LOG
-    file_put_contents(__DIR__ . '/debug_api.log', date('Y-m-d H:i:s') . " - Processing sendContractPdf\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/debug_api.log', date('Y-m-d H:i:s') . " - Processing sendContractPdf with " . $newContractNumber . "\n", FILE_APPEND);
     file_put_contents(__DIR__ . '/debug_api.log', "Data: " . json_encode($contractData) . "\n", FILE_APPEND);
     
     // Отправляем на VPS для создания envelope в Documenso
@@ -808,7 +844,7 @@ if ($action === 'sendContractPdf') {
         }
         
         // Сохраняем договор в локальную БД
-        $contractsFile = __DIR__ . '/../data/contracts.json';
+        // $contractsFile уже определен выше
         $existingData = [];
         
         if (file_exists($contractsFile)) {
@@ -830,6 +866,7 @@ if ($action === 'sendContractPdf') {
         // Добавляем новый договор
         $newContract = [
             'id' => $vpsResult['envelope_id'],
+            'contractNumber' => $newContractNumber, // <--- SAVED HERE
             'data' => $contractData,
             'createdAt' => date('c'),
             'sentAt' => date('c'),

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Send, Download, FileText, Trash2, Plus, Archive, Upload } from "lucide-react";
+import { Save, Send, Download, FileText, Trash2, Plus, Archive, Upload, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PDFDocument } from 'pdf-lib';
@@ -211,6 +211,11 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       console.error(error);
       toast.error("Ошибка загрузки данных");
     } finally {
+      // Background sync
+      fetch("/api/sync_status.php").then(r => r.json()).then(d => {
+        if (d.updated > 0) loadData(); // Reload if updates found
+      }).catch(e => console.error(e));
+      
       setLoading(false);
     }
   };
@@ -513,7 +518,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const buildFieldMap = () => ({
-    '`contractNumber`': `DOG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
+    '`contractNumber`': 'DOG-2026-AUTO-GENERATED', // Will be replaced by backend
     '`contractDate`': formData.contractDate || new Date().toLocaleDateString('ru-RU'),
     '`contractPlace`': formData.contractPlace || '',
 
@@ -901,7 +906,17 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Управление договорами</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">Управление договорами</h1>
+            <Button 
+              variant="outline" 
+              onClick={() => window.open('http://72.62.114.139:9000/documents', '_blank')}
+              className="gap-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Все документы (Documenso)
+            </Button>
+          </div>
           {buildVersion && (
             <span className="text-xs text-muted-foreground">build: {buildVersion}</span>
           )}

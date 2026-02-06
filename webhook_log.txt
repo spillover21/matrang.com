@@ -1,0 +1,347 @@
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:02:04
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => gzip
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 2a02:4780:c:f975::1
+            [X-Real-Port] => 52150
+            [X-Forwarded-For] => 2a02:4780:c:f975::1
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 99
+            [User-Agent] => curl/8.5.0
+            [Accept] => */*
+            [x-documenso-secret] => pXbQZ8@Y6akBjd5
+            [Content-Type] => application/json
+        )
+
+    [body] => {" event\:\DOCUMENT_COMPLETED\,\payload\:{\id\:\test123\,\recipients\:[{\email\:\test@test.com\}]}}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='pXbQZ8@Y6akBjd5', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:03:19
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => gzip
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 2a02:4780:c:f975::1
+            [X-Real-Port] => 38870
+            [X-Forwarded-For] => 2a02:4780:c:f975::1
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 135
+            [User-Agent] => curl/8.5.0
+            [Accept] => */*
+            [x-documenso-secret] => pXbQZ8@Y6akBjd5
+            [Content-Type] => application/json
+        )
+
+    [body] => {" event\:\DOCUMENT_COMPLETED\,\payload\:{\id\:\envelope_3f70f20f0b0e367bc27f0dc1\,\recipients\:[{\email\:\kharrynadenis@gmail.com\}]}}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='pXbQZ8@Y6akBjd5', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:10:20
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => gzip
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 2001:999:59c:1b8a:64b3:3d6:15cc:6f7b
+            [X-Real-Port] => 59620
+            [X-Forwarded-For] => 2001:999:59c:1b8a:64b3:3d6:15cc:6f7b
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 0
+            [Content-Type] => application/json
+            [User-Agent] => Mozilla/5.0 (Windows NT; Windows NT 10.0; fi-FI) WindowsPowerShell/5.1.26100.7462
+        )
+
+    [body] => 
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:25:05
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => gzip
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 2001:999:59c:1b8a:64b3:3d6:15cc:6f7b
+            [X-Real-Port] => 53001
+            [X-Forwarded-For] => 2001:999:59c:1b8a:64b3:3d6:15cc:6f7b
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 94
+            [X-Documenso-Signature] => pXbQZ8@Y6akBjd5
+            [Content-Type] => application/json
+            [User-Agent] => Mozilla/5.0 (Windows NT; Windows NT 10.0; fi-FI) WindowsPowerShell/5.1.26100.7462
+        )
+
+    [body] => {
+    "event":  "test",
+    "data":  {
+                 "id":  "test123"
+             }
+}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:25:38
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => gzip
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 2001:999:59c:1b8a:64b3:3d6:15cc:6f7b
+            [X-Real-Port] => 53001
+            [X-Forwarded-For] => 2001:999:59c:1b8a:64b3:3d6:15cc:6f7b
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 94
+            [X-Documenso-Secret] => pXbQZ8@Y6akBjd5
+            [Content-Type] => application/json
+            [User-Agent] => Mozilla/5.0 (Windows NT; Windows NT 10.0; fi-FI) WindowsPowerShell/5.1.26100.7462
+        )
+
+    [body] => {
+    "event":  "test",
+    "data":  {
+                 "id":  "test123"
+             }
+}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='pXbQZ8@Y6akBjd5', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:33:08
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => br
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 72.62.114.139
+            [X-Real-Port] => 57992
+            [X-Forwarded-For] => 72.62.114.139
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 2675
+            [Content-Type] => application/json
+            [X-Documenso-Secret] => pXbQZ8@Y6akBjd5
+            [Accept] => */*
+            [Accept-Language] => *
+            [sec-fetch-mode] => cors
+            [User-Agent] => node
+        )
+
+    [body] => {"event":"DOCUMENT_COMPLETED","payload":{"id":147,"externalId":null,"userId":3,"authOptions":{"globalAccessAuth":[],"globalActionAuth":[]},"formValues":null,"visibility":"EVERYONE","title":"Contract","status":"COMPLETED","createdAt":"2026-02-06T10:32:03.000Z","updatedAt":"2026-02-06T10:33:06.465Z","completedAt":"2026-02-06T10:33:06.464Z","deletedAt":null,"teamId":3,"templateId":null,"source":"DOCUMENT","documentMeta":{"id":"cml923222e416a769ceddf834","subject":null,"message":null,"timezone":"Etc/UTC","dateFormat":"yyyy-MM-dd hh:mm a","redirectUrl":null,"signingOrder":"PARALLEL","allowDictateNextSigner":false,"typedSignatureEnabled":true,"uploadSignatureEnabled":true,"drawSignatureEnabled":true,"language":"en","distributionMethod":"EMAIL","emailSettings":{"documentDeleted":true,"documentPending":true,"recipientSigned":true,"recipientRemoved":true,"documentCompleted":true,"ownerDocumentCompleted":true,"recipientSigningRequest":true}},"recipients":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}],"Recipient":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}]},"createdAt":"2026-02-06T10:33:08.509Z","webhookEndpoint":"https://matrang.com/api/webhook_documenso.php"}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='pXbQZ8@Y6akBjd5', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:33:09
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => br
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 72.62.114.139
+            [X-Real-Port] => 57992
+            [X-Forwarded-For] => 72.62.114.139
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 2675
+            [Content-Type] => application/json
+            [X-Documenso-Secret] => pXbQZ8@Y6akBjd5
+            [Accept] => */*
+            [Accept-Language] => *
+            [sec-fetch-mode] => cors
+            [User-Agent] => node
+        )
+
+    [body] => {"event":"DOCUMENT_COMPLETED","payload":{"id":147,"externalId":null,"userId":3,"authOptions":{"globalAccessAuth":[],"globalActionAuth":[]},"formValues":null,"visibility":"EVERYONE","title":"Contract","status":"COMPLETED","createdAt":"2026-02-06T10:32:03.000Z","updatedAt":"2026-02-06T10:33:06.465Z","completedAt":"2026-02-06T10:33:06.464Z","deletedAt":null,"teamId":3,"templateId":null,"source":"DOCUMENT","documentMeta":{"id":"cml923222e416a769ceddf834","subject":null,"message":null,"timezone":"Etc/UTC","dateFormat":"yyyy-MM-dd hh:mm a","redirectUrl":null,"signingOrder":"PARALLEL","allowDictateNextSigner":false,"typedSignatureEnabled":true,"uploadSignatureEnabled":true,"drawSignatureEnabled":true,"language":"en","distributionMethod":"EMAIL","emailSettings":{"documentDeleted":true,"documentPending":true,"recipientSigned":true,"recipientRemoved":true,"documentCompleted":true,"ownerDocumentCompleted":true,"recipientSigningRequest":true}},"recipients":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}],"Recipient":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}]},"createdAt":"2026-02-06T10:33:08.925Z","webhookEndpoint":"https://matrang.com/api/webhook_documenso.php"}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='pXbQZ8@Y6akBjd5', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:33:09
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => br
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 72.62.114.139
+            [X-Real-Port] => 57992
+            [X-Forwarded-For] => 72.62.114.139
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 2675
+            [Content-Type] => application/json
+            [X-Documenso-Secret] => pXbQZ8@Y6akBjd5
+            [Accept] => */*
+            [Accept-Language] => *
+            [sec-fetch-mode] => cors
+            [User-Agent] => node
+        )
+
+    [body] => {"event":"DOCUMENT_COMPLETED","payload":{"id":147,"externalId":null,"userId":3,"authOptions":{"globalAccessAuth":[],"globalActionAuth":[]},"formValues":null,"visibility":"EVERYONE","title":"Contract","status":"COMPLETED","createdAt":"2026-02-06T10:32:03.000Z","updatedAt":"2026-02-06T10:33:06.465Z","completedAt":"2026-02-06T10:33:06.464Z","deletedAt":null,"teamId":3,"templateId":null,"source":"DOCUMENT","documentMeta":{"id":"cml923222e416a769ceddf834","subject":null,"message":null,"timezone":"Etc/UTC","dateFormat":"yyyy-MM-dd hh:mm a","redirectUrl":null,"signingOrder":"PARALLEL","allowDictateNextSigner":false,"typedSignatureEnabled":true,"uploadSignatureEnabled":true,"drawSignatureEnabled":true,"language":"en","distributionMethod":"EMAIL","emailSettings":{"documentDeleted":true,"documentPending":true,"recipientSigned":true,"recipientRemoved":true,"documentCompleted":true,"ownerDocumentCompleted":true,"recipientSigningRequest":true}},"recipients":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}],"Recipient":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}]},"createdAt":"2026-02-06T10:33:09.321Z","webhookEndpoint":"https://matrang.com/api/webhook_documenso.php"}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='pXbQZ8@Y6akBjd5', expected='pXbQZ8@Y6akBjd5'
+
+=== WEBHOOK CALLED ===
+Array
+(
+    [timestamp] => 2026-02-06 10:33:09
+    [method] => POST
+    [headers] => Array
+        (
+            [Host] => matrang.com
+            [Accept-Encoding] => br
+            [Connection] => close
+            [X-Forwarded-Proto] => https
+            [X-Real-IP] => 72.62.114.139
+            [X-Real-Port] => 57992
+            [X-Forwarded-For] => 72.62.114.139
+            [X-Forwarded-Port] => 443
+            [X-Port] => 443
+            [X-LSCACHE] => 1
+            [Content-Length] => 2675
+            [Content-Type] => application/json
+            [X-Documenso-Secret] => pXbQZ8@Y6akBjd5
+            [Accept] => */*
+            [Accept-Language] => *
+            [sec-fetch-mode] => cors
+            [User-Agent] => node
+        )
+
+    [body] => {"event":"DOCUMENT_COMPLETED","payload":{"id":147,"externalId":null,"userId":3,"authOptions":{"globalAccessAuth":[],"globalActionAuth":[]},"formValues":null,"visibility":"EVERYONE","title":"Contract","status":"COMPLETED","createdAt":"2026-02-06T10:32:03.000Z","updatedAt":"2026-02-06T10:33:06.465Z","completedAt":"2026-02-06T10:33:06.464Z","deletedAt":null,"teamId":3,"templateId":null,"source":"DOCUMENT","documentMeta":{"id":"cml923222e416a769ceddf834","subject":null,"message":null,"timezone":"Etc/UTC","dateFormat":"yyyy-MM-dd hh:mm a","redirectUrl":null,"signingOrder":"PARALLEL","allowDictateNextSigner":false,"typedSignatureEnabled":true,"uploadSignatureEnabled":true,"drawSignatureEnabled":true,"language":"en","distributionMethod":"EMAIL","emailSettings":{"documentDeleted":true,"documentPending":true,"recipientSigned":true,"recipientRemoved":true,"documentCompleted":true,"ownerDocumentCompleted":true,"recipientSigningRequest":true}},"recipients":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}],"Recipient":[{"id":241,"documentId":147,"templateId":null,"email":"noreply@matrang.com","name":"Great Legacy Bully","token":"6943M3Io-XRQNIVUkCkDYuA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:32:39.059Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"},{"id":240,"documentId":147,"templateId":null,"email":"kharynadenis@gmail.com","name":"Петров Петр Петрович","token":"0mcLdt3T-OQ8RKmLreFUdjA","documentDeletedAt":null,"expired":null,"signedAt":"2026-02-06T10:33:04.278Z","authOptions":{"accessAuth":[],"actionAuth":[]},"signingOrder":1,"rejectionReason":null,"role":"SIGNER","readStatus":"OPENED","signingStatus":"SIGNED","sendStatus":"SENT"}]},"createdAt":"2026-02-06T10:33:09.705Z","webhookEndpoint":"https://matrang.com/api/webhook_documenso.php"}
+    [get] => Array
+        (
+        )
+
+    [post] => Array
+        (
+        )
+
+)
+
+Secret check: received='pXbQZ8@Y6akBjd5', expected='pXbQZ8@Y6akBjd5'
