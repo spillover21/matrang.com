@@ -405,7 +405,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     link: data.signing_url,
                     contractNumber: data.contract_id || '...',
                     name: formData.buyerName,
-                    sellerEmail: formData.kennelEmail, // Pass seller email
+                    sellerEmail: (formData.kennelEmail || '').trim(), // Pass seller email (trimmed)
                     sellerName: formData.kennelName || formData.kennelOwner // Pass seller name
                 })
             });

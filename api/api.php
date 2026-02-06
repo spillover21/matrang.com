@@ -1134,11 +1134,13 @@ if ($action === 'sendSigningLink') {
     $name = $input['name'] ?? 'Покупатель';
     
     // Dynamic seller info
-    $sellerEmail = $input['sellerEmail'] ?? '';
-    $sellerName = $input['sellerName'] ?? '';
+    $sellerEmail = isset($input['sellerEmail']) ? trim($input['sellerEmail']) : '';
+    $sellerName = isset($input['sellerName']) ? trim($input['sellerName']) : '';
 
     // LOGGING EXTRACTION
-    file_put_contents(__DIR__ . '/email_debug.log', date('Y-m-d H:i:s') . " - Input: " . json_encode($input) . "\n", FILE_APPEND);
+    $logData = date('Y-m-d H:i:s') . " - Input: " . json_encode($input) . "\n";
+    $logData .= "Seller Email Parsed: '{$sellerEmail}'\n";
+    file_put_contents(__DIR__ . '/email_delivery.log', $logData, FILE_APPEND);
 
     if (!$email || !$link) {
         http_response_code(400); // Bad Request
@@ -1195,10 +1197,14 @@ if ($action === 'sendSigningLink') {
         sendMailInternal($email, "Подписание договора на щенка ({$contractNumber})", $buyerBody, $smtpConfig, $fromName, $replyTo);
         
         // 2. Send Copy to Seller (if distinct and valid)
-        if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL) && $sellerEmail !== $email) {
+        // Проверяем валидность и отправляем
+        if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL) && strtolower($sellerEmail) !== strtolower($email)) {
             $sellerBody = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f8fafc;'>
                 <h2 style='color: #475569;'>Копия отправленного договора</h2>
+                <div style='background: #fff3cd; color: #856404; padding: 10px; margin-bottom: 20px; border: 1px solid #ffeeba;'>
+                    <strong>Отладка:</strong> Это письмо отправлено на адрес: {$sellerEmail}
+                </div>
                 <p>Вы отправили договор покупателю <strong>{$name}</strong>.</p>
                 <p><strong>Номер договора:</strong> {$contractNumber}</p>
                 <p><strong>Email покупателя:</strong> {$email}</p>
@@ -1209,7 +1215,11 @@ if ($action === 'sendSigningLink') {
             </div>";
             
             // Send to seller without Reply-To (system notification)
-            sendMailInternal($sellerEmail, "[КОПИЯ] Договор отправлен покупателю {$name}", $sellerBody, $smtpConfig, $fromName);
+            sendMailInternal($sellerEmail, "[КОПИЯ] Договор на {$name} (для {$sellerEmail})", $sellerBody, $smtpConfig, $fromName);
+            
+            file_put_contents(__DIR__ . '/email_delivery.log', "Sent PROOF copy to: {$sellerEmail}\n", FILE_APPEND);
+        } else {
+             file_put_contents(__DIR__ . '/email_delivery.log', "Skipped seller copy. SellerEmail: '{$sellerEmail}' vs BuyerEmail: '{$email}'\n", FILE_APPEND);
         }
 
         echo json_encode(['success' => true, 'message' => 'Emails sent successfully']);
