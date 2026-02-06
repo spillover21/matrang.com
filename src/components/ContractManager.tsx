@@ -7,10 +7,12 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PDFDocument } from 'pdf-lib';
 
-// Version: 2026-01-26-v4-DEBUGGER
+// Version: 2026-02-06-FIX-FINAL-v2
 if (typeof window !== 'undefined') {
   (window as any).__CONTRACT_MANAGER_LOADED = Date.now();
-  console.error("🚨 ContractManager module loaded:", new Date().toISOString());
+  console.error("🚨 ContractManager module loaded (v2026.02.06):", new Date().toISOString());
+  // Force alert to prove new code is loaded
+  // alert("Debug: Contract Manager Loaded v2"); 
 }
 interface ContractTemplate {
   id: number;
@@ -1588,7 +1590,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-base">Договор</h3>
+                          <h3 className="font-semibold text-base">Договор (UPDATED)</h3>
                           {getStatusBadge()}
                         </div>
                         
@@ -1692,7 +1694,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                             size="sm"
                             className="w-full"
                             onClick={() => {
-                              const details = `Договор №${contract.contractNumber}\n\nПокупатель: ${contract.data.buyerName}\nEmail: ${contract.data.buyerEmail}\nЩенок: ${contract.data.dogName}\nЦена: ${contract.data.price} ₽\n\nDocumenso ID: ${contract.adobeSignAgreementId}`;
+                              const details = `Договор (ID: ${contract.contractNumber})\n\nПокупатель: ${contract.data.buyerName}\nEmail: ${contract.data.buyerEmail}\nЩенок: ${contract.data.dogName}\nЦена: ${contract.data.price} ₽\n\nDocumenso ID: ${contract.adobeSignAgreementId}`;
                               alert(details);
                             }}
                           >
@@ -1706,7 +1708,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                           size="sm"
                           className="w-full"
                           onClick={async () => {
-                            if (!confirm(`Удалить договор №${contract.contractNumber}?`)) return;
+                            if (!confirm(`Удалить договор (ID: ${contract.contractNumber})?`)) return;
                             try {
                               await fetch(`/api/api.php?action=deleteContract&id=${contract.id}`, {
                                 method: 'DELETE',
