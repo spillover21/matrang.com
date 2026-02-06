@@ -1694,7 +1694,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                             size="sm"
                             className="w-full"
                             onClick={() => {
-                              const details = `Договор (ID: ${contract.contractNumber})\n\nПокупатель: ${contract.data.buyerName}\nEmail: ${contract.data.buyerEmail}\nЩенок: ${contract.data.dogName}\nЦена: ${contract.data.price} ₽\n\nDocumenso ID: ${contract.adobeSignAgreementId}`;
+                              const details = `Договор\n\nПокупатель: ${contract.data.buyerName}\nEmail: ${contract.data.buyerEmail}\nЩенок: ${contract.data.dogName}\nЦена: ${contract.data.price} ₽\n\nDocumenso ID: ${contract.adobeSignAgreementId}`;
                               alert(details);
                             }}
                           >
@@ -1708,7 +1708,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                           size="sm"
                           className="w-full"
                           onClick={async () => {
-                            if (!confirm(`Удалить договор (ID: ${contract.contractNumber})?`)) return;
+                            if (!confirm(`Удалить этот договор?`)) return;
                             try {
                               await fetch(`/api/api.php?action=deleteContract&id=${contract.id}`, {
                                 method: 'DELETE',
