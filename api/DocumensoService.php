@@ -271,5 +271,50 @@ class DocumensoService {
             'recommendedFood' => $data['recommendedFood'] ?? ''
         ];
     }
+
+    /**
+     * Получает список webhooks
+     */
+    public function listWebhooks() {
+        try {
+            $response = $this->request('GET', '/webhooks');
+            return $response['webhooks'] ?? $response ?? [];
+        } catch (Exception $e) {
+            error_log("Error listing webhooks: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Создает новый webhook
+     */
+    public function createWebhook($webhookUrl, $eventTriggers = ['DOCUMENT_COMPLETED'], $secret = null) {
+        $data = [
+            'webhookUrl' => $webhookUrl,
+            'eventTriggers' => $eventTriggers,
+            'secret' => $secret
+        ];
+        
+        try {
+            $response = $this->request('POST', '/webhooks', $data);
+            return $response;
+        } catch (Exception $e) {
+            error_log("Error creating webhook: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Удаляет webhook
+     */
+    public function deleteWebhook($webhookId) {
+        try {
+            $response = $this->request('DELETE', "/webhooks/{$webhookId}");
+            return $response;
+        } catch (Exception $e) {
+            error_log("Error deleting webhook: " . $e->getMessage());
+            throw $e;
+        }
+    }
 }
 ?>

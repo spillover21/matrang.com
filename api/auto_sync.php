@@ -4,17 +4,14 @@
  * Скачивает PDF и обновляет статусы
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 $silent = isset($_GET['silent']) || (php_sapi_name() === 'cli');
-
-require_once __DIR__ . '/DocumensoService.php';
-$config = require __DIR__ . '/documenso_config.php';
 
 if (!$silent) {
     header('Content-Type: application/json; charset=utf-8');
 }
+
+$documensoUrl = 'http://localhost:9000/api/v1/documents';
+$apiToken = 'q13EXlPOGzS0SKGx9aD+QGBz6HoIo5nq';
 
 function updateContractWithPDF($buyerEmail, $docId, $completedAt) {
     $contractsFile = __DIR__ . '/../data/contracts.json';
@@ -67,15 +64,27 @@ function updateContractWithPDF($buyerEmail, $docId, $completedAt) {
 }
 
 try {
-    $service = new DocumensoService($config['documensoUrl'], $config['apiToken']);
-    
     $page = 1;
     $perPage = 100;
     $allDocuments = [];
     
     do {
-        $response = $service->getDocuments($page, $perPage);
-        $documents = $response['data'] ?? [];
+        $ch = curl_init("{$documensoUrl}?page={$page}&perPage={$perPage}");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer {$apiToken}",
+            'Content-Type: application/json'
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode !== 200) {
+            break;
+        }
+        
+        $data = json_decode($response, true);
+        $documents = $data['data'] ?? [];
         $allDocuments = array_merge($allDocuments, $documents);
         $page++;
     } while (!empty($documents) && count($documents) === $perPage);
