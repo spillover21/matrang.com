@@ -1132,6 +1132,10 @@ if ($action === 'sendSigningLink') {
     $link = $input['link'] ?? '';
     $contractNumber = $input['contractNumber'] ?? 'Unknown';
     $name = $input['name'] ?? 'Покупатель';
+    
+    // Dynamic seller info
+    $sellerEmail = $input['sellerEmail'] ?? '';
+    $sellerName = $input['sellerName'] ?? '';
 
     if (!$email || !$link) {
         http_response_code(400); // Bad Request
@@ -1153,7 +1157,23 @@ if ($action === 'sendSigningLink') {
         $mail->Port = $smtpConfig['port'];
         $mail->CharSet = 'UTF-8';
 
-        $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
+        // From: Always use authenticated email to avoid spam blocks
+        // But change the Display Name to the specific Seller Name
+        $fromName = $sellerName ? $sellerName : $smtpConfig['from_name'];
+        $mail->setFrom($smtpConfig['from_email'], $fromName);
+        
+        // Reply-To: Use the specific Seller Email from form
+        if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) {
+            $mail->addReplyTo($sellerEmail, $fromName);
+        } else {
+            $mail->addReplyTo($smtpConfig['reply_to'], $fromName);
+        }
+        
+        // CC: Send a copy to the seller so they know it went out
+        if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) {
+             $mail->addCC($sellerEmail);
+        }
+
         $mail->addAddress($email);
 
         $mail->isHTML(true);

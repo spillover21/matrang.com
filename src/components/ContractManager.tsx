@@ -404,7 +404,9 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     email: formData.buyerEmail,
                     link: data.signing_url,
                     contractNumber: data.contract_id || '...',
-                    name: formData.buyerName
+                    name: formData.buyerName,
+                    sellerEmail: formData.kennelEmail, // Pass seller email
+                    sellerName: formData.kennelName || formData.kennelOwner // Pass seller name
                 })
             });
             toast.success(`✅ Договор отправлен! ID: ${data.envelope_id} (email отправлен)`);
