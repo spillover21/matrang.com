@@ -395,6 +395,16 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       const data = await response.json();
 
       if (data.success) {
+        // Show detailed debug for seller if available
+        if (data.seller_debug) {
+            console.log("Seller Creation Debug:", data.seller_debug, data.seller_email_parsed);
+            if (!data.seller_created && formData.kennelEmail) {
+                 toast.warning(`⚠️ Продавец не добавлен в подписание! Сервер получил: ${data.seller_email_parsed || 'пусто'}`);
+            } else if (data.seller_created) {
+                 toast.success(`✅ Продавец добавлен: ${data.seller_email_parsed}`);
+            }
+        }
+
         // Automatically send email with link
         try {
             fetch('/api/api.php?action=sendSigningLink', {
