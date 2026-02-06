@@ -1120,6 +1120,72 @@ if ($action === 'get_seller_profile') {
     exit();
 }
 
+if ($action === 'sendSigningLink') {
+    if (!checkAuth()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+    $link = $input['link'] ?? '';
+    $contractNumber = $input['contractNumber'] ?? 'Unknown';
+    $name = $input['name'] ?? 'Покупатель';
+
+    if (!$email || !$link) {
+        http_response_code(400); // Bad Request
+        echo json_encode(['success' => false, 'message' => 'Missing email or link']);
+        exit();
+    }
+
+    $smtpConfig = require __DIR__ . '/smtp_config.php';
+    $mail = new PHPMailer(true);
+
+    try {
+        // SMTP settings from smtp_config
+        $mail->isSMTP();
+        $mail->Host = $smtpConfig['host'];
+        $mail->SMTPAuth = $smtpConfig['auth'];
+        $mail->Username = $smtpConfig['username'];
+        $mail->Password = $smtpConfig['password'];
+        $mail->SMTPSecure = $smtpConfig['encryption'];
+        $mail->Port = $smtpConfig['port'];
+        $mail->CharSet = 'UTF-8';
+
+        $mail->setFrom($smtpConfig['from_email'], $smtpConfig['from_name']);
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = "Подписание договора на щенка ({$contractNumber})";
+        
+        $body = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
+            <h2 style='color: #2563eb;'>Договор готов к подписанию</h2>
+            <p>Здравствуйте, <strong>{$name}</strong>!</p>
+            <p>Ваш договор купли-продажи щенка (№{$contractNumber}) сформирован и ожидает вашей подписи.</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$link}' style='background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;'>Посмотреть и подписать договор</a>
+            </div>
+            <p style='color: #666; font-size: 14px;'>Если кнопка не работает, скопируйте ссылку в браузер:</p>
+            <p style='background: #f5f5f5; padding: 10px; font-size: 12px; word-break: break-all;'>{$link}</p>
+            <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+            <p style='color: #888; font-size: 12px;'>С уважением,<br>Питомник American Bully</p>
+        </div>";
+
+        $mail->Body = $body;
+        $mail->AltBody = "Ссылка на подписание договора: $link";
+
+        $mail->send();
+        
+        echo json_encode(['success' => true, 'message' => 'Email sent successfully']);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Mailer Error: ' . $mail->ErrorInfo]);
+    }
+    exit();
+}
+
 // -------------------------------------------------------------
 
 http_response_code(400);

@@ -395,7 +395,23 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       const data = await response.json();
 
       if (data.success) {
-        toast.success(`✅ Договор отправлен! ID: ${data.envelope_id}`);
+        // Automatically send email with link
+        try {
+            fetch('/api/api.php?action=sendSigningLink', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({
+                    email: formData.buyerEmail,
+                    link: data.signing_url,
+                    contractNumber: data.contract_id || '...',
+                    name: formData.buyerName
+                })
+            });
+            toast.success(`✅ Договор отправлен! ID: ${data.envelope_id} (email отправлен)`);
+        } catch(e) { 
+            console.error(e);
+            toast.success(`✅ Договор отправлен, но email отправить не удалось.`);
+        }
         
         // Показываем ссылку для подписания
         const signUrl = data.signing_url;
