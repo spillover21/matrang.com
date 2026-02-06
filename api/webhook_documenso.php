@@ -88,21 +88,29 @@ try {
 // --- Helper Functions ---
 
 function handleDocumentCompleted($data) {
+    $debugLog = __DIR__ . '/../data/webhook_debug.log';
+    file_put_contents($debugLog, "\n[FUNCTION START] handleDocumentCompleted called\n", FILE_APPEND);
+    
     $documentId = $data['id'] ?? null;
+    file_put_contents($debugLog, "[DEBUG] Document ID extracted: " . ($documentId ?? 'NULL') . "\n", FILE_APPEND);
     
     if (!$documentId) {
         error_log('[WEBHOOK ERROR] No document ID in data: ' . json_encode($data));
+        file_put_contents($debugLog, "[ERROR] No document ID, returning\n", FILE_APPEND);
         return;
     }
     
     error_log("[WEBHOOK] Processing document ID: $documentId");
+    file_put_contents($debugLog, "[DEBUG] Creating DocumensoService instance...\n", FILE_APPEND);
     
     try {
         $service = new DocumensoService();
+        file_put_contents($debugLog, "[DEBUG] DocumensoService created successfully\n", FILE_APPEND);
         
         // Получаем email покупателя из recipients (данные УЖЕ есть в $data!)
         $buyerEmail = null;
         $recipients = $data['recipients'] ?? [];
+        file_put_contents($debugLog, "[DEBUG] Recipients count: " . count($recipients) . "\n", FILE_APPEND);
         
         error_log("[WEBHOOK DEBUG] Recipients count: " . count($recipients));
         
@@ -117,19 +125,24 @@ function handleDocumentCompleted($data) {
         
         if (!$buyerEmail) {
             error_log("[WEBHOOK ERROR] Buyer email not found in recipients");
+            file_put_contents($debugLog, "[ERROR] Buyer email not found\n", FILE_APPEND);
             return;
         }
         
         error_log("[WEBHOOK DEBUG] DocumentID: $documentId, BuyerEmail: $buyerEmail");
+        file_put_contents($debugLog, "[DEBUG] Found buyer: $buyerEmail\n", FILE_APPEND);
         
         $uploadDir = __DIR__ . '/../uploads/contracts/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         
         $filename = "contract_{$buyerEmail}_{$documentId}.pdf";
         $savePath = $uploadDir . $filename;
+        file_put_contents($debugLog, "[DEBUG] Save path: $savePath\n", FILE_APPEND);
         
         // Скачиваем PDF
+        file_put_contents($debugLog, "[DEBUG] Calling downloadDocument()...\n", FILE_APPEND);
         $service->downloadDocument($documentId, $savePath);
+        file_put_contents($debugLog, "[DEBUG] downloadDocument() completed\n", FILE_APPEND);
         error_log("[WEBHOOK DEBUG] PDF downloaded to: $savePath");
         
         // Обновляем статус договора в базе (ищем по email покупателя)
@@ -150,9 +163,14 @@ function handleDocumentCompleted($data) {
         }
         
     } catch (Exception $e) {
-        error_log("WEBHOOK ERROR: Failed to download signed document: " . $e->getMessage());
+        $errorMsg = "WEBHOOK ERROR: Failed to download signed document: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine();
+        error_log($errorMsg);
+        file_put_contents($debugLog, "[EXCEPTION] $errorMsg\n", FILE_APPEND);
+        file_put_contents($debugLog, "[EXCEPTION TRACE] " . $e->getTraceAsString() . "\n", FILE_APPEND);
         // Не прерываем выполнение (200 OK), но логируем ошибку
     }
+    
+    file_put_contents($debugLog, "[FUNCTION END] handleDocumentCompleted finished\n", FILE_APPEND);
 }
 
 function handleDocumentRejected($data) {
