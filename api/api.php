@@ -1148,6 +1148,7 @@ if ($action === 'sendSigningLink') {
         exit();
     }
 
+    require_once __DIR__ . '/vendor/autoload.php'; // Ensure autoloader is loaded
     $smtpConfig = require __DIR__ . '/smtp_config.php';
     
     // FUNCTION TO SEND EMAIL
