@@ -316,5 +316,77 @@ class DocumensoService {
             throw $e;
         }
     }
+
+    /**
+     * Скачивает подписанный документ в формате PDF
+     * @param int $documentId ID документа в Documenso
+     * @param string $savePath Путь куда сохранить PDF файл
+     * @return bool True если успешно, false иначе
+     */
+    public function downloadDocument($documentId, $savePath) {
+        try {
+            $url = $this->apiUrl . '/documents/' . $documentId . '/download';
+            
+            error_log("[DOCUMENSO] Downloading document $documentId from: $url");
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: ' . $this->apiKey,
+                'Accept: application/pdf'
+            ]);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            
+            $pdfContent = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            
+            if ($curlError) {
+                error_log("[DOCUMENSO ERROR] cURL error: $curlError");
+                throw new Exception("Failed to download document: $curlError");
+            }
+            
+            if ($httpCode !== 200) {
+                error_log("[DOCUMENSO ERROR] HTTP $httpCode while downloading document $documentId");
+                error_log("[DOCUMENSO ERROR] Response: " . substr($pdfContent, 0, 500));
+                throw new Exception("Failed to download document: HTTP $httpCode");
+            }
+            
+            if (empty($pdfContent)) {
+                error_log("[DOCUMENSO ERROR] Empty PDF content received");
+                throw new Exception("Empty PDF content received");
+            }
+            
+            // Проверяем что это действительно PDF
+            if (substr($pdfContent, 0, 4) !== '%PDF') {
+                error_log("[DOCUMENSO ERROR] Invalid PDF format. First bytes: " . substr($pdfContent, 0, 50));
+                throw new Exception("Invalid PDF format received");
+            }
+            
+            // Создаем директорию если не существует
+            $dir = dirname($savePath);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            
+            // Сохраняем файл
+            $bytesWritten = file_put_contents($savePath, $pdfContent);
+            
+            if ($bytesWritten === false) {
+                error_log("[DOCUMENSO ERROR] Failed to write PDF to $savePath");
+                throw new Exception("Failed to write PDF file");
+            }
+            
+            error_log("[DOCUMENSO] Successfully downloaded document $documentId ($bytesWritten bytes) to $savePath");
+            return true;
+            
+        } catch (Exception $e) {
+            error_log("[DOCUMENSO ERROR] Download failed: " . $e->getMessage());
+            throw $e;
+        }
+    }
 }
 ?>
