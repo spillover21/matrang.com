@@ -2,17 +2,12 @@
   RewriteEngine On
   RewriteBase /
   
-  # Исключаем API директорию из переписывания - важно для работы PHP
-  RewriteCond %{REQUEST_URI} ^/api/
-  RewriteRule ^ - [L]
-  
-  # Исключаем data директорию
-  RewriteCond %{REQUEST_URI} ^/data/
-  RewriteRule ^ - [L]
-  
   # Маршрут для страницы подписания
   RewriteRule ^sign$ sign.html [QSA,L]
   
+  # Не переписываем запросы к API и DATA
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !^/data/
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [QSA,L]
