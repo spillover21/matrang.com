@@ -1646,10 +1646,12 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                         )}
                         
                         {contract.signedAt && !contract.signedDocumentUrl && (
-                          <div className="text-sm text-muted-foreground p-2 bg-muted rounded-md w-full text-center">
-                            <Download className="w-4 h-4 mx-auto mb-1" />
-                            PDF отправлен в письме
-                          </div>
+                          <Button variant="outline" size="sm" asChild className="w-full">
+                            <a href={`http://72.62.114.139:9000/documents/${contract.adobeSignAgreementId}`} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Открыть в Documenso
+                            </a>
+                          </Button>
                         )}
                         
                         {contract.buyerSigningUrl && !contract.signedAt && (
