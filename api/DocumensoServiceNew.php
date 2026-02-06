@@ -127,17 +127,17 @@ class DocumensoServiceNew {  // Переименован класс!
             
             $downloadUrl = $response['downloadUrl'];
             error_log("[DOCUMENSO] Original download URL: $downloadUrl");
-            $shortUrl = substr($downloadUrl, 0, 100) . '...';
             file_put_contents($debugLog, "[DOCUMENSO] Download URL received (length: " . strlen($downloadUrl) . ")\n", FILE_APPEND);
             
-            // Заменяем внутренний адрес minio на публичный адрес VPS
-            $downloadUrl = str_replace('http://minio:9000', 'http://72.62.114.139:9002', $downloadUrl);
-            error_log("[DOCUMENSO] Public download URL: $downloadUrl");
-            file_put_contents($debugLog, "[DOCUMENSO] URL replaced, starting download...\n", FILE_APPEND);
+            // Используем VPS proxy endpoint который работает через Docker network
+            // Это обходит проблему с signed URLs (proxy использует внутренний URL minio:9000)
+            $proxyUrl = "http://72.62.114.139/download_proxy.php?id=$documentId";
+            error_log("[DOCUMENSO] Using VPS proxy: $proxyUrl");
+            file_put_contents($debugLog, "[DOCUMENSO] Using proxy: $proxyUrl\n", FILE_APPEND);
             
-            // Скачиваем PDF по полученному URL
-            file_put_contents($debugLog, "[DOCUMENSO] Initializing cURL download...\n", FILE_APPEND);
-            $curl = curl_init($downloadUrl);
+            // Скачиваем PDF через proxy
+            file_put_contents($debugLog, "[DOCUMENSO] Initializing cURL download via proxy...\n", FILE_APPEND);
+            $curl = curl_init($proxyUrl);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curl, CURLOPT_TIMEOUT, 60);
