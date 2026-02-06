@@ -389,25 +389,6 @@ function updateContractStatusByEmail($buyerEmail, $status, $signedDocumentUrl = 
         error_log("WEBHOOK: Contract with email $buyerEmail (status 'sent') not found in database");
     }
 }
-            $contract['signedAt'] = date('c');
-            
-            if ($signedDocumentUrl) {
-                $contract['signedDocumentUrl'] = $signedDocumentUrl;
-            }
-            
-            $updated = true;
-            error_log("WEBHOOK: Updated contract " . $contract['id'] . " for email $buyerEmail to status: $status");
-            break;
-        }
-    }
-    
-    if ($updated) {
-        $saveData = ['contracts' => $contracts, 'templates' => $templates];
-        file_put_contents($contractsFile, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    } else {
-        error_log("WEBHOOK: Contract with buyer email $buyerEmail not found in database");
-    }
-}
 
 /**
  * Обновить статус договора в базе данных
