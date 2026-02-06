@@ -108,19 +108,26 @@ class DocumensoService {
      * Скачивает подписанный PDF
      */
     public function downloadDocument($documentId, $savePath) {
+        $debugLog = __DIR__ . '/../data/webhook_debug.log';
+        
         try {
             error_log("[DOCUMENSO] Starting download for document $documentId");
+            file_put_contents($debugLog, "[DOCUMENSO] Starting download for document $documentId\n", FILE_APPEND);
             
             // Получаем JSON с URL для скачивания
+            file_put_contents($debugLog, "[DOCUMENSO] Calling API /documents/$documentId/download\n", FILE_APPEND);
             $response = $this->request('GET', "/documents/{$documentId}/download");
+            file_put_contents($debugLog, "[DOCUMENSO] API response received\n", FILE_APPEND);
             
             if (!isset($response['downloadUrl'])) {
                 error_log("[DOCUMENSO ERROR] Download URL not found in response");
+                file_put_contents($debugLog, "[DOCUMENSO ERROR] Download URL not found in response\n", FILE_APPEND);
                 throw new Exception('Download URL not found in response');
             }
             
             $downloadUrl = $response['downloadUrl'];
             error_log("[DOCUMENSO] Original download URL: $downloadUrl");
+            file_put_contents($debugLog, "[DOCUMENSO] Original download URL: $downloadUrl\n", FILE_APPEND);
             
             // Заменяем внутренний адрес minio на публичный адрес VPS
             $downloadUrl = str_replace('http://minio:9000', 'http://72.62.114.139:9002', $downloadUrl);
