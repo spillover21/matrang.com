@@ -800,7 +800,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       
       if (data.success) {
         const message = data.emailSent 
-          ? `Договор №${data.contract.contractNumber} отправлен на email ${formData.buyerEmail}` 
+          ? `Договор отправлен на email ${formData.buyerEmail}` 
           : "Договор создан (email не отправлен)";
         toast.success(message);
         toast.success(`⏱️ TOTAL TIME: ${(performance.now()-t0).toFixed(0)}ms`, { duration: 5000 });
