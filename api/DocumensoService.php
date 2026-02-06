@@ -256,7 +256,7 @@ class DocumensoService {
      */
     private function buildFieldData($data) {
         return [
-            'contractNumber' => 'DOG-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'contractNumber' => $data['contractNumber'] ?? '',
             'contractDate' => $data['contractDate'] ?? date('d.m.Y'),
             'contractPlace' => $data['contractPlace'] ?? '',
             
