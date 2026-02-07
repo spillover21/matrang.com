@@ -20,10 +20,10 @@ class ContractService {
      * @return array Результат с envelope_id и signing_url
      */
     public function createAndSendContract($contractData) {
-        // Отправляем данные напрямую на VPS через Bridge API
+        // Отправляем данные напрямую на VPS через Bridge API V2
         // VPS сам заполнит шаблон через Python pypdf, загрузит в Documenso и создаст envelope
         
-        $ch = curl_init('http://72.62.114.139:8080/create_envelope.php');
+        $ch = curl_init('http://72.62.114.139:8080/create_envelope_api_v2.php');
 
 
         
