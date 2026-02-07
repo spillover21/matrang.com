@@ -57,9 +57,17 @@ class ContractService {
             throw new Exception($result['error'] ?? 'Unknown error from Bridge API');
         }
 
-        // Return the exact URL provided by the bridge (VPS).
-        // Do NOT modify ports or redirection here to ensure original functionality.
-        // If the bridge returns port 9000, we use port 9000.
+        // FORCE STANDARD PORT 80/443 URL
+        // User reports 9000 returns 404, 3000 refused.
+        // Assuming standard HTTP on IP.
+        
+        if (!empty($result['signing_url'])) {
+            $result['signing_url'] = str_replace(':9000', '', $result['signing_url']);
+        }
+        
+        if (!empty($result['seller_signing_url'])) {
+            $result['seller_signing_url'] = str_replace(':9000', '', $result['seller_signing_url']);
+        }
         
         return $result;
     }

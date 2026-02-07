@@ -96,12 +96,12 @@ try {
         'message' => 'Договор создан и отправлен на подпись',
         'envelope_id' => $result['envelope_id'],
         'signing_url' => $result['signing_url'],
-        'recipient_id' => $result['recipient_id'] ?? null,  // Fix undefined index warning
+        'seller_signing_url' => $result['seller_signing_url'] ?? null,
+        'seller_token' => $result['seller_token'] ?? null,
+        'seller_email' => $result['seller_email'] ?? null,
+        'recipient_id' => $result['recipient_id'] ?? null,
         'contract_id' => $contractRecord['id'],
-        // Pass through debug info from Bridge
-        'seller_debug' => $result['seller_debug'] ?? null,
-        'seller_created' => $result['seller_created'] ?? false,
-        'seller_email_parsed' => $result['seller_email_parsed'] ?? null
+        'file_location' => 'LOCATION_MARKER'
     ], JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
