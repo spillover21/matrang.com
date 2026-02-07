@@ -1,20 +1,3 @@
-
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-const SignRedirect = () => {
-    const { id } = useParams();
-    const [triedPorts, setTriedPorts] = useState<number[]>([]);
-
-    useEffect(() => {
-        // Automatically try to redirect to the most likely port (9000 is standard for this project setup)
-        // But since users reported 404, we give them options.
-        // We will NOT auto-redirect immediately to avoid "flickering" 404s if 9000 is wrong.
-    }, [id]);
-
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -80,10 +63,6 @@ const SignRedirect = () => {
             </Card>
         </div>
     );
-};
-
-export default SignRedirect;
-
 };
 
 export default SignRedirect;
