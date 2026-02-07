@@ -1134,77 +1134,51 @@ if ($action === 'get_seller_profile') {
 }
 
 if ($action === 'sendSigningLink') {
-    // 0. IMMEDIATE LOG
-    $debugLog = __DIR__ . '/email_debug.log';
-    file_put_contents($debugLog, "--- NEW REQUEST ---\n", FILE_APPEND);
-    
-    // Clean buffers
-    while (ob_get_level()) ob_end_clean();
-    
+    // 1. Initial Logging & Headers
     ini_set('display_errors', 0);
-    ini_set('log_errors', 1);
     error_reporting(E_ALL);
+    $debugLog = __DIR__ . '/email_debug.log';
+    
+    // Explicitly write to log immediately to prove execution starts
+    file_put_contents($debugLog, "\n\n[" . date('Y-m-d H:i:s') . "] ACTION: sendSigningLink STARTED\n", FILE_APPEND);
 
-    // 1. Auth & Input
-    $rawInput = file_get_contents('php://input');
-    file_put_contents($debugLog, "Input: $rawInput\n", FILE_APPEND);
-    
-    $input = json_decode($rawInput, true);
-    if (!$input) {
-        $msg = "Invalid JSON Input";
-        file_put_contents($debugLog, "$msg\n", FILE_APPEND);
-        die(json_encode(['success'=>false, 'message'=>$msg]));
+    // 2. Auth Check
+    if (!checkAuth()) {
+        file_put_contents($debugLog, "Auth failed\n", FILE_APPEND);
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
     }
-    
-    // 2. Load PHPMailer safely
+
+    // 3. Autoloading (Defensive)
     try {
         if (file_exists(__DIR__ . '/vendor/autoload.php')) {
             require_once __DIR__ . '/vendor/autoload.php';
+            file_put_contents($debugLog, "Autoload loaded (local)\n", FILE_APPEND);
         } elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
             require_once __DIR__ . '/../vendor/autoload.php';
+            file_put_contents($debugLog, "Autoload loaded (parent)\n", FILE_APPEND);
+        } else {
+            throw new \Exception("Vendor autoload not found");
         }
-        
-        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-             throw new Exception("PHPMailer class not found after require");
-        }
-        file_put_contents($debugLog, "PHPMailer OK\n", FILE_APPEND);
-        
-    } catch (Throwable $e) {
-        file_put_contents($debugLog, "Fatal Load Error: " . $e->getMessage() . "\n", FILE_APPEND);
-        die(json_encode(['success'=>false, 'message'=>$e->getMessage()]));
+    } catch (\Throwable $e) {
+        file_put_contents($debugLog, "CRITICAL: " . $e->getMessage() . "\n", FILE_APPEND);
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+        exit();
     }
 
-    // 3. Send Logic
-    try {
-        $config = require __DIR__ . '/smtp_config.php';
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = $config['host'];
-        $mail->SMTPAuth = $config['auth'];
-        $mail->Username = $config['username'];
-        $mail->Password = $config['password'];
-        $mail->SMTPSecure = $config['encryption'];
-        $mail->Port = $config['port'];
-        $mail->CharSet = 'UTF-8';
-        
-        $email = $input['email'];
-        $mail->setFrom($config['from_email'], $input['sellerName'] ?? $config['from_name']);
-        $mail->addAddress($email);
-        $mail->isHTML(true);
-        $mail->Subject = "Contract " . ($input['contractNumber'] ?? '');
-        $mail->Body = "Link: " . ($input['link'] ?? '');
-        
-        $mail->send();
-        file_put_contents($debugLog, "SENT OK to $email\n", FILE_APPEND);
-        echo json_encode(['success'=>true, 'message'=>'Sent']);
-        
-    } catch (Throwable $e) {
-        file_put_contents($debugLog, "SEND FAIL: " . $e->getMessage() . "\n", FILE_APPEND);
-        echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
+    // 4. Input Parsing
+    $rawInput = file_get_contents('php://input');
+    $input = json_decode($rawInput, true);
+    
+    // Fix for PHP 8 Crash on null input
+    if (!is_array($input)) {
+        $input = [];
+        file_put_contents($debugLog, "Wait! Input is not array: " . var_export($rawInput, true) . "\n", FILE_APPEND);
     }
-    exit();
-}
 
+    $email = $input['email'] ?? '';
     $link = $input['link'] ?? '';
     $contractNumber = $input['contractNumber'] ?? 'Unknown';
     $name = $input['name'] ?? 'Покупатель';
