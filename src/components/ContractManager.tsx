@@ -407,7 +407,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
         // Automatically send email with link
         try {
-            fetch('/api/api.php?action=sendSigningLink', {
+            // Use dedicated email sender to avoid 500 errors in main API
+            fetch('/api/send_contract_email.php', {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({
