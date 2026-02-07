@@ -1135,37 +1135,48 @@ if ($action === 'get_seller_profile') {
 
 if ($action === 'sendSigningLink') {
     // 1. Initial Logging & Headers
-    ini_set('display_errors', 0);
-    error_reporting(E_ALL);
     $debugLog = __DIR__ . '/email_debug.log';
+    file_put_contents($debugLog, "LOG START\n"); 
+    // Force immediate flush
+    error_reporting(E_ALL);
+    ini_set('display_errors', 0); // Don't break JSON with HTML errors
+    ini_set('memory_limit', '256M'); // Ensure enough memory
     
-    // Explicitly write to log immediately to prove execution starts
     file_put_contents($debugLog, "\n\n[" . date('Y-m-d H:i:s') . "] ACTION: sendSigningLink STARTED\n", FILE_APPEND);
 
     // 2. Auth Check
-    if (!checkAuth()) {
-        file_put_contents($debugLog, "Auth failed\n", FILE_APPEND);
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-        exit();
+    try {
+        if (!checkAuth()) {
+            file_put_contents($debugLog, "Auth failed\n", FILE_APPEND);
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+    } catch (\Throwable $e) {
+         file_put_contents($debugLog, "Auth Crash: " . $e->getMessage() . "\n", FILE_APPEND);
     }
+    
+    file_put_contents($debugLog, "Auth OK\n", FILE_APPEND);
 
     // 3. Autoloading (Defensive)
     try {
+        $autoloaded = false;
         if (file_exists(__DIR__ . '/vendor/autoload.php')) {
             require_once __DIR__ . '/vendor/autoload.php';
+            $autoloaded = true;
             file_put_contents($debugLog, "Autoload loaded (local)\n", FILE_APPEND);
         } elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
             require_once __DIR__ . '/../vendor/autoload.php';
+             $autoloaded = true;
             file_put_contents($debugLog, "Autoload loaded (parent)\n", FILE_APPEND);
-        } else {
-            throw new \Exception("Vendor autoload not found");
+        } 
+        
+        if (!$autoloaded) {
+             file_put_contents($debugLog, "CRITICAL: Autoload NOT found\n", FILE_APPEND);
+             // Don't throw yet, try to continue to report error
         }
     } catch (\Throwable $e) {
-        file_put_contents($debugLog, "CRITICAL: " . $e->getMessage() . "\n", FILE_APPEND);
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
-        exit();
+        file_put_contents($debugLog, "Autoload Crash: " . $e->getMessage() . "\n", FILE_APPEND);
     }
 
     // 4. Input Parsing
@@ -1179,6 +1190,8 @@ if ($action === 'sendSigningLink') {
     }
 
     $email = $input['email'] ?? '';
+    // ... rest of code
+
     $link = $input['link'] ?? '';
     $contractNumber = $input['contractNumber'] ?? 'Unknown';
     $name = $input['name'] ?? 'Покупатель';
