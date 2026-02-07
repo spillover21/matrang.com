@@ -1,0 +1,16 @@
+[Unit]
+Description=Documenso Audit Trail Watcher
+After=docker.service network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/documenso-bridge
+ExecStart=/usr/bin/python3 /var/www/documenso-bridge/audit_trail_watcher.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

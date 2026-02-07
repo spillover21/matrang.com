@@ -24,9 +24,10 @@ DB_CONFIG = {
     'password': 'documenso123'
 }
 
-def create_audit_trail_page(signers_data):
+def create_audit_trail_page(signers_data, envelope_id):
     """Создает профессиональную страницу Signing Certificate"""
     from reportlab.lib import colors
+    from reportlab.lib.utils import ImageReader
     from reportlab.platypus import Table, TableStyle
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
@@ -54,8 +55,13 @@ def create_audit_trail_page(signers_data):
     c.setFont(font_bold, 20)
     c.drawCentredString(width/2, height - 2*cm, "Signing Certificate")
     
+    # Transaction ID
+    c.setFont(font_regular, 10)
+    c.setFillColorRGB(0.5, 0.5, 0.5)
+    c.drawCentredString(width/2, height - 2.7*cm, f"Transaction ID: {envelope_id}")
+    
     # Таблица заголовков колонок
-    y_start = height - 3.5*cm
+    y_start = height - 4*cm
     col1_x = 2*cm
     col2_x = 7.5*cm
     col3_x = 13*cm
@@ -105,10 +111,33 @@ def create_audit_trail_page(signers_data):
         c.setLineWidth(2)
         c.roundRect(col2_x, y_signature - 1.2*cm, 4*cm, 1.5*cm, 0.2*cm)
         
-        # Текст подписи (имя подписанта курсивом)
-        c.setFillColorRGB(0, 0, 0)
-        c.setFont(font_italic, 14)
-        c.drawCentredString(col2_x + 2*cm, y_signature - 0.6*cm, signer['signature'])
+        # Подпись: картинка или текст
+        if signer.get('signature_image'):
+            try:
+                # Рисуем изображение подписи
+                # Используем ImageReader для обработки данных
+                img_reader = ImageReader(io.BytesIO(signer['signature_image']))
+                
+                # Центрируем и масштабируем изображение внутри рамки (4cm x 1.5cm)
+                # Отступ 0.1cm
+                img_x = col2_x + 0.1*cm
+                img_y = y_signature - 1.15*cm
+                img_w = 3.8*cm
+                img_h = 1.4*cm
+                
+                c.drawImage(img_reader, img_x, img_y, width=img_w, height=img_h, mask='auto', preserveAspectRatio=True, anchor='c')
+                
+            except Exception as e:
+                print(f"Failed to draw signature image: {e}")
+                # Fallback to text
+                c.setFillColorRGB(0, 0, 0)
+                c.setFont(font_italic, 14)
+                c.drawCentredString(col2_x + 2*cm, y_signature - 0.6*cm, signer['signature'])
+        else:
+            # Текст подписи (имя подписанта курсивом), если нет картинки
+            c.setFillColorRGB(0, 0, 0)
+            c.setFont(font_italic, 14)
+            c.drawCentredString(col2_x + 2*cm, y_signature - 0.6*cm, signer['signature'])
         
         # Signature ID и прочая информация
         y_sig_info = y_signature - 1.8*cm
@@ -186,6 +215,7 @@ def get_signers_data(conn, envelope_id):
                 r."signedAt",
                 COALESCE(s."typedSignature", r.name) as signature_text,
                 s.id as signature_id,
+                s."signatureImageId" as signature_image_id,
                 -- События для каждого подписанта
                 MAX(CASE WHEN dal.type = 'DOCUMENT_SENT' THEN dal."createdAt" END) as sent_at,
                 MAX(CASE WHEN dal.type = 'DOCUMENT_OPENED' THEN dal."createdAt" END) as viewed_at,
@@ -195,7 +225,7 @@ def get_signers_data(conn, envelope_id):
             LEFT JOIN "Signature" s ON s."recipientId" = r.id
             LEFT JOIN "DocumentAuditLog" dal ON dal."envelopeId" = r."envelopeId"
             WHERE r."envelopeId" = %s
-            GROUP BY r.id, r.name, r.email, r."signedAt", s."typedSignature", s.id
+            GROUP BY r.id, r.name, r.email, r."signedAt", s."typedSignature", s.id, s."signatureImageId"
             ORDER BY r."signingOrder", r.id
         )
         SELECT 
@@ -208,7 +238,8 @@ def get_signers_data(conn, envelope_id):
             "signedAt",
             ip_address,
             user_agent,
-            recipient_id
+            recipient_id,
+            signature_image_id
         FROM envelope_events
     """
     
@@ -217,8 +248,36 @@ def get_signers_data(conn, envelope_id):
     
     signers = []
     for row in rows:
-        name, email, sig_text, sig_id, sent_at, viewed_at, signed_at, ip_addr, user_agent, rec_id = row
+        name, email, sig_text, sig_id, sent_at, viewed_at, signed_at, ip_addr, user_agent, rec_id, sig_image_id = row
         
+        # Получаем изображение подписи, если есть
+        signature_image_data = None
+        if sig_image_id:
+            try:
+                # Предполагаем, что данные изображения хранятся в DocumentData или похожей таблице
+                # В Documenso подписи часто хранятся как файлы, но проверим DocumentData
+                img_query = 'SELECT data FROM "DocumentData" WHERE id = %s'
+                cursor.execute(img_query, (sig_image_id,))
+                img_row = cursor.fetchone()
+                if img_row:
+                    img_raw = img_row[0]
+                    
+                    # Convert string to bytes if needed
+                    if isinstance(img_raw, str):
+                        img_raw = img_raw.encode('utf-8')
+                        
+                    # Handle data URI scheme if present (e.g. data:image/png;base64,...)
+                    if b'base64,' in img_raw:
+                        img_raw = img_raw.split(b'base64,')[1]
+                        
+                    # Try to decode base64, otherwise assume raw binary
+                    try:
+                        signature_image_data = base64.b64decode(img_raw)
+                    except Exception:
+                        signature_image_data = img_raw
+            except Exception as e:
+                print(f"Error fetching signature image: {e}")
+
         # Определяем device из User-Agent
         device = "Unknown"
         if user_agent:
@@ -256,6 +315,7 @@ def get_signers_data(conn, envelope_id):
             'name': name or "Unknown",
             'email': email or "unknown@example.com",
             'signature': sig_text or name or "Signature",
+            'signature_image': signature_image_data,
             'signature_id': formatted_sig_id,
             'ip_address': ip_addr or "Unknown",
             'device': device,
@@ -308,7 +368,7 @@ def add_audit_trail_to_pdf(envelope_id):
         original_pdf = PdfReader(io.BytesIO(pdf_bytes))
         
         # Создаем Signing Certificate page
-        cert_page_buffer = create_audit_trail_page(signers_data)
+        cert_page_buffer = create_audit_trail_page(signers_data, envelope_id)
         cert_pdf = PdfReader(cert_page_buffer)
         
         # Объединяем

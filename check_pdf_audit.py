@@ -43,9 +43,9 @@ if reader.pages:
     print(f"\nLast page preview (first 500 chars):")
     print(last_page_text[:500])
     
-    if "AUDIT TRAIL" in last_page_text:
-        print("\n✅ AUDIT TRAIL PAGE FOUND!")
+    if "AUDIT TRAIL" in last_page_text or "Signing Certificate" in last_page_text:
+        print("\n✅ AUDIT TRAIL / SIGNING CERTIFICATE FOUND!")
     else:
-        print("\n❌ NO AUDIT TRAIL PAGE")
+        print("\n❌ NO AUDIT TRAIL / SIGNING CERTIFICATE PAGE")
 
 conn.close()
