@@ -49,10 +49,26 @@ def listen_loop():
                         time.sleep(2)
                         
                         print(f"⏳ Processing {envelope_id}...")
-                        result = add_audit_trail_to_pdf(envelope_id)
+                        
+                        # Reload module to ensure fresh code if updated
+                        import importlib
+                        import add_audit_trail
+                        importlib.reload(add_audit_trail)
+                        
+                        result = add_audit_trail.add_audit_trail_to_pdf(envelope_id)
                         
                         if result:
                             print(f"✅ Certificate generated for {envelope_id}")
+                            
+                            # Send Final Email
+                            try:
+                                import send_final_email
+                                importlib.reload(send_final_email)
+                                print(f"📧 Sending final emails for {envelope_id}...")
+                                send_final_email.send_final_email(envelope_id)
+                            except Exception as e:
+                                print(f"⚠️ Failed to send email for {envelope_id}: {e}")
+                                
                         else:
                             print(f"⚠️ Failed to generate for {envelope_id}")
                             

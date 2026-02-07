@@ -215,7 +215,7 @@ def get_signers_data(conn, envelope_id):
                 r."signedAt",
                 COALESCE(s."typedSignature", r.name) as signature_text,
                 s.id as signature_id,
-                s."signatureImageId" as signature_image_id,
+                s."signatureImageAsBase64" as signature_image_b64,
                 -- События для каждого подписанта
                 MAX(CASE WHEN dal.type = 'DOCUMENT_SENT' THEN dal."createdAt" END) as sent_at,
                 MAX(CASE WHEN dal.type = 'DOCUMENT_OPENED' THEN dal."createdAt" END) as viewed_at,
@@ -225,7 +225,7 @@ def get_signers_data(conn, envelope_id):
             LEFT JOIN "Signature" s ON s."recipientId" = r.id
             LEFT JOIN "DocumentAuditLog" dal ON dal."envelopeId" = r."envelopeId"
             WHERE r."envelopeId" = %s
-            GROUP BY r.id, r.name, r.email, r."signedAt", s."typedSignature", s.id, s."signatureImageId"
+            GROUP BY r.id, r.name, r.email, r."signedAt", s."typedSignature", s.id, s."signatureImageAsBase64"
             ORDER BY r."signingOrder", r.id
         )
         SELECT 
@@ -239,7 +239,7 @@ def get_signers_data(conn, envelope_id):
             ip_address,
             user_agent,
             recipient_id,
-            signature_image_id
+            signature_image_b64
         FROM envelope_events
     """
     
@@ -248,35 +248,21 @@ def get_signers_data(conn, envelope_id):
     
     signers = []
     for row in rows:
-        name, email, sig_text, sig_id, sent_at, viewed_at, signed_at, ip_addr, user_agent, rec_id, sig_image_id = row
+        name, email, sig_text, sig_id, sent_at, viewed_at, signed_at, ip_addr, user_agent, rec_id, sig_image_b64 = row
         
         # Получаем изображение подписи, если есть
         signature_image_data = None
-        if sig_image_id:
+        if sig_image_b64:
             try:
-                # Предполагаем, что данные изображения хранятся в DocumentData или похожей таблице
-                # В Documenso подписи часто хранятся как файлы, но проверим DocumentData
-                img_query = 'SELECT data FROM "DocumentData" WHERE id = %s'
-                cursor.execute(img_query, (sig_image_id,))
-                img_row = cursor.fetchone()
-                if img_row:
-                    img_raw = img_row[0]
-                    
-                    # Convert string to bytes if needed
-                    if isinstance(img_raw, str):
-                        img_raw = img_raw.encode('utf-8')
-                        
-                    # Handle data URI scheme if present (e.g. data:image/png;base64,...)
-                    if b'base64,' in img_raw:
-                        img_raw = img_raw.split(b'base64,')[1]
-                        
-                    # Try to decode base64, otherwise assume raw binary
-                    try:
-                        signature_image_data = base64.b64decode(img_raw)
-                    except Exception:
-                        signature_image_data = img_raw
+                # В поле signatureImageAsBase64 обычно лежит "data:image/png;base64,..."
+                img_raw = sig_image_b64
+                if isinstance(img_raw, str):
+                    if 'base64,' in img_raw:
+                        img_raw = img_raw.split('base64,')[1]
+                    signature_image_data = base64.b64decode(img_raw)
             except Exception as e:
-                print(f"Error fetching signature image: {e}")
+                print(f"Error decoding signature image: {e}")
+                pass
 
         # Определяем device из User-Agent
         device = "Unknown"
