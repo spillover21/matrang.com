@@ -14,6 +14,24 @@ const SignRedirect = () => {
         // We will NOT auto-redirect immediately to avoid "flickering" 404s if 9000 is wrong.
     }, [id]);
 
+
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const SignRedirect = () => {
+    const { id } = useParams();
+    const [triedPorts, setTriedPorts] = useState<number[]>([]);
+
+    useEffect(() => {
+        // Automatically try the most likely path
+        if (id) {
+             // Direct VPS check
+             // window.location.href = `http://72.62.114.139:9000/sign/${id}`;
+        }
+    }, [id]);
+
     const handleRedirect = (pathPattern: string, port: number) => {
         // Use IP to avoid DNS issues
         const targetHost = "72.62.114.139"; 
@@ -32,56 +50,29 @@ const SignRedirect = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
             <Card className="w-full max-w-md shadow-lg border-2 border-yellow-400">
                 <CardHeader className="text-center bg-yellow-50">
-                    <CardTitle className="text-xl text-yellow-800">Диагностика ссылки</CardTitle>
-                    <CardDescription>Link Diagnostics Mode</CardDescription>
+                    <CardTitle className="text-xl text-yellow-800">Переход к подписанию</CardTitle>
+                    <CardDescription>Поиск документа...</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
                     <p className="text-sm text-gray-600 text-center mb-4">
-                        Сервер подписи найден (Порт 9000), но адрес документа неверен.
-                        Попробуйте варианты ниже, чтобы найти правильный путь:
+                        Попытка автоматического подключения. Если ничего не происходит выберите вариант вручную:
                     </p>
 
                     <Button 
                         onClick={() => handleRedirect('/sign/:token', 9000)} 
                         className="w-full bg-blue-600"
                     >
-                        Вариант 1: /sign/TOKEN (Текущий)
+                        Вариант 1 (Стандарт)
                     </Button>
 
                     <Button 
-                        onClick={() => handleRedirect('/d/:token', 9000)} 
-                        className="w-full bg-green-600 hover:bg-green-700"
-                    >
-                        Вариант 2: /d/TOKEN (Стандарт Documenso)
-                    </Button>
-                    
-                    <Button 
-                        onClick={() => handleRedirect('/document/:token', 9000)} 
-                        className="w-full bg-purple-600 hover:bg-purple-700"
-                    >
-                        Вариант 3: /document/TOKEN
-                    </Button>
-
-                    <div className="pt-2 pb-2 text-center text-xs font-bold text-gray-500 border-t border-b">
-                        Другие порты (если 9000 не работает)
-                    </div>
-
-                    <Button 
-                        onClick={() => handleRedirect('/sign/:token', 80)} 
+                        onClick={() => handleRedirect('/sign/:token', 3000)} 
                         variant="outline"
                         className="w-full"
                     >
-                        Порт 80 (Веб-стандарт)
+                        Вариант 2 (Порт 3000)
                     </Button>
-
-                     <Button 
-                        onClick={() => handleRedirect('/sign/:token', 3000)} 
-                        variant="ghost"
-                        className="w-full text-xs text-gray-400"
-                    >
-                        Порт 3000 (Резерв)
-                    </Button>
-
+                    
                     <div className="pt-2 text-xs text-center text-gray-400">
                         Token: {id}
                     </div>
@@ -89,6 +80,10 @@ const SignRedirect = () => {
             </Card>
         </div>
     );
+};
+
+export default SignRedirect;
+
 };
 
 export default SignRedirect;
