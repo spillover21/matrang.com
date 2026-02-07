@@ -279,18 +279,20 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       const data = await response.json();
       
       if (data.success) {
-        console.log('✅ Template uploaded to VPS:', data.vps_path);
+        console.log(`✅ Template (${lang}) uploaded to VPS:`, data.vps_path);
         
-        let previewPath = data.vps_path;
-        // Fix: If VPS returns absolute path, switch to local URL for preview
-        if (previewPath && previewPath.includes('/var/www')) {
-             previewPath = (lang === 'en' ? '/uploads/pdf_template_en.pdf' : '/uploads/pdf_template.pdf') + '?t=' + Date.now();
-        }
-
+        // Force refresh cache by adding timestamp
+        const timestamp = Date.now();
+        const newPath = (lang === 'en' ? '/uploads/pdf_template_en.pdf' : '/uploads/pdf_template.pdf') + '?t=' + timestamp;
+        
         if (lang === 'en') {
-            setPdfTemplateEn(previewPath);
+            setPdfTemplateEn(newPath);
+            // If current view is EN, force update visible path
+            if (templateLang === 'en') {
+                // Trigger re-render or validation if needed
+            }
         } else {
-            setPdfTemplate(previewPath); 
+            setPdfTemplate(newPath); 
         }
         
         toast.success(`✅ PDF шаблон (${lang.toUpperCase()}) загружен на VPS!`);
