@@ -56,18 +56,6 @@ class ContractService {
         if (!$result || !$result['success']) {
             throw new Exception($result['error'] ?? 'Unknown error from Bridge API');
         }
-
-        // FORCE STANDARD PORT 80/443 URL
-        // User reports 9000 returns 404, 3000 refused.
-        // Assuming standard HTTP on IP.
-        
-        if (!empty($result['signing_url'])) {
-            $result['signing_url'] = str_replace(':9000', '', $result['signing_url']);
-        }
-        
-        if (!empty($result['seller_signing_url'])) {
-            $result['seller_signing_url'] = str_replace(':9000', '', $result['seller_signing_url']);
-        }
         
         return $result;
     }
