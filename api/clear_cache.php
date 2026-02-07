@@ -1,5 +1,5 @@
 <?php
-// Очистка кеша и проверка версии файла
+// Очистка кеша и проверка версии файлов API
 header('Content-Type: text/plain; charset=utf-8');
 
 echo "=== CACHE CLEAR ===\n\n";
@@ -16,28 +16,47 @@ if (function_exists('opcache_reset')) {
 clearstatcache(true);
 echo "✅ Stat cache cleared\n\n";
 
-// Проверка версии DocumensoService.php
-echo "=== FILE CHECK ===\n\n";
-$filePath = __DIR__ . '/DocumensoService.php';
-echo "File: $filePath\n";
-echo "Exists: " . (file_exists($filePath) ? 'YES' : 'NO') . "\n";
-echo "Modified: " . date('Y-m-d H:i:s', filemtime($filePath)) . "\n";
-echo "Size: " . filesize($filePath) . " bytes\n\n";
+// Проверка версии files
+$files = [
+    'contracts_api.php' => [
+        'check' => 'seller_signing_url',
+        'not_contain' => 'seller_debug'
+    ],
+    'ContractService.php' => [
+        'check' => 'seller_signing_url',
+        'not_contain' => 'str_replace(\':9000\''
+    ]
+];
 
-// Проверяем contains  нужную строку
-$content = file_get_contents($filePath);
-if (strpos($content, 'URL received (length:') !== false) {
-    echo "✅ NEW VERSION detected!\n";
-} else {
-    echo "❌ OLD VERSION still present\n";
-}
+echo "=== FILE VERSION CHECK ===\n\n";
 
-echo "\nSearching for logging lines:\n";
-$lines = explode("\n", $content);
-foreach ($lines as $num => $line) {
-    if (stripos($line, 'download url received') !== false || 
-        stripos($line, 'url replaced') !== false) {
-        echo "Line " . ($num + 1) . ": " . trim($line) . "\n";
+foreach ($files as $filename => $checks) {
+    $filePath = __DIR__ . '/' . $filename;
+    echo "File: $filename\n";
+    
+    if (!file_exists($filePath)) {
+        echo "  ❌ NOT FOUND\n\n";
+        continue;
     }
+    
+    echo "  Modified: " . date('Y-m-d H:i:s', filemtime($filePath)) . "\n";
+    echo "  Size: " . filesize($filePath) . " bytes\n";
+    
+    $content = file_get_contents($filePath);
+    
+    $hasNew = strpos($content, $checks['check']) !== false;
+    $hasOld = strpos($content, $checks['not_contain']) !== false;
+    
+    if ($hasNew && !$hasOld) {
+        echo "  ✅ NEW VERSION\n";
+    } elseif (!$hasNew) {
+        echo "  ❌ OLD VERSION (missing: {$checks['check']})\n";
+    } elseif ($hasOld) {
+        echo "  ⚠️ MIXED VERSION (has old code: {$checks['not_contain']})\n";
+    }
+    
+    echo "\n";
 }
+
+echo "Done! Refresh your admin page now.\n";
 ?>

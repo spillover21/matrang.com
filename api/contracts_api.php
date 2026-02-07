@@ -100,8 +100,7 @@ try {
         'seller_token' => $result['seller_token'] ?? null,
         'seller_email' => $result['seller_email'] ?? null,
         'recipient_id' => $result['recipient_id'] ?? null,
-        'contract_id' => $contractRecord['id'],
-        'file_location' => 'LOCATION_MARKER'
+        'contract_id' => $contractRecord['id']
     ], JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
