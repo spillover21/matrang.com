@@ -1,6 +1,10 @@
 <?php
 // api/api.php - главный API для админ панели
 
+// 0. GLOBAL DEBUG LOG (TEMPORARY)
+$globalDebugLog = __DIR__ . '/global_debug.log';
+file_put_contents($globalDebugLog, "Request: " . date('H:i:s') . " - Action: " . ($_GET['action'] ?? 'none') . "\n", FILE_APPEND);
+
 // Подключение автозагрузчика (важно для PHPMailer)
 // Если папка vendor лежит в api/vendor
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
