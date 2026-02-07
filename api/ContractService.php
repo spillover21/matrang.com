@@ -57,14 +57,33 @@ class ContractService {
             throw new Exception($result['error'] ?? 'Unknown error from Bridge API');
         }
 
-        // FORCE PORT CORRECTION:
-        // The bridge might return port 9000 (internal mapping), but we know port 8080 
-        // is the public-facing bridge that works. We rewrite the URL to ensure accessibility.
+        // FORCE FRONTEND URL:
+        // Instead of sending the user directly to port 9000 (which might fail or 404),
+        // we point them to our React App's /sign/ route.
+        // The React App (SignRedirect.tsx) will handle the final redirection.
+        // We assume the site is running on standard ports (80/443).
+        
+        $currentHost = $_SERVER['HTTP_HOST'] ?? '72.62.114.139';
+        // Remove port if present to be safe, or keep it if it's the main entry point
+        $baseUrl = "http://" . $currentHost; 
+
         if (!empty($result['signing_url'])) {
-            $result['signing_url'] = str_replace(':9000', ':8080', $result['signing_url']);
+            // Extract the token coming after /sign/
+            // Expected format: http://host:port/sign/TOKEN
+            $parts = explode('/sign/', $result['signing_url']);
+            if (count($parts) > 1) {
+                $token = end($parts);
+                $result['signing_url'] = $baseUrl . "/sign/" . $token;
+            }
         }
+        
+        // Do the same for seller URL
         if (!empty($result['seller_signing_url'])) {
-            $result['seller_signing_url'] = str_replace(':9000', ':8080', $result['seller_signing_url']);
+            $parts = explode('/sign/', $result['seller_signing_url']);
+            if (count($parts) > 1) {
+                $token = end($parts);
+                $result['seller_signing_url'] = $baseUrl . "/sign/" . $token;
+            }
         }
         
         return $result;
