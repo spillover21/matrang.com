@@ -1130,45 +1130,43 @@ if ($action === 'get_seller_profile') {
 }
 
 if ($action === 'sendSigningLink') {
-    // Enable error capturing
+    // 1. Initial Logging & Headers
     ini_set('display_errors', 0);
     error_reporting(E_ALL);
+    $debugLog = __DIR__ . '/email_debug.log';
     
-    // Log immediately
-    $fnLog = __DIR__ . '/email_delivery.log';
-    file_put_contents($fnLog, "--- New Request " . date('Y-m-d H:i:s') . " ---\n", FILE_APPEND);
+    // Explicitly write to log immediately to prove execution starts
+    file_put_contents($debugLog, "\n\n[" . date('Y-m-d H:i:s') . "] ACTION: sendSigningLink STARTED\n", FILE_APPEND);
 
-    $logs = [];
-    $logs[] = "Start sendSigningLink";
-
-    // Shutdown function to catch fatal errors
-    register_shutdown_function(function() use (&$logs, $fnLog) {
-        $error = error_get_last();
-        if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_CORE_ERROR)) {
-            $msg = "FATAL ERROR: {$error['message']} in {$error['file']}:{$error['line']}";
-            file_put_contents($fnLog, $msg . "\n", FILE_APPEND);
-            // Attempt to return JSON if headers not sent
-            if (!headers_sent()) {
-                http_response_code(200); // Return 200 to ensure frontend sees it
-                echo json_encode(['success' => false, 'message' => 'Fatal Error', 'logs' => [$msg]]);
-            }
-        }
-    });
-
-    // 1. Auth Check - wrapped in try to catch definition errors
-    try {
-        if (!checkAuth()) {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            exit();
-        }
-    } catch (\Throwable $e) {
-         // checkAuth might fail if not defined?
-         $logs[] = "Auth Check Failed: " . $e->getMessage();
+    // 2. Auth Check
+    if (!checkAuth()) {
+        file_put_contents($debugLog, "Auth failed\n", FILE_APPEND);
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
     }
 
-    // 2. Parse Input
-    $input = json_decode(file_get_contents('php://input'), true);
+    // 3. Autoloading (Defensive)
+    try {
+        if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/vendor/autoload.php';
+            file_put_contents($debugLog, "Autoload loaded (local)\n", FILE_APPEND);
+        } elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+            require_once __DIR__ . '/../vendor/autoload.php';
+            file_put_contents($debugLog, "Autoload loaded (parent)\n", FILE_APPEND);
+        } else {
+            throw new \Exception("Vendor autoload not found");
+        }
+    } catch (\Throwable $e) {
+        file_put_contents($debugLog, "CRITICAL: " . $e->getMessage() . "\n", FILE_APPEND);
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+        exit();
+    }
+
+    // 4. Input Parsing
+    $rawInput = file_get_contents('php://input');
+    $input = json_decode($rawInput, true);
     $email = $input['email'] ?? '';
     $link = $input['link'] ?? '';
     $contractNumber = $input['contractNumber'] ?? 'Unknown';
@@ -1177,7 +1175,7 @@ if ($action === 'sendSigningLink') {
     $sellerEmail = isset($input['sellerEmail']) ? trim($input['sellerEmail']) : '';
     $sellerName = isset($input['sellerName']) ? trim($input['sellerName']) : '';
     
-    $logs[] = "Parsed input: Email={$email}, Seller={$sellerEmail}";
+    file_put_contents($debugLog, "Inputs: To=$email, Seller=$sellerEmail, Link=$link\n", FILE_APPEND);
 
     if (!$email || !$link) {
         http_response_code(400); 
@@ -1185,72 +1183,41 @@ if ($action === 'sendSigningLink') {
         exit();
     }
 
-    // 3. Setup Mailer Dependencies
+    // 5. Config Loading
+    if (!file_exists(__DIR__ . '/smtp_config.php')) {
+        file_put_contents($debugLog, "Config missing\n", FILE_APPEND);
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Config missing']);
+        exit();
+    }
+    $smtpConfig = require __DIR__ . '/smtp_config.php';
+    
+    // 6. Execution Logic (No Closures, Linear Code)
+    $logs = [];
+    $logs[] = "Starting mail process...";
+
     try {
-        // Autoload is already loaded at global scope (hopefully)
-        if (!class_exists(PHPMailer::class)) {
-            // Try explicit load again if missing
-             if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-                require_once __DIR__ . '/vendor/autoload.php';
-            } elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-                require_once __DIR__ . '/../vendor/autoload.php';
-            }
-        }
+        // --- PREPARE MAILER 1 (BUYER) ---
+        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = $smtpConfig['host'];
+        $mail->SMTPAuth = $smtpConfig['auth'];
+        $mail->Username = $smtpConfig['username'];
+        $mail->Password = $smtpConfig['password'];
+        $mail->SMTPSecure = $smtpConfig['encryption'];
+        $mail->Port = $smtpConfig['port'];
+        $mail->CharSet = 'UTF-8';
         
-        if (!class_exists(PHPMailer::class)) {
-            throw new \Exception('PHPMailer class not found. Check vendor/autoload.php');
-        }
-
-        $logs[] = "PHPMailer class available";
-
-        $smtpConfig = require __DIR__ . '/smtp_config.php';
-        $logs[] = "Config loaded";
+        $fromName = $sellerName ?: $smtpConfig['from_name'];
+        $mail->setFrom($smtpConfig['from_email'], $fromName);
         
-        // --- HELPER FUNCTION FOR CLEAN SENDING ---
-        $sendOneMail = function($to, $subj, $body, $config, $fromName, $replyToAddr = null) use (&$logs) {
-            // Instantiate with fully qualified name
-            $mail = new PHPMailer(true); 
-            try {
-                $mail->isSMTP();
-                $mail->Host = $config['host'];
-                $mail->SMTPAuth = $config['auth'];
-                $mail->Username = $config['username'];
-                $mail->Password = $config['password'];
-                $mail->SMTPSecure = $config['encryption'];
-                $mail->Port = $config['port'];
-                $mail->CharSet = 'UTF-8';
-                
-                $mail->setFrom($config['from_email'], $fromName);
-                
-                if ($replyToAddr) {
-                    $mail->addReplyTo($replyToAddr, $fromName);
-                } else {
-                    $mail->addReplyTo($config['reply_to'], $fromName);
-                }
-                
-                $mail->addAddress($to);
-                $mail->isHTML(true);
-                $mail->Subject = $subj;
-                $mail->Body = $body;
-                
-                $mail->send();
-                $logs[] = "Sent to $to: OK";
-                return true;
-            } catch (\Exception $e) { // Catch PHPMailer Exception
-                $logs[] = "Failed to $to: " . $e->getMessage();
-                return false;
-            } catch (\Throwable $e) { // Catch other errors
-                 $logs[] = "Fatal Failed to $to: " . $e->getMessage();
-                 return false;
-            }
-        };
-
-        // --- SEND 1: BUYER ---
-        $fromName = $sellerName ? $sellerName : $smtpConfig['from_name'];
-        // Buyer should reply to Seller
-        $buyerReplyTo = ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) ? $sellerEmail : null;
+        $replyTo = ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) ? $sellerEmail : $smtpConfig['reply_to'];
+        $mail->addReplyTo($replyTo, $fromName);
         
-        $buyerBody = "
+        $mail->addAddress($email);
+        $mail->isHTML(true);
+        $mail->Subject = "Подписание договора на щенка ({$contractNumber})";
+        $mail->Body = "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
             <h2 style='color: #2563eb;'>Договор готов к подписанию</h2>
             <p>Здравствуйте, <strong>{$name}</strong>!</p>
@@ -1263,39 +1230,48 @@ if ($action === 'sendSigningLink') {
             <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
             <p style='color: #888; font-size: 12px;'>С уважением,<br>{$fromName}</p>
         </div>";
+        
+        $mail->send();
+        $logs[] = "Buyer email sent to $email";
+        file_put_contents($debugLog, "Buyer sent OK\n", FILE_APPEND);
 
-        $sendOneMail($email, "Подписание договора на щенка ({$contractNumber})", $buyerBody, $smtpConfig, $fromName, $buyerReplyTo);
-
-        // --- SEND 2: SELLER ---
+        // --- PREPARE MAILER 2 (SELLER COPY) ---
         if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL) && strtolower($sellerEmail) !== strtolower($email)) {
-             $sellerBody = "
+            $mail2 = new \PHPMailer\PHPMailer\PHPMailer(true); // Completely new object
+            $mail2->isSMTP();
+            $mail2->Host = $smtpConfig['host'];
+            $mail2->SMTPAuth = $smtpConfig['auth'];
+            $mail2->Username = $smtpConfig['username'];
+            $mail2->Password = $smtpConfig['password'];
+            $mail2->SMTPSecure = $smtpConfig['encryption'];
+            $mail2->Port = $smtpConfig['port'];
+            $mail2->CharSet = 'UTF-8';
+
+            $mail2->setFrom($smtpConfig['from_email'], $fromName);
+            $mail2->addReplyTo($smtpConfig['reply_to'], $fromName); // Reply to Admin/Default
+            $mail2->addAddress($sellerEmail);
+            $mail2->isHTML(true);
+            $mail2->Subject = "[КОПИЯ] Договор на {$name}";
+            $mail2->Body = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f8fafc;'>
                 <h2 style='color: #475569;'>Копия отправленного договора</h2>
-                <div style='background: #fff3cd; color: #856404; padding: 10px; margin-bottom: 20px; border: 1px solid #ffeeba;'>
-                    <strong>Отладка:</strong> Это письмо отправлено на адрес: {$sellerEmail}
-                </div>
                 <p>Вы отправили договор покупателю <strong>{$name}</strong>.</p>
                 <p><strong>Номер договора:</strong> {$contractNumber}</p>
             </div>";
-            
-            // Send to Seller (Reply-To default/none)
-            $sendOneMail($sellerEmail, "[КОПИЯ] Договор на {$name}", $sellerBody, $smtpConfig, $fromName, null);
-        } else {
-            $logs[] = "Skipped seller copy (same email or invalid): '$sellerEmail'";
+
+            $mail2->send();
+            $logs[] = "Seller copy sent to $sellerEmail";
+            file_put_contents($debugLog, "Seller sent OK\n", FILE_APPEND);
         }
 
-        // Return 200 OK with success=true
-        http_response_code(200);
-        echo json_encode(['success' => true, 'message' => 'Process finished', 'logs' => $logs]);
+        echo json_encode(['success' => true, 'message' => 'All emails sent', 'logs' => $logs]);
 
     } catch (\Throwable $e) {
-        $logs[] = "Fatal Error: " . $e->getMessage();
-        // Return 200 OK with success=false to treat as handled error
-        http_response_code(200);
-        echo json_encode(['success' => false, 'message' => 'Error occurred', 'logs' => $logs]);
+        $msg = "Error: " . $e->getMessage();
+        file_put_contents($debugLog, $msg . "\n", FILE_APPEND);
+        // Important: Return 200 to show error in frontend instead of crashing
+        echo json_encode(['success' => false, 'message' => $msg, 'logs' => $logs]);
     }
-    
-    file_put_contents($fnLog, implode("\n", $logs) . "\n\n", FILE_APPEND);
     exit();
 }
 
