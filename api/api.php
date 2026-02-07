@@ -1121,6 +1121,13 @@ if ($action === 'get_seller_profile') {
 }
 
 if ($action === 'sendSigningLink') {
+    // Enable error capturing
+    ini_set('display_errors', 0);
+    error_reporting(E_ALL);
+    
+    $logs = [];
+    $logs[] = "Start sendSigningLink";
+
     // 1. Auth Check
     if (!checkAuth()) {
         http_response_code(401);
@@ -1135,56 +1142,68 @@ if ($action === 'sendSigningLink') {
     $contractNumber = $input['contractNumber'] ?? 'Unknown';
     $name = $input['name'] ?? 'Покупатель';
     
-    // Dynamic seller info
     $sellerEmail = isset($input['sellerEmail']) ? trim($input['sellerEmail']) : '';
     $sellerName = isset($input['sellerName']) ? trim($input['sellerName']) : '';
+    
+    $logs[] = "Parsed input: Email={$email}, Seller={$sellerEmail}";
 
-    // Logging
-    $logData = date('Y-m-d H:i:s') . " - Input: " . json_encode($input) . "\n";
-    file_put_contents(__DIR__ . '/email_delivery.log', $logData, FILE_APPEND);
-
-    // 3. Validate
     if (!$email || !$link) {
         http_response_code(400); 
         echo json_encode(['success' => false, 'message' => 'Missing email or link']);
         exit();
     }
 
-    // 4. Setup Mailer
+    // 3. Setup Mailer Dependencies
     try {
         if (file_exists(__DIR__ . '/vendor/autoload.php')) {
             require_once __DIR__ . '/vendor/autoload.php';
         } else {
             throw new Exception('Composer vendor missing');
         }
+        $logs[] = "Autoload loaded";
 
         $smtpConfig = require __DIR__ . '/smtp_config.php';
+        $logs[] = "Config loaded";
         
-        $mail = new PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = $smtpConfig['host'];
-        $mail->SMTPAuth = $smtpConfig['auth'];
-        $mail->Username = $smtpConfig['username'];
-        $mail->Password = $smtpConfig['password'];
-        $mail->SMTPSecure = $smtpConfig['encryption'];
-        $mail->Port = $smtpConfig['port'];
-        $mail->CharSet = 'UTF-8';
-        
-        // --- SEND 1: TO BUYER ---
-        $fromName = $sellerName ? $sellerName : $smtpConfig['from_name'];
-        $mail->setFrom($smtpConfig['from_email'], $fromName);
-        
-        // Reply-To setup
-        $mail->clearReplyTos();
-        if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) {
-            $mail->addReplyTo($sellerEmail, $fromName);
-        } else {
-            $mail->addReplyTo($smtpConfig['reply_to'], $fromName);
-        }
+        // --- HELPER FUNCTION FOR CLEAN SENDING ---
+        $sendOneMail = function($to, $subj, $body, $config, $fromName, $replyToAddr = null) use (&$logs) {
+            $mail = new PHPMailer(true); // New instance every time
+            try {
+                $mail->isSMTP();
+                $mail->Host = $config['host'];
+                $mail->SMTPAuth = $config['auth'];
+                $mail->Username = $config['username'];
+                $mail->Password = $config['password'];
+                $mail->SMTPSecure = $config['encryption'];
+                $mail->Port = $config['port'];
+                $mail->CharSet = 'UTF-8';
+                
+                $mail->setFrom($config['from_email'], $fromName);
+                
+                if ($replyToAddr) {
+                    $mail->addReplyTo($replyToAddr, $fromName);
+                } else {
+                    $mail->addReplyTo($config['reply_to'], $fromName);
+                }
+                
+                $mail->addAddress($to);
+                $mail->isHTML(true);
+                $mail->Subject = $subj;
+                $mail->Body = $body;
+                
+                $mail->send();
+                $logs[] = "Sent to $to: OK";
+                return true;
+            } catch (Exception $e) {
+                $logs[] = "Failed to $to: " . $mail->ErrorInfo;
+                return false;
+            }
+        };
 
-        $mail->addAddress($email);
-        $mail->isHTML(true);
-        $mail->Subject = "Подписание договора на щенка ({$contractNumber})";
+        // --- SEND 1: BUYER ---
+        $fromName = $sellerName ? $sellerName : $smtpConfig['from_name'];
+        // Buyer should reply to Seller
+        $buyerReplyTo = ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) ? $sellerEmail : null;
         
         $buyerBody = "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
@@ -1199,21 +1218,12 @@ if ($action === 'sendSigningLink') {
             <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
             <p style='color: #888; font-size: 12px;'>С уважением,<br>{$fromName}</p>
         </div>";
-        
-        $mail->Body = $buyerBody;
-        $mail->AltBody = "Ссылка: $link";
-        
-        $mail->send();
-        
-        // --- SEND 2: TO SELLER (COPY) ---
+
+        $sendOneMail($email, "Подписание договора на щенка ({$contractNumber})", $buyerBody, $smtpConfig, $fromName, $buyerReplyTo);
+
+        // --- SEND 2: SELLER ---
         if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL) && strtolower($sellerEmail) !== strtolower($email)) {
-            $mail->clearAddresses();
-            $mail->clearReplyTos(); // No reply-to needed for self-copy or use default
-            $mail->addAddress($sellerEmail);
-            
-            $mail->Subject = "[КОПИЯ] Договор на {$name} (для {$sellerEmail})";
-            
-            $sellerBody = "
+             $sellerBody = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f8fafc;'>
                 <h2 style='color: #475569;'>Копия отправленного договора</h2>
                 <div style='background: #fff3cd; color: #856404; padding: 10px; margin-bottom: 20px; border: 1px solid #ffeeba;'>
@@ -1223,20 +1233,21 @@ if ($action === 'sendSigningLink') {
                 <p><strong>Номер договора:</strong> {$contractNumber}</p>
             </div>";
             
-            $mail->Body = $sellerBody;
-            $mail->send();
-            
-            file_put_contents(__DIR__ . '/email_delivery.log', "Sent seller copy to: {$sellerEmail}\n", FILE_APPEND);
+            // Send to Seller (Reply-To default/none)
+            $sendOneMail($sellerEmail, "[КОПИЯ] Договор на {$name}", $sellerBody, $smtpConfig, $fromName, null);
+        } else {
+            $logs[] = "Skipped seller copy (same email or invalid): '$sellerEmail'";
         }
 
-        echo json_encode(['success' => true, 'message' => 'Emails sent successfully']);
+        echo json_encode(['success' => true, 'message' => 'Process finished', 'logs' => $logs]);
 
     } catch (\Throwable $e) {
         http_response_code(500);
-        $errorMsg = 'Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
-        file_put_contents(__DIR__ . '/email_error.log', date('Y-m-d H:i:s') . ' - ' . $errorMsg . "\n", FILE_APPEND);
-        echo json_encode(['success' => false, 'message' => $errorMsg]);
+        $logs[] = "Fatal Error: " . $e->getMessage();
+        echo json_encode(['success' => false, 'message' => 'Error occurred', 'logs' => $logs]);
     }
+    
+    file_put_contents(__DIR__ . '/email_delivery.log', implode("\n", $logs) . "\n\n", FILE_APPEND);
     exit();
 }
 
