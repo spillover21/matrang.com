@@ -96,7 +96,7 @@ try {
         'message' => 'Договор создан и отправлен на подпись',
         'envelope_id' => $result['envelope_id'],
         'signing_url' => $result['signing_url'],
-        'recipient_id' => $result['recipient_id'],
+        'recipient_id' => $result['recipient_id'] ?? null,  // Fix undefined index warning
         'contract_id' => $contractRecord['id'],
         // Pass through debug info from Bridge
         'seller_debug' => $result['seller_debug'] ?? null,
