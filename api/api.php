@@ -377,8 +377,19 @@ if ($action === 'getContracts') {
     
     // Проверяем наличие PDF шаблона
     $pdfTemplate = '';
+    $pdfTemplateRu = '';
+    $pdfTemplateEn = '';
+    
+    // RU (Default)
     if (file_exists($pdfTemplateFile)) {
         $pdfTemplate = '/uploads/pdf_template.pdf?t=' . time();
+        $pdfTemplateRu = $pdfTemplate;
+    }
+    
+    // EN
+    $pdfTemplateEnFile = __DIR__ . '/../uploads/pdf_template_en.pdf';
+    if (file_exists($pdfTemplateEnFile)) {
+        $pdfTemplateEn = '/uploads/pdf_template_en.pdf?t=' . time();
     }
     
     http_response_code(200);
@@ -386,7 +397,9 @@ if ($action === 'getContracts') {
         'success' => true,
         'contracts' => $contracts,
         'templates' => $templates,
-        'pdfTemplate' => $pdfTemplate
+        'pdfTemplate' => $pdfTemplate, // Keep for backward compatibility
+        'pdfTemplateRu' => $pdfTemplateRu,
+        'pdfTemplateEn' => $pdfTemplateEn
     ]);
     exit();
 }
@@ -778,6 +791,13 @@ if ($action === 'sendContractPdf') {
     
     // Подготавливаем данные для VPS
     $contractData = $input['data'];
+
+    // Inject template language/filename for VPS
+    if (isset($input['templateLang'])) {
+        $contractData['templateLang'] = $input['templateLang'];
+        // Также определяем имя файла, чтобы VPS знал что искать
+        $contractData['templateFilename'] = ($input['templateLang'] === 'en') ? 'pdf_template_en.pdf' : 'pdf_template.pdf';
+    }
 
     // --- FIX: Generate Sequential Contract Number ---
     $contractsFile = __DIR__ . '/../data/contracts.json';

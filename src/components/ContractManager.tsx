@@ -121,6 +121,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [pdfTemplate, setPdfTemplate] = useState<string>("");
+  const [pdfTemplateEn, setPdfTemplateEn] = useState<string>("");
+  const [templateLang, setTemplateLang] = useState<'ru' | 'en'>('ru');
   const [pdfFieldInfo, setPdfFieldInfo] = useState<{ count: number; names: string[]; lastChecked?: string; error?: string }>({
     count: 0,
     names: []
@@ -216,7 +218,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       if (data.success) {
         setTemplates(data.templates || []);
         setContracts(data.contracts || []);
-        setPdfTemplate(data.pdfTemplate || "");
+        setPdfTemplate(data.pdfTemplate || data.pdfTemplateRu || "");
+        if (data.pdfTemplateEn) setPdfTemplateEn(data.pdfTemplateEn);
       }
     } catch (error) {
       console.error(error);
@@ -258,13 +261,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
-  const uploadPdfTemplate = async (file: File) => {
+  const uploadPdfTemplate = async (file: File, lang: 'ru' | 'en' = 'ru') => {
     // Загружаем сразу на VPS, локальное хранилище не нужно
     try {
-      toast.info("Загрузка шаблона на VPS...");
+      toast.info(`Загрузка шаблона (${lang.toUpperCase()}) на VPS...`);
       
       const formData = new FormData();
       formData.append("template", file);
+      formData.append("lang", lang);
 
       const response = await fetch("/api/upload_template_to_vps.php", {
         method: "POST",
@@ -280,14 +284,21 @@ const ContractManager = ({ token }: ContractManagerProps) => {
         let previewPath = data.vps_path;
         // Fix: If VPS returns absolute path, switch to local URL for preview
         if (previewPath && previewPath.includes('/var/www')) {
-             previewPath = '/uploads/pdf_template.pdf?t=' + Date.now();
+             previewPath = (lang === 'en' ? '/uploads/pdf_template_en.pdf' : '/uploads/pdf_template.pdf') + '?t=' + Date.now();
         }
 
-        setPdfTemplate(previewPath); // Устанавливаем путь для предпросмотра
-        toast.success("✅ PDF шаблон загружен на VPS!");
+        if (lang === 'en') {
+            setPdfTemplateEn(previewPath);
+        } else {
+            setPdfTemplate(previewPath); 
+        }
         
-        // Проверяем поля в PDF
-        checkPdfFields();
+        toast.success(`✅ PDF шаблон (${lang.toUpperCase()}) загружен на VPS!`);
+        
+        // Проверяем поля в PDF (если это активный шаблон)
+        if (lang === templateLang) {
+            checkPdfFields();
+        }
       } else {
         console.error('VPS upload failed:', data.error);
         toast.error("Ошибка загрузки на VPS: " + data.error);
@@ -381,7 +392,13 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
     setSending(true);
     try {
-      toast.info("Отправка в Documenso...");
+      toast.info(`Отправка в Documenso (${templateLang.toUpperCase()})...`);
+      
+      const payload = { 
+          ...formData, 
+          templateLang, 
+          templateFilename: templateLang === 'en' ? 'pdf_template_en.pdf' : 'pdf_template.pdf' 
+      };
 
       const response = await fetch("/api/contracts_api.php", {
         method: "POST",
@@ -389,7 +406,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -623,9 +640,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const buildFilledPdfBytes = async () => {
-    if (!pdfTemplate) return null;
+    const activeTemplate = templateLang === 'en' ? pdfTemplateEn : pdfTemplate;
+    if (!activeTemplate) return null;
 
-    const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+    const pdfBytes = await fetch(activeTemplate).then(res => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
     const fields = form.getFields();
@@ -669,13 +687,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const checkPdfFields = async () => {
-    if (!pdfTemplate) {
-      toast.error("Загрузите PDF шаблон договора");
+    const activeTemplate = templateLang === 'en' ? pdfTemplateEn : pdfTemplate;
+    if (!activeTemplate) {
+      toast.error(`Загрузите PDF шаблон договора (${templateLang.toUpperCase()})`);
       return;
     }
 
     try {
-      const pdfBytes = await fetch(pdfTemplate).then(res => res.arrayBuffer());
+      const pdfBytes = await fetch(activeTemplate).then(res => res.arrayBuffer());
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const form = pdfDoc.getForm();
       const fields = form.getFields();
@@ -902,13 +921,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
   };
 
   const generatePreview = async () => {
-    if (!pdfTemplate) {
-      toast.error("Загрузите PDF шаблон договора");
+    const activeTemplate = templateLang === 'en' ? pdfTemplateEn : pdfTemplate;
+    if (!activeTemplate) {
+      toast.error(`Загрузите PDF шаблон договора (${templateLang.toUpperCase()})`);
       return;
     }
 
     try {
-      toast.info("Генерация PDF...");
+      toast.info(`Генерация PDF (${templateLang.toUpperCase()})...`);
       
       const filledResult = await buildFilledPdfBytes();
       if (!filledResult || !filledResult.hasFields) {
@@ -934,7 +954,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       toast.error("Ошибка: " + (error as Error).message);
       
       // Открываем оригинальный PDF для просмотра
-      window.open(pdfTemplate, '_blank');
+      const activeTemplate = templateLang === 'en' ? pdfTemplateEn : pdfTemplate;
+      if (activeTemplate) window.open(activeTemplate, '_blank');
     }
   };
 
@@ -971,62 +992,81 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
           <TabsContent value="new" className="space-y-6 mt-6">
             <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">PDF Шаблон договора</h2>
-              {pdfTemplate ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">Шаблон загружен</p>
-                    <a href={pdfTemplate} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      Просмотреть PDF
-                    </a>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      Поля формы: {pdfFieldInfo.count} {pdfFieldInfo.lastChecked ? `• проверено ${pdfFieldInfo.lastChecked}` : ''}
-                      {pdfFieldInfo.error ? ` • ошибка: ${pdfFieldInfo.error}` : ''}
+              <h2 className="text-xl font-semibold mb-4">PDF Шаблоны договора</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* RU Template */}
+                <div className="border border-border rounded-lg p-4 bg-slate-50">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold flex items-center gap-2">🇷🇺 Русский (RU)</h3>
+                        {pdfTemplate && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">Загружен</span>}
                     </div>
-                    {pdfFieldInfo.names.length > 0 && (
-                      <div className="mt-1 max-h-24 overflow-auto text-xs">
-                        {pdfFieldInfo.names.map((name) => (
-                          <div key={name}>{name}</div>
-                        ))}
-                      </div>
+                    {pdfTemplate ? (
+                        <div className="space-y-2">
+                             <a href={pdfTemplate} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline block truncate">
+                                {pdfTemplate.split('/').pop()}
+                             </a>
+                             <div className="flex gap-2">
+                                <label className="cursor-pointer">
+                                    <Button variant="outline" size="sm" asChild>
+                                    <span>Заменить</span>
+                                    </Button>
+                                    <input type="file" accept=".pdf" className="hidden" onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) uploadPdfTemplate(file, 'ru');
+                                    }} />
+                                </label>
+                                <Button variant="secondary" size="sm" onClick={checkPdfFields}>Проверить поля</Button>
+                             </div>
+                        </div>
+                    ) : (
+                        <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded hover:bg-white cursor-pointer transition-colors">
+                             <Upload className="w-5 h-5 text-gray-400 mb-2" />
+                             <span className="text-sm text-gray-500">Загрузить PDF (RU)</span>
+                             <input type="file" accept=".pdf" className="hidden" onChange={(e) => {
+                                 const file = e.target.files?.[0];
+                                 if (file) uploadPdfTemplate(file, 'ru');
+                             }} />
+                        </label>
                     )}
-                  </div>
-                  <label className="cursor-pointer">
-                    <Button variant="outline" size="sm" asChild>
-                      <span>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Заменить шаблон
-                      </span>
-                    </Button>
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) uploadPdfTemplate(file);
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                  <Button variant="secondary" size="sm" onClick={checkPdfFields}>
-                    Проверить поля
-                  </Button>
                 </div>
-              ) : (
-                <label className="flex items-center justify-center gap-2 p-8 border-2 border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors">
-                  <Upload className="w-6 h-6" />
-                  <span>Загрузите PDF шаблон договора</span>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) uploadPdfTemplate(file);
-                    }}
-                    className="hidden"
-                  />
-                </label>
-              )}
+
+                {/* EN Template */}
+                <div className="border border-border rounded-lg p-4 bg-slate-50">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold flex items-center gap-2">🇬🇧 English (EN)</h3>
+                        {pdfTemplateEn && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">Загружен</span>}
+                    </div>
+                    {pdfTemplateEn ? (
+                        <div className="space-y-2">
+                             <a href={pdfTemplateEn} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline block truncate">
+                                {pdfTemplateEn.split('/').pop()}
+                             </a>
+                             <div className="flex gap-2">
+                                <label className="cursor-pointer">
+                                    <Button variant="outline" size="sm" asChild>
+                                    <span>Заменить</span>
+                                    </Button>
+                                    <input type="file" accept=".pdf" className="hidden" onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) uploadPdfTemplate(file, 'en');
+                                    }} />
+                                </label>
+                             </div>
+                        </div>
+                    ) : (
+                        <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded hover:bg-white cursor-pointer transition-colors">
+                             <Upload className="w-5 h-5 text-gray-400 mb-2" />
+                             <span className="text-sm text-gray-500">Загрузить PDF (EN)</span>
+                             <input type="file" accept=".pdf" className="hidden" onChange={(e) => {
+                                 const file = e.target.files?.[0];
+                                 if (file) uploadPdfTemplate(file, 'en');
+                             }} />
+                        </label>
+                    )}
+                </div>
+              </div>
+
               <p className="text-xs text-muted-foreground mt-2">
                 💡 Загрузите PDF договора с заполняемыми полями (созданный в Adobe Acrobat)
               </p>
@@ -1034,8 +1074,22 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
             {/* ДЕЙСТВИЯ С ДОГОВОРОМ */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg p-6 space-y-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
                 <h2 className="text-2xl font-bold text-blue-900">🚀 Отправить договор на подпись</h2>
+                
+                 {/* Language Selector */}
+                 <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border shadow-sm">
+                    <span className="text-sm font-semibold text-gray-600">Версия:</span>
+                    <button 
+                        onClick={() => setTemplateLang('ru')}
+                        className={`px-3 py-1 rounded-full text-sm font-bold transition-colors ${templateLang === 'ru' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >RU</button>
+                    <button 
+                        onClick={() => setTemplateLang('en')}
+                        className={`px-3 py-1 rounded-full text-sm font-bold transition-colors ${templateLang === 'en' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >EN</button>
+                </div>
+
                 <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
@@ -1046,8 +1100,8 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     <Plus className="w-4 h-4 mr-2" />
                     Тестовые данные
                   </Button>
-                  {pdfTemplate && (
-                    <span className="text-sm text-green-600">✅ Шаблон загружен</span>
+                  {(templateLang === 'ru' ? pdfTemplate : pdfTemplateEn) && (
+                    <span className="text-sm text-green-600 font-medium">✅ Шаблон {templateLang.toUpperCase()} готов</span>
                   )}
                 </div>
               </div>
