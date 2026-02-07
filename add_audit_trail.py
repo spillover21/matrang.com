@@ -7,6 +7,7 @@
 import sys
 import base64
 import psycopg2
+import hashlib
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -27,13 +28,30 @@ def create_audit_trail_page(signers_data):
     """Создает профессиональную страницу Signing Certificate"""
     from reportlab.lib import colors
     from reportlab.platypus import Table, TableStyle
-    
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    # Регистрируем шрифты с поддержкой кириллицы
+    try:
+        pdfmetrics.registerFont(TTFont('LiberationSans', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
+        pdfmetrics.registerFont(TTFont('LiberationSans-Bold', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'))
+        pdfmetrics.registerFont(TTFont('LiberationSans-Italic', '/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf'))
+        
+        font_regular = 'LiberationSans'
+        font_bold = 'LiberationSans-Bold'
+        font_italic = 'LiberationSans-Italic'
+    except Exception as e:
+        print(f"⚠️ Warning: Custom fonts not found ({e}). Fallback to standard fonts (Cyrillic may not work).")
+        font_regular = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
+        font_italic = 'Times-Italic'
+
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
     # Заголовок "Signing Certificate"
-    c.setFont("Helvetica-Bold", 20)
+    c.setFont(font_bold, 20)
     c.drawCentredString(width/2, height - 2*cm, "Signing Certificate")
     
     # Таблица заголовков колонок
@@ -42,7 +60,7 @@ def create_audit_trail_page(signers_data):
     col2_x = 7.5*cm
     col3_x = 13*cm
     
-    c.setFont("Helvetica", 10)
+    c.setFont(font_regular, 10)
     c.setFillColorRGB(0.4, 0.4, 0.4)
     c.drawString(col1_x, y_start, "Signer Events")
     c.drawString(col2_x, y_start, "Signature")
@@ -62,15 +80,15 @@ def create_audit_trail_page(signers_data):
         
         # Колонка 1: Signer Events
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica-Bold", 11)
+        c.setFont(font_bold, 11)
         c.drawString(col1_x, y, signer['name'])
         y -= 0.5*cm
         
-        c.setFont("Helvetica", 9)
+        c.setFont(font_regular, 9)
         c.drawString(col1_x, y, signer['email'])
         y -= 0.6*cm
         
-        c.setFont("Helvetica", 8)
+        c.setFont(font_regular, 8)
         c.setFillColorRGB(0.3, 0.3, 0.3)
         c.drawString(col1_x, y, "Signer")
         y -= 0.4*cm
@@ -89,16 +107,16 @@ def create_audit_trail_page(signers_data):
         
         # Текст подписи (имя подписанта курсивом)
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Times-Italic", 14)
+        c.setFont(font_italic, 14)
         c.drawCentredString(col2_x + 2*cm, y_signature - 0.6*cm, signer['signature'])
         
         # Signature ID и прочая информация
         y_sig_info = y_signature - 1.8*cm
-        c.setFont("Helvetica", 7)
+        c.setFont(font_regular, 7)
         c.setFillColorRGB(0.4, 0.4, 0.4)
         c.drawString(col2_x, y_sig_info, "Signature ID:")
         y_sig_info -= 0.3*cm
-        c.setFont("Helvetica", 6)
+        c.setFont(font_regular, 6)
         c.setFillColorRGB(0.3, 0.3, 0.3)
         # Первая половина ID
         c.drawString(col2_x, y_sig_info, signer['signature_id'][:24] if len(signer['signature_id']) > 24 else signer['signature_id'])
@@ -108,7 +126,7 @@ def create_audit_trail_page(signers_data):
             c.drawString(col2_x, y_sig_info, signer['signature_id'][24:])
         
         y_sig_info -= 0.35*cm
-        c.setFont("Helvetica", 7)
+        c.setFont(font_regular, 7)
         c.setFillColorRGB(0.4, 0.4, 0.4)
         c.drawString(col2_x, y_sig_info, f"IP Address: {signer['ip_address']}")
         y_sig_info -= 0.3*cm
@@ -116,7 +134,7 @@ def create_audit_trail_page(signers_data):
         
         # Колонка 3: Details (события)
         y_details = y + 1.5*cm
-        c.setFont("Helvetica", 8)
+        c.setFont(font_regular, 8)
         c.setFillColorRGB(0.4, 0.4, 0.4)
         
         c.drawString(col3_x, y_details, f"Sent: {signer['sent']}")
@@ -126,7 +144,7 @@ def create_audit_trail_page(signers_data):
         c.drawString(col3_x, y_details, f"Signed: {signer['signed']}")
         y_details -= 0.6*cm
         
-        c.setFont("Helvetica", 7)
+        c.setFont(font_regular, 7)
         c.setFillColorRGB(0.3, 0.3, 0.3)
         c.drawString(col3_x, y_details, f"Reason: {signer['reason']}")
         
@@ -140,13 +158,13 @@ def create_audit_trail_page(signers_data):
         y -= 0.5*cm
     
     # Footer
-    c.setFont("Helvetica", 8)
+    c.setFont(font_regular, 8)
     c.setFillColorRGB(0.5, 0.5, 0.5)
     footer_y = 1.5*cm
     c.drawRightString(width - 2*cm, footer_y, "Signing certificate provided by:")
     
     # Логотип Documenso (текстом)
-    c.setFont("Helvetica-Bold", 10)
+    c.setFont(font_bold, 10)
     c.setFillColorRGB(0, 0, 0)
     c.drawRightString(width - 2*cm, footer_y - 0.5*cm, "Documenso")
     
@@ -220,11 +238,25 @@ def get_signers_data(conn, envelope_id):
             return "Unknown"
         
         # Формируем данные подписанта
+        # Генерируем Signature ID в формате CMLxxxx.HASH
+        # Пример: CML5491.615D34D5B1659E9D5
+        
+        # Часть 1: ID (Signature ID или Recipient ID)
+        id_part = str(sig_id if sig_id else rec_id)
+        if len(id_part) < 4:
+            id_part = id_part.zfill(4)
+            
+        # Часть 2: Hash от данных подписания
+        hash_source = f"{name}{email}{sig_text}{signed_at}{rec_id}".encode('utf-8')
+        hash_part = hashlib.sha256(hash_source).hexdigest()[:16].upper()
+        
+        formatted_sig_id = f"CML{id_part}.{hash_part}"
+
         signer_data = {
             'name': name or "Unknown",
             'email': email or "unknown@example.com",
             'signature': sig_text or name or "Signature",
-            'signature_id': str(sig_id) if sig_id else ("CML" + str(abs(hash(str(rec_id))))[:24].upper()),
+            'signature_id': formatted_sig_id,
             'ip_address': ip_addr or "Unknown",
             'device': device,
             'sent': format_dt(sent_at),
