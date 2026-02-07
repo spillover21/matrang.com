@@ -174,14 +174,15 @@ def add_audit_trail_to_pdf(envelope_id):
         # Кодируем обратно в base64
         new_pdf_base64 = base64.b64encode(output_buffer.read()).decode('utf-8')
         
-        # Обновляем в БД
+        # Обновляем в БД - И data И initialData (Documenso скачивает из initialData!)
         update_query = """
             UPDATE "DocumentData"
-            SET data = %s
+            SET data = %s,
+                "initialData" = %s
             WHERE id = %s
         """
         
-        cursor.execute(update_query, (new_pdf_base64, data_id))
+        cursor.execute(update_query, (new_pdf_base64, new_pdf_base64, data_id))
         conn.commit()
         
         print(f"✅ Audit trail page added to envelope {envelope_id}")
