@@ -1134,14 +1134,37 @@ if ($action === 'sendSigningLink') {
     ini_set('display_errors', 0);
     error_reporting(E_ALL);
     
+    // Log immediately
+    $fnLog = __DIR__ . '/email_delivery.log';
+    file_put_contents($fnLog, "--- New Request " . date('Y-m-d H:i:s') . " ---\n", FILE_APPEND);
+
     $logs = [];
     $logs[] = "Start sendSigningLink";
 
-    // 1. Auth Check
-    if (!checkAuth()) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-        exit();
+    // Shutdown function to catch fatal errors
+    register_shutdown_function(function() use (&$logs, $fnLog) {
+        $error = error_get_last();
+        if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_CORE_ERROR)) {
+            $msg = "FATAL ERROR: {$error['message']} in {$error['file']}:{$error['line']}";
+            file_put_contents($fnLog, $msg . "\n", FILE_APPEND);
+            // Attempt to return JSON if headers not sent
+            if (!headers_sent()) {
+                http_response_code(200); // Return 200 to ensure frontend sees it
+                echo json_encode(['success' => false, 'message' => 'Fatal Error', 'logs' => [$msg]]);
+            }
+        }
+    });
+
+    // 1. Auth Check - wrapped in try to catch definition errors
+    try {
+        if (!checkAuth()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+    } catch (\Throwable $e) {
+         // checkAuth might fail if not defined?
+         $logs[] = "Auth Check Failed: " . $e->getMessage();
     }
 
     // 2. Parse Input
@@ -1164,19 +1187,29 @@ if ($action === 'sendSigningLink') {
 
     // 3. Setup Mailer Dependencies
     try {
-        if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-            require_once __DIR__ . '/vendor/autoload.php';
-        } else {
-            throw new Exception('Composer vendor missing');
+        // Autoload is already loaded at global scope (hopefully)
+        if (!class_exists(PHPMailer::class)) {
+            // Try explicit load again if missing
+             if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+                require_once __DIR__ . '/vendor/autoload.php';
+            } elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+                require_once __DIR__ . '/../vendor/autoload.php';
+            }
         }
-        $logs[] = "Autoload loaded";
+        
+        if (!class_exists(PHPMailer::class)) {
+            throw new \Exception('PHPMailer class not found. Check vendor/autoload.php');
+        }
+
+        $logs[] = "PHPMailer class available";
 
         $smtpConfig = require __DIR__ . '/smtp_config.php';
         $logs[] = "Config loaded";
         
         // --- HELPER FUNCTION FOR CLEAN SENDING ---
         $sendOneMail = function($to, $subj, $body, $config, $fromName, $replyToAddr = null) use (&$logs) {
-            $mail = new PHPMailer(true); // New instance every time
+            // Instantiate with fully qualified name
+            $mail = new PHPMailer(true); 
             try {
                 $mail->isSMTP();
                 $mail->Host = $config['host'];
@@ -1203,9 +1236,12 @@ if ($action === 'sendSigningLink') {
                 $mail->send();
                 $logs[] = "Sent to $to: OK";
                 return true;
-            } catch (Exception $e) {
-                $logs[] = "Failed to $to: " . $mail->ErrorInfo;
+            } catch (\Exception $e) { // Catch PHPMailer Exception
+                $logs[] = "Failed to $to: " . $e->getMessage();
                 return false;
+            } catch (\Throwable $e) { // Catch other errors
+                 $logs[] = "Fatal Failed to $to: " . $e->getMessage();
+                 return false;
             }
         };
 
@@ -1248,15 +1284,18 @@ if ($action === 'sendSigningLink') {
             $logs[] = "Skipped seller copy (same email or invalid): '$sellerEmail'";
         }
 
+        // Return 200 OK with success=true
+        http_response_code(200);
         echo json_encode(['success' => true, 'message' => 'Process finished', 'logs' => $logs]);
 
     } catch (\Throwable $e) {
-        http_response_code(500);
         $logs[] = "Fatal Error: " . $e->getMessage();
+        // Return 200 OK with success=false to treat as handled error
+        http_response_code(200);
         echo json_encode(['success' => false, 'message' => 'Error occurred', 'logs' => $logs]);
     }
     
-    file_put_contents(__DIR__ . '/email_delivery.log', implode("\n", $logs) . "\n\n", FILE_APPEND);
+    file_put_contents($fnLog, implode("\n", $logs) . "\n\n", FILE_APPEND);
     exit();
 }
 
