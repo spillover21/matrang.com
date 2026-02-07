@@ -1121,12 +1121,14 @@ if ($action === 'get_seller_profile') {
 }
 
 if ($action === 'sendSigningLink') {
+    // 1. Auth Check
     if (!checkAuth()) {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);
         exit();
     }
 
+    // 2. Parse Input
     $input = json_decode(file_get_contents('php://input'), true);
     $email = $input['email'] ?? '';
     $link = $input['link'] ?? '';
@@ -1137,22 +1139,27 @@ if ($action === 'sendSigningLink') {
     $sellerEmail = isset($input['sellerEmail']) ? trim($input['sellerEmail']) : '';
     $sellerName = isset($input['sellerName']) ? trim($input['sellerName']) : '';
 
-    // LOGGING EXTRACTION
+    // Logging
     $logData = date('Y-m-d H:i:s') . " - Input: " . json_encode($input) . "\n";
-    $logData .= "Seller Email Parsed: '{$sellerEmail}'\n";
     file_put_contents(__DIR__ . '/email_delivery.log', $logData, FILE_APPEND);
 
+    // 3. Validate
     if (!$email || !$link) {
-        http_response_code(400); // Bad Request
+        http_response_code(400); 
         echo json_encode(['success' => false, 'message' => 'Missing email or link']);
         exit();
     }
 
-    require_once __DIR__ . '/vendor/autoload.php'; // Ensure autoloader is loaded
-    $smtpConfig = require __DIR__ . '/smtp_config.php';
-    
-    // FUNCTION TO SEND EMAIL
-    function sendMailInternal($toEmail, $subject, $body, $smtpConfig, $fromName, $replyToEmail = null) {
+    // 4. Setup Mailer
+    try {
+        if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/vendor/autoload.php';
+        } else {
+            throw new Exception('Composer vendor missing');
+        }
+
+        $smtpConfig = require __DIR__ . '/smtp_config.php';
+        
         $mail = new PHPMailer(true);
         $mail->isSMTP();
         $mail->Host = $smtpConfig['host'];
@@ -1162,25 +1169,23 @@ if ($action === 'sendSigningLink') {
         $mail->SMTPSecure = $smtpConfig['encryption'];
         $mail->Port = $smtpConfig['port'];
         $mail->CharSet = 'UTF-8';
-
+        
+        // --- SEND 1: TO BUYER ---
+        $fromName = $sellerName ? $sellerName : $smtpConfig['from_name'];
         $mail->setFrom($smtpConfig['from_email'], $fromName);
         
-        if ($replyToEmail) {
-            $mail->addReplyTo($replyToEmail, $fromName);
+        // Reply-To setup
+        $mail->clearReplyTos();
+        if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) {
+            $mail->addReplyTo($sellerEmail, $fromName);
+        } else {
+            $mail->addReplyTo($smtpConfig['reply_to'], $fromName);
         }
 
-        $mail->addAddress($toEmail);
+        $mail->addAddress($email);
         $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body = $body;
-        $mail->send();
-    }
-
-    try {
-        $fromName = $sellerName ? $sellerName : $smtpConfig['from_name'];
-        $replyTo = ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL)) ? $sellerEmail : $smtpConfig['reply_to'];
+        $mail->Subject = "Подписание договора на щенка ({$contractNumber})";
         
-        // 1. Send to Buyer
         $buyerBody = "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
             <h2 style='color: #2563eb;'>Договор готов к подписанию</h2>
@@ -1195,11 +1200,19 @@ if ($action === 'sendSigningLink') {
             <p style='color: #888; font-size: 12px;'>С уважением,<br>{$fromName}</p>
         </div>";
         
-        sendMailInternal($email, "Подписание договора на щенка ({$contractNumber})", $buyerBody, $smtpConfig, $fromName, $replyTo);
+        $mail->Body = $buyerBody;
+        $mail->AltBody = "Ссылка: $link";
         
-        // 2. Send Copy to Seller (if distinct and valid)
-        // Проверяем валидность и отправляем
+        $mail->send();
+        
+        // --- SEND 2: TO SELLER (COPY) ---
         if ($sellerEmail && filter_var($sellerEmail, FILTER_VALIDATE_EMAIL) && strtolower($sellerEmail) !== strtolower($email)) {
+            $mail->clearAddresses();
+            $mail->clearReplyTos(); // No reply-to needed for self-copy or use default
+            $mail->addAddress($sellerEmail);
+            
+            $mail->Subject = "[КОПИЯ] Договор на {$name} (для {$sellerEmail})";
+            
             $sellerBody = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f8fafc;'>
                 <h2 style='color: #475569;'>Копия отправленного договора</h2>
@@ -1208,22 +1221,16 @@ if ($action === 'sendSigningLink') {
                 </div>
                 <p>Вы отправили договор покупателю <strong>{$name}</strong>.</p>
                 <p><strong>Номер договора:</strong> {$contractNumber}</p>
-                <p><strong>Email покупателя:</strong> {$email}</p>
-                <div style='margin: 20px 0;'>
-                    <a href='{$link}' style='color: #2563eb; text-decoration: underline;'>Открыть ссылку на подписание</a>
-                </div>
-                <p style='color: #888; font-size: 12px;'>Это уведомление для заводчика.</p>
             </div>";
             
-            // Send to seller without Reply-To (system notification)
-            sendMailInternal($sellerEmail, "[КОПИЯ] Договор на {$name} (для {$sellerEmail})", $sellerBody, $smtpConfig, $fromName);
+            $mail->Body = $sellerBody;
+            $mail->send();
             
-            file_put_contents(__DIR__ . '/email_delivery.log', "Sent PROOF copy to: {$sellerEmail}\n", FILE_APPEND);
-        } else {
-             file_put_contents(__DIR__ . '/email_delivery.log', "Skipped seller copy. SellerEmail: '{$sellerEmail}' vs BuyerEmail: '{$email}'\n", FILE_APPEND);
+            file_put_contents(__DIR__ . '/email_delivery.log', "Sent seller copy to: {$sellerEmail}\n", FILE_APPEND);
         }
 
         echo json_encode(['success' => true, 'message' => 'Emails sent successfully']);
+
     } catch (\Throwable $e) {
         http_response_code(500);
         $errorMsg = 'Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
