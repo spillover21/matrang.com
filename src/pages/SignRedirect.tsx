@@ -15,9 +15,12 @@ const SignRedirect = () => {
     }, [id]);
 
     const handleRedirect = (port: number) => {
-        const hostname = window.location.hostname;
-        const protocol = window.location.protocol;
-        const targetUrl = `${protocol}//${hostname}:${port}/sign/${id}`;
+        // Always redirect to the VPS IP, never the current hostname (Hostinger)
+        const targetHost = "72.62.114.139"; 
+        const protocol = "http:"; // Usually http for this VPS setup based on history
+        const targetUrl = `${protocol}//${targetHost}:${port}/sign/${id}`;
+        
+        console.log(`Redirecting to: ${targetUrl}`);
         window.location.href = targetUrl;
     };
 
@@ -30,35 +33,32 @@ const SignRedirect = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-gray-600 text-center">
-                        Пожалуйста, выберите сервер для подписания документа.
+                        Мы исправили проблему с подключением. Выберите сервер ниже:
                         <br />
-                        <span className="text-xs text-gray-400">Please select a server to sign the document.</span>
+                        <span className="text-xs text-gray-400">Connection fix. Select server below:</span>
                     </p>
 
                     <Button 
                         onClick={() => handleRedirect(9000)} 
                         className="w-full bg-blue-600 hover:bg-blue-700"
                     >
-                        Открыть документ (Сервер 1 - Порт 9000)
+                        Открыть документ (Основной - Порт 9000)
                     </Button>
+                    
+                    <div className="text-xs text-center text-gray-400 py-2">
+                         Если кнопка выше выдает "404", попробуйте этот вариант:
+                    </div>
 
                     <Button 
                         onClick={() => handleRedirect(3000)} 
-                        className="w-full bg-slate-600 hover:bg-slate-700"
-                    >
-                        Открыть документ (Сервер 2 - Порт 3000)
-                    </Button>
-                    
-                     <Button 
-                        onClick={() => handleRedirect(8080)} 
                         variant="outline"
                         className="w-full"
                     >
-                        Открыть документ (Сервер 3 - Порт 8080)
+                        Запасной вариант (Порт 3000)
                     </Button>
 
                     <div className="pt-4 border-t text-xs text-center text-gray-400">
-                        Token ID: {id}
+                        Target IP: 72.62.114.139 | Token: {id}
                     </div>
                 </CardContent>
             </Card>
