@@ -1,6 +1,15 @@
 <?php
 // api/api.php - главный API для админ панели
 
+// Подключение автозагрузчика (важно для PHPMailer)
+// Если папка vendor лежит в api/vendor
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    // Если папка vendor лежит в корне public_html/vendor
+    require_once __DIR__ . '/../vendor/autoload.php';
+}
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
