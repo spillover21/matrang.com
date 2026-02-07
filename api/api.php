@@ -1171,6 +1171,13 @@ if ($action === 'sendSigningLink') {
     // 4. Input Parsing
     $rawInput = file_get_contents('php://input');
     $input = json_decode($rawInput, true);
+    
+    // Fix for PHP 8 Crash on null input
+    if (!is_array($input)) {
+        $input = [];
+        file_put_contents($debugLog, "Wait! Input is not array: " . var_export($rawInput, true) . "\n", FILE_APPEND);
+    }
+
     $email = $input['email'] ?? '';
     $link = $input['link'] ?? '';
     $contractNumber = $input['contractNumber'] ?? 'Unknown';
