@@ -33,6 +33,7 @@ echo "=== FILE VERSION CHECK ===\n\n";
 foreach ($files as $filename => $checks) {
     $filePath = __DIR__ . '/' . $filename;
     echo "File: $filename\n";
+    echo "  Full path: $filePath\n";
     
     if (!file_exists($filePath)) {
         echo "  ❌ NOT FOUND\n\n";
@@ -46,6 +47,9 @@ foreach ($files as $filename => $checks) {
     
     $hasNew = strpos($content, $checks['check']) !== false;
     $hasOld = strpos($content, $checks['not_contain']) !== false;
+    
+    echo "  Checking for: '{$checks['check']}' - " . ($hasNew ? 'FOUND' : 'NOT FOUND') . "\n";
+    echo "  Checking old: '{$checks['not_contain']}' - " . ($hasOld ? 'FOUND' : 'NOT FOUND') . "\n";
     
     if ($hasNew && !$hasOld) {
         echo "  ✅ NEW VERSION\n";
