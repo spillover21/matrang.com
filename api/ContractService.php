@@ -56,6 +56,16 @@ class ContractService {
         if (!$result || !$result['success']) {
             throw new Exception($result['error'] ?? 'Unknown error from Bridge API');
         }
+
+        // FORCE PORT CORRECTION:
+        // The bridge might return port 9000 (internal mapping), but we know port 8080 
+        // is the public-facing bridge that works. We rewrite the URL to ensure accessibility.
+        if (!empty($result['signing_url'])) {
+            $result['signing_url'] = str_replace(':9000', ':8080', $result['signing_url']);
+        }
+        if (!empty($result['seller_signing_url'])) {
+            $result['seller_signing_url'] = str_replace(':9000', ':8080', $result['seller_signing_url']);
+        }
         
         return $result;
     }
