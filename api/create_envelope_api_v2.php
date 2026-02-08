@@ -24,7 +24,8 @@ const PHP_API_KEY = 'matrang_secret_key_2026';
 
 // Пути к скриптам заполнения PDF
 const PYTHON_FILL_SCRIPT = '/var/www/documenso-bridge/fill_pdf.py';
-const PDF_TEMPLATE_PATH = '/var/www/documenso-bridge/template.pdf';
+const PDF_TEMPLATE_PATH_DEFAULT = '/var/www/documenso-bridge/pdf_template.pdf';
+const PDF_TEMPLATE_DIR = '/var/www/documenso-bridge/';
 
 // =====================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -59,6 +60,24 @@ function logDebug($message, $data = null) {
  * Заполнение PDF через Python (сохраняет существующую логику)
  */
 function fillPdfWithData($data) {
+    // Определяем какой шаблон использовать
+    $templateFilename = $data['templateFilename'] ?? 'pdf_template.pdf';
+    
+    // Защита от Directory Traversal
+    $templateFilename = basename($templateFilename);
+    
+    $templatePath = PDF_TEMPLATE_DIR . $templateFilename;
+    if (!file_exists($templatePath)) {
+        // Fallback to default if specific file not found
+        $templatePath = PDF_TEMPLATE_PATH_DEFAULT;
+        if (!file_exists($templatePath)) {
+             // Fallback to old "template.pdf" just in case
+             $templatePath = '/var/www/documenso-bridge/template.pdf';
+        }
+    }
+    
+    logDebug("Using template: " . $templatePath);
+
     // Создаем JSON файл с данными
     $jsonPath = sys_get_temp_dir() . '/data_' . bin2hex(random_bytes(6)) . '.json';
     $filledPdfPath = sys_get_temp_dir() . '/filled_' . bin2hex(random_bytes(6)) . '.pdf';
@@ -75,7 +94,7 @@ function fillPdfWithData($data) {
     $pythonCmd = sprintf(
         "python3 %s %s %s %s 2>&1",
         escapeshellarg(PYTHON_FILL_SCRIPT),
-        escapeshellarg(PDF_TEMPLATE_PATH),
+        escapeshellarg($templatePath),
         escapeshellarg($filledPdfPath),
         escapeshellarg($jsonPath)
     );
