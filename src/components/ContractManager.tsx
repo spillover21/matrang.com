@@ -1000,7 +1000,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 {/* RU Template */}
                 <div className="border border-border rounded-lg p-4 bg-slate-50">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold flex items-center gap-2">🇷🇺 Русский (RU)</h3>
+                        <h3 className="font-bold flex items-center gap-2 text-black">🇷🇺 Русский (RU)</h3>
                         {pdfTemplate && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">Загружен</span>}
                     </div>
                     {pdfTemplate ? (
@@ -1036,7 +1036,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 {/* EN Template */}
                 <div className="border border-border rounded-lg p-4 bg-slate-50">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold flex items-center gap-2">🇬🇧 English (EN)</h3>
+                        <h3 className="font-bold flex items-center gap-2 text-black">🇬🇧 English (EN)</h3>
                         {pdfTemplateEn && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">Загружен</span>}
                     </div>
                     {pdfTemplateEn ? (
@@ -1108,18 +1108,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={saveAsTemplate}
-                  disabled={saving}
-                  className="h-16"
-                >
-                  <Save className="w-5 h-5 mr-2" />
-                  {saving ? "Сохранение..." : "Сохранить как шаблон"}
-                </Button>
-                
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button
                   variant="outline"
                   size="lg"
