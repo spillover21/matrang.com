@@ -55,6 +55,7 @@ interface ContractData {
   dogBirthDate: string;
   dogGender: string;
   dogColor: string;
+  ribboncolor?: string;
   dogChipNumber?: string;
   dogPuppyCard?: string;
   
@@ -163,6 +164,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     dogBirthDate: "",
     dogGender: "",
     dogColor: "",
+    ribboncolor: "",
     dogChipNumber: "",
     dogPuppyCard: "",
     
@@ -817,7 +819,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           buyerName: "", buyerAddress: "", buyerPhone: "", buyerEmail: "",
           buyerPassportSeries: "", buyerPassportNumber: "", buyerPassportIssuedBy: "", buyerPassportIssuedDate: "",
           dogFatherName: "", dogFatherRegNumber: "", dogMotherName: "", dogMotherRegNumber: "",
-          dogName: "", dogBirthDate: "", dogGender: "", dogColor: "", dogChipNumber: "", dogPuppyCard: "",
+          dogName: "", dogBirthDate: "", dogGender: "", dogColor: "", ribboncolor: "", dogChipNumber: "", dogPuppyCard: "",
           purposeBreeding: false, purposeCompanion: false, purposeGeneral: false,
           price: "", depositAmount: "", depositDate: "", remainingAmount: "", finalPaymentDate: "",
           dewormingDate: "", vaccinationDates: "", vaccineName: "", nextDewormingDate: "", nextVaccinationDate: "",
@@ -887,6 +889,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           dogBirthDate: "",
           dogGender: "",
           dogColor: "",
+          ribboncolor: "",
           dogChipNumber: "",
           dogPuppyCard: "",
           // Очищаем цели
@@ -1395,6 +1398,14 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     value={formData.dogColor}
                     onChange={(e) => handleChange('dogColor', e.target.value)}
                     placeholder="Blue Fawn"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Цвет ошейника</label>
+                  <Input
+                    value={formData.ribboncolor}
+                    onChange={(e) => handleChange('ribboncolor', e.target.value)}
+                    placeholder="Красный"
                   />
                 </div>
                 <div>
