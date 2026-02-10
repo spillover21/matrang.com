@@ -16,7 +16,7 @@ date_default_timezone_set('UTC');
 // ВАЖНО: Замените на ваш реальный API токен из Documenso
 // (Team Settings -> API Tokens -> создайте "PHP Contract Bridge")
 const DOCUMENSO_API_TOKEN = 'api_iffjvv698wn27tji'; // Начинается с 'api_'
-const DOCUMENSO_BASE_URL = 'http://72.62.114.139:9000';
+const DOCUMENSO_BASE_URL = 'http://72.62.114.139';
 const DOCUMENSO_API_URL = DOCUMENSO_BASE_URL . '/api/v2';
 
 // API ключ для защиты этого эндпоинта
@@ -169,6 +169,22 @@ function documensoApiRequest($endpoint, $method = 'GET', $data = null, $isMultip
 }
 
 /**
+ * Получение реального IP адреса клиента
+ */
+function getClientIp() {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ips[0]);
+    }
+    
+    return $ip;
+}
+
+/**
  * Обновление статуса envelope на PENDING (документ готов к подписанию)
  * Примечание: API V2 создает документы в статусе DRAFT, нужно обновить на PENDING
  */
@@ -195,6 +211,13 @@ function updateEnvelopeStatus($envelopeId) {
         'UPDATE "Recipient" SET "sendStatus" = $1 WHERE "envelopeId" = $2',
         ['SENT', $envelopeId]
     );
+
+    // FIX: Обновляем IP адреса в Audit Log (триггеры ставят 127.0.0.1)
+    $realIp = getClientIp();
+    $updateAudit = pg_query_params($conn,
+        'UPDATE "DocumentAuditLog" SET "ipAddress" = $1 WHERE "envelopeId" = $2 AND "userAgent" = $3',
+        [$realIp, $envelopeId, 'PHP API']
+    );
     
     pg_close($conn);
     
@@ -202,7 +225,7 @@ function updateEnvelopeStatus($envelopeId) {
         throw new Exception("Failed to update envelope status");
     }
     
-    logDebug("Envelope status updated to PENDING", ['envelope_id' => $envelopeId]);
+    logDebug("Envelope status updated to PENDING via SQL. Audit IPs updated to $realIp", ['envelope_id' => $envelopeId]);
 }
 
 // =====================================
