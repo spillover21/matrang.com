@@ -1456,7 +1456,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 <div>
                   <label className="block text-sm font-medium mb-1">Полная стоимость (руб.) *</label>
                   <Input
-                    type="number"
+                    type="text"
                     value={formData.price}
                     onChange={(e) => handleChange('price', e.target.value)}
                     placeholder="150000"
@@ -1465,7 +1465,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 <div>
                   <label className="block text-sm font-medium mb-1">Сумма задатка (руб.)</label>
                   <Input
-                    type="number"
+                    type="text"
                     value={formData.depositAmount}
                     onChange={(e) => handleChange('depositAmount', e.target.value)}
                     placeholder="30000"
@@ -1482,7 +1482,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 <div>
                   <label className="block text-sm font-medium mb-1">Остаток к оплате (руб.)</label>
                   <Input
-                    type="number"
+                    type="text"
                     value={formData.remainingAmount}
                     onChange={(e) => handleChange('remainingAmount', e.target.value)}
                     placeholder={formData.price && formData.depositAmount ? 
@@ -1492,9 +1492,10 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 <div className="col-span-2">
                   <label className="block text-sm font-medium mb-1">Срок окончательного расчета</label>
                   <Input
-                    type="date"
+                    type="text"
                     value={formData.finalPaymentDate}
                     onChange={(e) => handleChange('finalPaymentDate', e.target.value)}
+                    placeholder="15.03.2026 или 'до конца месяца'"
                   />
                 </div>
               </div>
