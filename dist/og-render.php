@@ -13,7 +13,7 @@ $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $title = 'Great Legacy Bully — Питомник American Bully';
 $description = 'Семейный питомник American Bully XL & Standard в Финляндии. Качественные щенки с родословной ABKC. Генетика, здоровье, характер. Доставка по всей России и Европе.';
 $siteName = 'Great Legacy Bully';
-$ogImage = $baseUrl . '/og-image.jpg';
+$ogImage = $baseUrl . '/og-image-serve.php';
 $ogUrl = $baseUrl . '/';
 $locale = 'ru_RU';
 
