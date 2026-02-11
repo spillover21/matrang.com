@@ -265,6 +265,78 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     }
   };
 
+  // === Черновик: сохранение/загрузка всех полей формы ===
+  const saveDraft = () => {
+    try {
+      const draftData = {
+        formData: formData,
+        templateLang: templateLang,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem('contractDraft', JSON.stringify(draftData));
+      toast.success("Черновик сохранён! Вы можете вернуться к нему позже.");
+    } catch (e: any) {
+      if (e?.name === 'QuotaExceededError' || e?.code === 22) {
+        // Попробуем сохранить без фото щенка (оно может быть большим)
+        try {
+          const draftDataNoPhoto = {
+            formData: { ...formData, puppyPhoto: undefined },
+            templateLang: templateLang,
+            savedAt: new Date().toISOString(),
+          };
+          localStorage.setItem('contractDraft', JSON.stringify(draftDataNoPhoto));
+          toast.warning("Черновик сохранён (без фото щенка — слишком большой файл)");
+        } catch {
+          toast.error("Не удалось сохранить черновик: недостаточно места в хранилище");
+        }
+      } else {
+        toast.error("Ошибка сохранения черновика");
+        console.error("saveDraft error:", e);
+      }
+    }
+  };
+
+  const loadDraft = () => {
+    const saved = localStorage.getItem('contractDraft');
+    if (!saved) {
+      toast.error("Нет сохранённого черновика");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(saved);
+      const savedDate = parsed.savedAt ? new Date(parsed.savedAt).toLocaleString('ru-RU') : 'неизвестно';
+      if (!window.confirm(`Загрузить черновик от ${savedDate}?\n\nВсе текущие данные формы будут заменены.`)) {
+        return;
+      }
+      if (parsed.formData) {
+        setFormData(prev => ({ ...prev, ...parsed.formData }));
+      }
+      if (parsed.templateLang) {
+        setTemplateLang(parsed.templateLang);
+      }
+      toast.success(`Черновик от ${savedDate} загружен`);
+    } catch (e) {
+      toast.error("Ошибка загрузки черновика");
+      console.error("loadDraft error:", e);
+    }
+  };
+
+  const deleteDraft = () => {
+    const saved = localStorage.getItem('contractDraft');
+    if (!saved) {
+      toast.error("Нет сохранённого черновика для удаления");
+      return;
+    }
+    if (window.confirm("Удалить сохранённый черновик?")) {
+      localStorage.removeItem('contractDraft');
+      toast.success("Черновик удалён");
+    }
+  };
+
+  const hasDraft = (): boolean => {
+    return localStorage.getItem('contractDraft') !== null;
+  };
+
   const uploadPdfTemplate = async (file: File, lang: 'ru' | 'en' = 'ru') => {
     // Загружаем сразу на VPS, локальное хранилище не нужно
     try {
@@ -1166,6 +1238,36 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                 </div>
               </div>
               
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={saveDraft}
+                  className="h-14 border-amber-300 hover:bg-amber-50 text-amber-700"
+                >
+                  <Archive className="w-5 h-5 mr-2" />
+                  💾 Сохранить черновик
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={loadDraft}
+                  className="h-14 border-green-300 hover:bg-green-50 text-green-700"
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  📂 Загрузить черновик
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={deleteDraft}
+                  className="h-14 border-red-300 hover:bg-red-50 text-red-700"
+                >
+                  <Trash2 className="w-5 h-5 mr-2" />
+                  🗑️ Удалить черновик
+                </Button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button
                   variant="outline"
