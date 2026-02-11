@@ -13,7 +13,7 @@ $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $title = 'Great Legacy Bully — Питомник American Bully';
 $description = 'Семейный питомник American Bully XL & Standard в Финляндии. Качественные щенки с родословной ABKC. Генетика, здоровье, характер. Доставка по всей России и Европе.';
 $siteName = 'Great Legacy Bully';
-$ogImage = $baseUrl . '/og-image-serve.php?v=2';
+$ogImage = $baseUrl . '/uploads/1767891439_85337ea8.png';
 $ogUrl = $baseUrl . '/';
 $locale = 'ru_RU';
 
@@ -35,9 +35,9 @@ header('X-Robots-Tag: all');
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?= htmlspecialchars($ogUrl) ?>">
     <meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
-    <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="800">
     <meta property="og:site_name" content="<?= htmlspecialchars($siteName) ?>">
     <meta property="og:locale" content="<?= $locale ?>">
     
