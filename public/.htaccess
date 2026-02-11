@@ -1,17 +1,28 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  
+
+  # Force index.php as primary DirectoryIndex (before index.html)
+  DirectoryIndex index.php index.html
+
   # Social media crawlers → PHP OG renderer (bypass Hostinger WAF/anti-bot)
-  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Pinterest|Slackbot|TelegramBot|vkShare|Viber|Discordbot|bot\.html [NC]
-  RewriteRule ^$ /og-render.php [L]
+  # Must be FIRST rule - before DirectoryIndex kicks in
+  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Pinterest|Slackbot|TelegramBot|vkShare|Viber|Discordbot [NC]
+  RewriteRule ^(index\.html)?$ /og-render.php [L]
   
   # Маршрут для страницы подписания
   RewriteRule ^sign$ sign.html [QSA,L]
   
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.html [QSA,L]
+  RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# LiteSpeed anti-bot: whitelist social media crawlers
+<IfModule LiteSpeed>
+  RewriteEngine On
+  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|Facebot|WhatsApp [NC]
+  RewriteRule .* - [E=noabort:1,E=noconntimeout:1]
 </IfModule>
 
 <IfModule mod_mime.c>
