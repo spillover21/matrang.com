@@ -212,11 +212,17 @@ function updateEnvelopeStatus($envelopeId) {
         ['SENT', $envelopeId]
     );
 
-    // FIX: Обновляем IP адреса в Audit Log (триггеры ставят 127.0.0.1)
+    // FIX: Обновляем IP адреса в Audit Log ТОЛЬКО для событий созданных триггерами БД
+    // НЕ трогаем события подписания, которые приходят с реальными IP
+    // Триггеры вставляют пустой userAgent (''), обновляем только такие записи
     $realIp = getClientIp();
     $updateAudit = pg_query_params($conn,
-        'UPDATE "DocumentAuditLog" SET "ipAddress" = $1 WHERE "envelopeId" = $2 AND "userAgent" = $3',
-        [$realIp, $envelopeId, 'PHP API']
+        'UPDATE "DocumentAuditLog" 
+         SET "ipAddress" = $1, "userAgent" = $2
+         WHERE "envelopeId" = $3 
+         AND "userAgent" = $4 
+         AND type IN ($5, $6, $7, $8)',
+        [$realIp, 'PHP API', $envelopeId, '', 'DOCUMENT_CREATED', 'DOCUMENT_SENT', 'DOCUMENT_FIELD_INSERTED', 'EMAIL_SENT']
     );
     
     pg_close($conn);

@@ -58,6 +58,7 @@ interface ContractData {
   ribboncolor?: string;
   dogChipNumber?: string;
   dogPuppyCard?: string;
+  puppyPhoto?: string;
   
   // Цель приобретения
   purposeBreeding?: boolean;
@@ -167,6 +168,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     ribboncolor: "",
     dogChipNumber: "",
     dogPuppyCard: "",
+    puppyPhoto: "",
     
     // Цель приобретения
     purposeBreeding: false,
@@ -350,6 +352,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
       dogColor: "Триколор",
       dogChipNumber: "643094100123456",
       dogPuppyCard: "ABKC-2024-001",
+      puppyPhoto: "",
       
       // Цель приобретения
       purposeBreeding: false,
@@ -484,6 +487,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           dogColor: "",
           dogChipNumber: "",
           dogPuppyCard: "",
+          puppyPhoto: "",
           purposeBreeding: false,
           purposeCompanion: false,
           purposeGeneral: false,
@@ -515,6 +519,55 @@ const ContractManager = ({ token }: ContractManagerProps) => {
 
   const handleChange = (field: keyof ContractData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Обработчик загрузки фото щенка
+  const handlePuppyPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Выберите изображение (JPG, PNG)");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Файл слишком большой (макс. 10 МБ)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Сжимаем изображение до разумного размера для PDF
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_SIZE || height > MAX_SIZE) {
+          if (width > height) {
+            height = Math.round(height * MAX_SIZE / width);
+            width = MAX_SIZE;
+          } else {
+            width = Math.round(width * MAX_SIZE / height);
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+        setFormData(prev => ({ ...prev, puppyPhoto: compressedBase64 }));
+        toast.success("Фото щенка загружено");
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   const saveAsTemplate = async () => {
@@ -611,6 +664,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
     '`dogColor`': formData.dogColor || '',
     '`dogChipNumber`': formData.dogChipNumber || '',
     '`dogPuppyCard`': formData.dogPuppyCard || '',
+    '`puppytphoto`': formData.puppyPhoto || '',
 
     '`purposeBreeding`': formData.purposeBreeding || false,
     '`purposeCompanion`': formData.purposeCompanion || false,
@@ -819,7 +873,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           buyerName: "", buyerAddress: "", buyerPhone: "", buyerEmail: "",
           buyerPassportSeries: "", buyerPassportNumber: "", buyerPassportIssuedBy: "", buyerPassportIssuedDate: "",
           dogFatherName: "", dogFatherRegNumber: "", dogMotherName: "", dogMotherRegNumber: "",
-          dogName: "", dogBirthDate: "", dogGender: "", dogColor: "", ribboncolor: "", dogChipNumber: "", dogPuppyCard: "",
+          dogName: "", dogBirthDate: "", dogGender: "", dogColor: "", ribboncolor: "", dogChipNumber: "", dogPuppyCard: "", puppyPhoto: "",
           purposeBreeding: false, purposeCompanion: false, purposeGeneral: false,
           price: "", depositAmount: "", depositDate: "", remainingAmount: "", finalPaymentDate: "",
           dewormingDate: "", vaccinationDates: "", vaccineName: "", nextDewormingDate: "", nextVaccinationDate: "",
@@ -892,6 +946,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
           ribboncolor: "",
           dogChipNumber: "",
           dogPuppyCard: "",
+          puppyPhoto: "",
           // Очищаем цели
           purposeBreeding: false,
           purposeCompanion: false,
@@ -1423,6 +1478,44 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                     onChange={(e) => handleChange('dogPuppyCard', e.target.value)}
                     placeholder="ABKC номер"
                   />
+                </div>
+
+                {/* Фото щенка */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium mb-1">Фото щенка (для договора)</label>
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1">
+                      <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {formData.puppyPhoto ? "Заменить фото" : "Загрузить фото"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePuppyPhotoUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    {formData.puppyPhoto && (
+                      <div className="relative">
+                        <img
+                          src={formData.puppyPhoto}
+                          alt="Фото щенка"
+                          className="w-24 h-24 object-cover rounded-lg border border-border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, puppyPhoto: "" }))}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-destructive/80"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">JPG или PNG, до 10 МБ. Будет вставлено в поле puppytphoto в шаблоне.</p>
                 </div>
               </div>
 
