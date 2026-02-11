@@ -6,8 +6,11 @@
 
 $cachePath = __DIR__ . '/og-image-cached.jpg';
 
+// Force regenerate if ?refresh parameter or cache doesn't exist
+$forceRefresh = isset($_GET['refresh']);
+
 // Serve cached version if exists and fresh (< 1 hour)
-if (file_exists($cachePath) && (time() - filemtime($cachePath)) < 3600) {
+if (!$forceRefresh && file_exists($cachePath) && (time() - filemtime($cachePath)) < 3600) {
     http_response_code(200);
     header('Content-Type: image/jpeg');
     header('Content-Length: ' . filesize($cachePath));
