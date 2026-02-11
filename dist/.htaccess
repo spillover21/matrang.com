@@ -2,6 +2,10 @@
   RewriteEngine On
   RewriteBase /
   
+  # Social media crawlers → PHP OG renderer (bypass Hostinger WAF/anti-bot)
+  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Pinterest|Slackbot|TelegramBot|vkShare|Viber|Discordbot|bot\.html [NC]
+  RewriteRule ^$ /og-render.php [L]
+  
   # Маршрут для страницы подписания
   RewriteRule ^sign$ sign.html [QSA,L]
   
