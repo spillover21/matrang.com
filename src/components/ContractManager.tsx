@@ -10,7 +10,7 @@ import { PDFDocument } from 'pdf-lib';
 // Version: 2026-02-06-FIX-FINAL-v2
 if (typeof window !== 'undefined') {
   (window as any).__CONTRACT_MANAGER_LOADED = Date.now();
-  console.error("🚨 ContractManager module loaded (v2026.02.06):", new Date().toISOString());
+  console.error("🚨 ContractManager module loaded (v2026.02.12):", new Date().toISOString());
   // Force alert to prove new code is loaded
   // alert("Debug: Contract Manager Loaded v2"); 
 }
