@@ -1103,7 +1103,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
             <h1 className="text-3xl font-bold">Управление договорами</h1>
             <Button 
               variant="outline" 
-              onClick={() => window.open('http://72.62.114.139:9000/documents', '_blank')}
+              onClick={() => window.open('http://72.62.114.139/documents', '_blank')}
               className="gap-2"
             >
               <ExternalLink className="w-4 h-4" />
@@ -1928,7 +1928,7 @@ const ContractManager = ({ token }: ContractManagerProps) => {
                         
                         {contract.signedAt && !contract.signedDocumentUrl && (
                           <Button variant="outline" size="sm" asChild className="w-full">
-                            <a href="http://72.62.114.139:9000/documents" target="_blank" rel="noopener noreferrer">
+                            <a href="http://72.62.114.139/documents" target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="w-4 h-4 mr-2" />
                               Все документы (Documenso)
                             </a>
