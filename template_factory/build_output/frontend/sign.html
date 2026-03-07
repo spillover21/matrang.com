@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Подписание договора (eIDAS) | MATRANG</title>
+    <!-- Подключаем PDF.js и Signature Pad -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    <style>
+        body { margin: 0; padding: 0; background: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; background: white; min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        header { background: #1f2937; color: white; padding: 15px; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        header img { height: 30px; }
+        header .badge { background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+
+        #pdf-viewer { flex: 1; overflow-y: auto; background: #d1d5db; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        canvas.pdf-page { max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 4px; }
+
+        #controls { padding: 20px; text-align: center; border-top: 1px solid #e5e7eb; background: white; position: sticky; bottom: 0; z-index: 10; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        button { cursor: pointer; transition: all 0.2s; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        button.primary { background: #2563eb; color: white; padding: 16px 32px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; width: 100%; max-width: 400px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.5); }
+        button.primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 450px; animation: slideUp 0.3s ease-out; }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Signature Pad */
+        #pad-canvas { border: 2px dashed #9ca3af; width: 100%; height: 200px; border-radius: 8px; background: #f9fafb; touch-action: none; }
+        .pad-controls { margin-top: 15px; display: flex; gap: 10px; }
+        .pad-controls button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; }
+        .btn-clear { background: #fee2e2; color: #991b1b; }
+        .btn-sign { background: #16a34a; color: white; }
+
+        /* Inputs */
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #374151; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 18px; box-sizing: border-box; text-align: center; letter-spacing: 2px; }
+        .input-group input:focus { border-color: #2563eb; outline: none; }
+        
+        .legal-text { font-size: 12px; color: #6b7280; line-height: 1.5; margin: 15px 0; text-align: left; background: #f9fafb; padding: 10px; border-radius: 8px; }
+
+        /* Loader */
+        #loader { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: white; z-index:2000; align-items:center; justify-content:center; flex-direction:column; gap: 20px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Success */
+        .success-checkmark { color: #16a34a; font-size: 64px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader" style="display: flex;">
+    <div class="spinner"></div>
+    <div id="loader-text" style="font-weight: 500; color: #4b5563;">Загрузка документа...</div>
+</div>
+
+<div class="container" id="app">
+    <header>
+        <div style="font-weight: bold;">Great Legacy Bully</div>
+        <div class="badge">eIDAS Secure</div>
+    </header>
+
+    <div id="pdf-viewer"></div>
+
+    <div id="controls">
+        <button class="primary" onclick="showSignModal()">✍️ Подписать документ</button>
+        <div style="margin-top: 10px; font-size: 12px; color: #9ca3af;">
+            Нажима "Подписать", вы соглашаетесь на использование электронной подписи (eIDAS)
+        </div>
+    </div>
+</div>
+
+<!-- Signature Modal -->
+<div id="modal-sign" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top: 0;">Ваша подпись</h3>
+        <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Расшипитесь ниже пальцем или мышкой</p>
+        
+        <canvas id="pad-canvas"></canvas>
+        
+        <div class="pad-controls">
+            <button class="btn-clear" onclick="signaturePad.clear()">Очистить</button>
+            <button class="btn-sign" onclick="requestSms()">Продолжить</button>
+        </div>
+        <button style="background: none; border: none; color: #6b7280; margin-top: 15px; width: 100%;" onclick="closeModal('modal-sign')">Отмена</button>
+    </div>
+</div>
+
+<!-- SMS Verification Modal -->
+<div id="modal-sms" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <h3>SMS Подтверждение</h3>
+        <p style="color: #6b7280; margin-bottom: 20px;">
+            Код подтверждения отправлен на номер<br>
+            <b id="phone-display">...</b>
+        </p>
+        
+        <div class="input-group">
+            <input type="text" id="sms-code" placeholder="123456" maxlength="6" pattern="\d*">
+        </div>
+        
+        <div class="legal-text">
+            Я подтверждаю, что ознакомлен с документом и подписываю его с использованием Advanced Electronic Signature в соответствии с регламентом eIDAS (EU) No 910/2014.
+        </div>
+
+        <button class="primary" onclick="submitSignature()">Подтвердить и Подписать</button>
+        <button style="background: none; border: none; color: #6b7280; margin-top: 15px; text-decoration: underline;" onclick="closeModal('modal-sms')">Отмена</button>
+    </div>
+</div>
+
+<!-- Success Screen -->
+<div id="success-screen" class="container" style="display: none; align-items: center; justify-content: center; text-align: center; padding: 40px;">
+    <div class="success-checkmark">✅</div>
+    <h2>Документ успешно подписан!</h2>
+    <p style="color: #4b5563; line-height: 1.6;">
+        Сертификат электронной подписи (eIDAS) сформирован.<br>
+        Копия подписанного документа отправлена вам на Email.
+    </p>
+    <a href="/" style="margin-top: 30px; display: inline-block; color: #2563eb; text-decoration: none;">Вернуться на сайт</a>
+</div>
+
+<script>
+    // Config
+    const urlParams = new URLSearchParams(window.location.search);
+    const TOKEN = urlParams.get('token');
+    
+    let signaturePad;
+    let requestData = null;
+
+    // Init
+    async function init() {
+        if (!TOKEN) {
+            alert('Ошибка: Ссылка недействительна (нет токена)');
+            return;
+        }
+
+        try {
+            // Fetch request details
+            const res = await fetch(`/api/api.php?action=getSigningRequest&token=${TOKEN}`);
+            const data = await res.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || 'Запрос не найден или истек');
+            }
+            
+            requestData = data.request;
+            document.getElementById('phone-display').innerText = requestData.buyer_phone;
+            
+            // Load PDF
+            await renderPdf(requestData.pdf_url);
+            
+            // Init signature pad
+            const canvas = document.getElementById('pad-canvas');
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad = new SignaturePad(canvas);
+            
+            // Hide loader
+            document.getElementById('loader').style.display = 'none';
+        } catch (e) {
+            alert('Ошибка: ' + e.message);
+            document.getElementById('loader-text').innerText = 'Ошибка загрузки';
+        }
+    }
+
+    // PDF Rendering
+    async function renderPdf(url) {
+        const loadingTask = pdfjsLib.getDocument(url);
+        const pdf = await loadingTask.promise;
+        const container = document.getElementById('pdf-viewer');
+        
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const scale = 1.5;
+            const viewport = page.getViewport({ scale });
+            
+            const canvas = document.createElement('canvas');
+            canvas.className = 'pdf-page';
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            await page.render({ canvasContext: context, viewport }).promise;
+            container.appendChild(canvas);
+        }
+    }
+
+    // Actions
+    function showSignModal() {
+        document.getElementById('modal-sign').style.display = 'flex';
+        signaturePad.clear();
+    }
+
+    function requestSms() {
+        if (signaturePad.isEmpty()) {
+            alert('Пожалуйста, распишитесь');
+            return;
+        }
+        document.getElementById('modal-sign').style.display = 'none';
+        document.getElementById('modal-sms').style.display = 'flex';
+        // In real system we might request SMS trigger here if it's dynamic
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    async function submitSignature() {
+        const smsCode = document.getElementById('sms-code').value;
+        if (!smsCode || smsCode.length < 4) {
+            alert('Введите код из SMS');
+            return;
+        }
+
+        const btn = document.querySelector('#modal-sms button.primary');
+        const originalText = btn.innerText;
+        btn.innerText = 'Обработка...';
+        btn.disabled = true;
+
+        try {
+            const signatureData = signaturePad.toDataURL();
+            
+            const res = await fetch('/api/api.php?action=signContract', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: TOKEN,
+                    sms_code: smsCode,
+                    signature_data: signatureData,
+                    client_metadata: {
+                        user_agent: navigator.userAgent,
+                        screen_width: window.screen.width,
+                        screen_height: window.screen.height,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    }
+                })
+            });
+
+            const result = await res.json();
+            
+            if (result.success) {
+                document.getElementById('modal-sms').style.display = 'none';
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('success-screen').style.display = 'flex';
+            } else {
+                throw new Error(result.message || 'Ошибка подписания');
+            }
+        } catch (e) {
+            alert('Ошибка: ' + e.message);
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    window.addEventListener('load', init);
+    
+    // Resize handling for canvas
+    window.addEventListener("resize", () => {
+         // Re-init pad on rotate/resize if needed
+    });
+</script>
+
+</body>
+</html>

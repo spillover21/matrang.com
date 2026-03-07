@@ -1,0 +1,82 @@
+<?php
+/**
+ * Сервис для работы с договорами через Documenso
+ * Полный цикл: заполнение PDF → загрузка → отправка на подпись
+ */
+
+require_once __DIR__ . '/DocumensoBridgeClient.php';
+
+class ContractService {
+    private $bridge;
+    
+    public function __construct() {
+        $this->bridge = new DocumensoBridgeClient();
+    }
+    
+    /**
+     * Создать договор и отправить на подпись
+     * 
+     * @param array $contractData Данные из формы ContractManager
+     * @return array Результат с envelope_id и signing_url
+     */
+    public function createAndSendContract($contractData) {
+        // Отправляем данные напрямую на VPS через Bridge API V2
+        // VPS сам заполнит шаблон через Python pypdf, загрузит в Documenso и создаст envelope
+        
+        $ch = curl_init('http://{{SERVER_IP}}:8080/create_envelope_api_v2.php');
+
+
+        
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($contractData),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'X-API-Key: {{BRIDGE_SECRET}}'
+            ],
+            CURLOPT_TIMEOUT => 60
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        if ($curlError) {
+            throw new Exception('Bridge API connection error: ' . $curlError);
+        }
+        
+        if ($httpCode !== 200) {
+            throw new Exception('Bridge API returned HTTP ' . $httpCode . ': ' . $response);
+        }
+        
+        $result = json_decode($response, true);
+        
+        if (!$result || !$result['success']) {
+            throw new Exception($result['error'] ?? 'Unknown error from Bridge API');
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Получить статус подписания договора
+     */
+    public function getContractStatus($envelopeId) {
+        $envelope = $this->bridge->getEnvelope($envelopeId);
+        $recipients = $this->bridge->getRecipients($envelopeId);
+        
+        return [
+            'envelope' => $envelope['envelope'],
+            'recipients' => $recipients['recipients']
+        ];
+    }
+    
+    /**
+     * Получить ссылку для подписания
+     */
+    public function getSigningLink($envelopeId, $recipientEmail) {
+        return $this->bridge->getSigningUrl($envelopeId, $recipientEmail);
+    }
+}

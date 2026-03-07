@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диагностика Webhook - Documenso</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .danger:hover {
+            background: #c82333;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Диагностика Webhook</h1>
+        
+        <div id="results">
+            <p>Загрузка...</p>
+        </div>
+
+        <div id="actions" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        async function checkWebhooks() {
+            const results = document.getElementById('results');
+            const actions = document.getElementById('actions');
+            results.innerHTML = '<p>⏳ Проверка настроек...</p>';
+            actions.innerHTML = '';
+
+            try {
+                const response = await fetch('check_webhook.php');
+                const text = await response.text();
+                const html = text.replace(/\n/g, '<br>');
+                results.innerHTML = '<pre>' + html + '</pre>';
+
+                // Если webhooks не настроены, показываем кнопку для создания
+                if (text.includes('Webhooks не настроены')) {
+                    actions.innerHTML = `
+                        <button onclick="createWebhook()">✅ Создать Webhook автоматически</button>
+                        <br><br>
+                        <div class="info">
+                            <strong>Что делает эта кнопка:</strong><br>
+                            1. Создает webhook в Documenso<br>
+                            2. URL: http://matrang.com/api/webhook_documenso.php<br>
+                            3. Событие: DOCUMENT_COMPLETED<br>
+                            4. После этого при подписании договора будет автоматически сохраняться PDF
+                        </div>
+                    `;
+                } else if (text.includes('Найдено webhooks')) {
+                    actions.innerHTML = `
+                        <div class="success">✅ Webhooks уже настроены!</div>
+                        <button onclick="testWebhook()">🧪 Тестировать Webhook</button>
+                        <button class="danger" onclick="deleteAllWebhooks()">🗑️ Удалить все Webhooks</button>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        async function createWebhook() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>⏳ Создание webhook...</p>';
+
+            try {
+                const response = await fetch('create_webhook_api.php', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    results.innerHTML = `
+                        <div class="success">
+                            ✅ Webhook успешно создан!<br>
+                            <strong>ID:</strong> ${data.webhook.id || 'N/A'}<br>
+                            <strong>URL:</strong> ${data.webhook.webhookUrl || 'N/A'}<br>
+                            <strong>События:</strong> ${(data.webhook.eventTriggers || []).join(', ')}
+                        </div>
+                    `;
+                    setTimeout(checkWebhooks, 1000);
+                } else {
+                    results.innerHTML = `<div class="error">❌ Ошибка: ${data.message}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        async function testWebhook() {
+            alert('Для тестирования:\n1. Создайте договор\n2. Подпишите его\n3. Проверьте раздел "Архив" - должна появиться ссылка для скачивания PDF');
+        }
+
+        async function deleteAllWebhooks() {
+            if (!confirm('Удалить все webhooks? Это остановит автоматическое сохранение PDF.')) {
+                return;
+            }
+
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>⏳ Удаление webhooks...</p>';
+
+            try {
+                const response = await fetch('delete_webhooks_api.php', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    results.innerHTML = `<div class="success">✅ Webhooks удалены</div>`;
+                    setTimeout(checkWebhooks, 1000);
+                } else {
+                    results.innerHTML = `<div class="error">❌ Ошибка: ${data.message}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        // Запускаем проверку при загрузке страницы
+        checkWebhooks();
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "kennelName": "GREAT LEGACY BULLY",
+  "kennelOwner": "Тест Владелец",
+  "kennelAddress": "Тестовый адрес, 123",
+  "kennelPhone": "+7 (900) 455-27-16",
+  "kennelEmail": "greatlegacybully@gmail.com",
+  "buyerName": "Тестовый Покупатель",
+  "buyerAddress": "Адрес покупателя, 456",
+  "buyerPhone": "+7 (999) 123-45-67",
+  "buyerEmail": "test@example.com",
+  "dogName": "Тестовая Собака",
+  "dogBreed": "Американский булли",
+  "dogBirthDate": "2025-12-01",
+  "dogGender": "Кобель",
+  "dogColor": "Черный",
+  "price": "150000",
+  "contractDate": "2026-01-30",
+  "contractPlace": "г. Каяани, Финляндия",
+  "deliveryTerms": "Доставка за счет покупателя, самовывоз из Хельсинки."
+}

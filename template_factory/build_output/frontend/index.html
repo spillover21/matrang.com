@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MATRANG App</title>
+    <meta name="description" content="MATRANG Project" />
+    <meta name="author" content="MATRANG" />
+    <meta property="og:title" content="MATRANG App" />
+    <meta property="og:description" content="MATRANG Project" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://matrang.com/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@MATRANG" />
+    <meta name="twitter:image" content="https://matrang.com/og-image.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- VANILLA JS BRIDGE - PROFILE BUTTONS -->
+    <div id="vanilla-profile-ui" style="display: none; gap: 8px;">
+         <button id="btn-save-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">💾 Сохранить данные</button>
+         <button id="btn-load-profile" style="font-size: 12px; padding: 6px 10px; background: #334155; color: white; border: 1px solid #475569; border-radius: 4px; cursor: pointer;">📥 Вставить данные</button>
+    </div>
+
+    <style>
+      #vanilla-profile-ui button { transition: all 0.2s; }
+      #vanilla-profile-ui button:active { transform: scale(0.95); }
+    </style>
+    
+    <script>
+    (function() {
+      const getHeaders = () => {
+        const token = localStorage.getItem("admin_token");
+        return token ? { 'Authorization': 'Bearer ' + token } : {};
+      };
+      
+      const getValByLabel = (labelText, type = 'text', index = 0) => {
+        const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText && l.innerText.includes(labelText));
+        const labelEl = labels[index]; 
+        if (!labelEl) return '';
+        const parent = labelEl.parentElement;
+        if (!parent) return '';
+        const input = parent.querySelector('input, select, textarea');
+        let val = input ? input.value : '';
+        if (input && input.type === 'date' && val) {
+          const [y, m, d] = val.split('-');
+          return d + '.' + m + '.' + y;
+        }
+        return val;
+      };
+
+      const setValByLabel = (labelText, value, index = 0) => {
+         const labels = Array.from(document.querySelectorAll('label'))
+            .filter(l => l.innerText && l.innerText.includes(labelText));
+         const labelEl = labels[index];
+         if (!labelEl) return;
+         const parent = labelEl.parentElement;
+         if (!parent) return;
+         const input = parent.querySelector('input, select, textarea');
+         if (input) {
+             const proto = Object.getPrototypeOf(input);
+             const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+             if (setter) setter.call(input, value); else input.value = value;
+             input.dispatchEvent(new Event('input', { bubbles: true }));
+             input.dispatchEvent(new Event('change', { bubbles: true }));
+         }
+      };
+
+      const scrapeSellerInfo = () => {
+          return {
+             kennelOwner: getValByLabel('Владелец питомника'), 
+             kennelAddress: getValByLabel('Адрес', 'text', 0), 
+             kennelPhone: getValByLabel('Телефон', 'text', 0),
+             kennelEmail: getValByLabel('Email', 'text', 0),
+             kennelPassportSeries: getValByLabel('Паспорт серия', 'text', 0),
+             kennelPassportNumber: getValByLabel('Паспорт номер', 'text', 0),
+             kennelPassportIssuedBy: getValByLabel('Паспорт выдан', 'text', 0),
+             kennelPassportIssuedDate: getValByLabel('Дата выдачи паспорта', 'date', 0)
+          };
+      };
+
+      document.getElementById('btn-save-profile').addEventListener('click', async () => {
+         const data = scrapeSellerInfo();
+         console.log('💾 SAVING DATA:', data);
+         if (!data.kennelOwner) { alert('❌ Сначала заполните ФИО и другие свои данные, затем жмите сохранение.'); return; }
+         try {
+             await fetch('/api/api.php?action=save_seller_profile', {
+                 method: 'POST',
+                 headers: getHeaders(),
+                 body: JSON.stringify(data)
+             });
+             alert('✅ Ваши данные сохранены! Теперь можно не вводить их вручную.');
+         } catch(e) { alert('Error: ' + e.message); }
+      });
+
+      document.getElementById('btn-load-profile').addEventListener('click', async () => {
+         try {
+             const res = await fetch('/api/api.php?action=get_seller_profile', { headers: getHeaders() });
+             let data = await res.json();
+             console.log('📥 LOADED DATA:', data);
+             if (!data || Object.keys(data).length === 0) {
+                 alert('⚠️ Нет сохраненных данных.'); return;
+             }
+             setValByLabel('Владелец питомника', data.kennelOwner || '');
+             setValByLabel('Адрес', data.kennelAddress || '', 0);
+             setValByLabel('Телефон', data.kennelPhone || '', 0);
+             setValByLabel('Email', data.kennelEmail || '', 0);
+             setValByLabel('Паспорт серия', data.kennelPassportSeries || '', 0);
+             setValByLabel('Паспорт номер', data.kennelPassportNumber || '', 0);
+             setValByLabel('Паспорт выдан', data.kennelPassportIssuedBy || '', 0);
+             
+             let dateVal = data.kennelPassportIssuedDate;
+             if (dateVal && dateVal.includes('.')) {
+                 const [d, m, y] = dateVal.split('.');
+                 dateVal = y + '-' + m + '-' + d;
+             }
+             setValByLabel('Дата выдачи паспорта', dateVal || '', 0);
+             alert('✅ Ваши данные успешно вставлены!');
+         } catch(e) { console.error(e); alert('Error loading profile: ' + e.message); }
+      });
+
+      const checkUiVisibility = () => {
+         let ui = document.getElementById('vanilla-profile-ui');
+         if (!ui) return;
+         const container = document.getElementById('vanilla-profile-buttons-container');
+         
+         if (container) {
+             ui.style.display = 'flex';
+             if (ui.parentElement !== container) {
+                 container.appendChild(ui);
+             }
+         } else {
+             ui.style.display = 'none';
+         }
+      };
+      setInterval(checkUiVisibility, 1000);
+      checkUiVisibility();
+    })();
+    </script>
+  </body>
+</html>

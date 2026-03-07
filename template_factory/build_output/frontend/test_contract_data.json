@@ -1,0 +1,19 @@
+{
+  "kennelName": "GREAT LEGACY BULLY",
+  "kennelOwner": "Test Owner",
+  "kennelAddress": "Kajaani, Finland",
+  "kennelPhone": "+79004552716",
+  "kennelEmail": "greatlegacybully@gmail.com",
+  "buyerName": "Test Buyer",
+  "buyerAddress": "Moscow, Russia",
+  "buyerPhone": "+79991234567",
+  "buyerEmail": "test@example.com",
+  "dogName": "Test Puppy",
+  "dogBreed": "American Bully",
+  "dogBirthDate": "2024-10-15",
+  "dogGender": "Male",
+  "dogColor": "Tricolor",
+  "price": "150000",
+  "contractDate": "2025-02-08",
+  "contractPlace": "Kajaani, Finland"
+}
